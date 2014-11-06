@@ -1,0 +1,70 @@
+{% extends "skeleton.html" %}
+{% block title %} | Tour{% endblock %}
+
+
+
+{% block content %}
+<span class="bodyText">
+<br><br><br>
+
+
+Before getting into any details, here's how the site works: once you created an account, you input what your personal fitness-related goal is.  Each goal will trigger the back end of our website to calculate different types of training programs.
+<br><br><br>
+
+        <table width="661" border="0" align="center" cellpadding="0" cellspacing="0">
+          <tr>
+            <td height="11" background="../site_media/innercontenthead.png"></td>
+          </tr>
+          <tr>
+            <td valign="top" background="../site_media/innercontentbg.png" style="padding:15px 15px 0 25px;">
+
+<table width="600" border="0" cellpadding="2" cellspacing="1">
+
+
+{% for outer in allGoals %}
+<tr class="{% cycle 'row1' 'row2' %}" style='font-size:1.0em;'>
+<td class="bodyText5"><b>{{outer.name}}</b></td><td></td></tr>
+
+<tr><td class="bodyText"><br>{{outer.description.text}}<br><br></td><td><img style='position: relative; margin: 0;' src='../site_media/{{outer.image}}'></td></tr>
+{% endfor %}
+</table>
+            <br /></td>
+          </tr>
+          <tr>
+            <td height="18" background="../site_media/innercontentbottom.png">&nbsp;</td>
+          </tr>
+        </table>
+
+
+<br><br><br>
+In addition to the purpose of your training, you give us just a little bit of background information so that we can give you appropriate workouts given your fitness level.  
+
+<br><br><br>
+
+In a perfect world, you'd have constant access to a training facility with all of the equipment necessary to do every exercise known to man, and we could just tell you to do whatever exercises we felt like.  However, we can't even expect your gym to have all of the equipment that some exercises in our database use.  Moreover, you might be training out of your garage or in a hotel weight room.  As such, we let you tell us what equipment you have so that our application can provide the appropriate exercises.
+<br><br><br>
+
+Once you take the 45 seconds or so to input some information into our database, then you just simply click on the "Today's Workout" link.
+<br><br><br>
+
+Conventional weight lifting routines built by many bodybuilders and your average weight lifting enthusiast are organized into something like 1 or 2 muscle groups in a given day.  This works well in theory, but in practice you only receive diminishing returns during every workout as you continue to exhaust a muscle group that's already been stimulated.  The majority of gym rats aren't on steroids so this extra works only amounts to time being used ineffectively.  Even Lee Haney, eight time Mr. Olympia, advocated a method of "stimulate, don't annihilate."  Why spend an entire training day blasting your arms or your chest when either of these tasks can be accomplished in less than 20 minutes?  The split of muscle groups divided into different days also works for most people because it's a manner to logically divide and organize your workouts for a given week.  <br><br><br>
+
+
+Our application takes a different approach.  The logical division our workouts abide by is derived by different phases: stabilization, muscle endurance, hypertrophy, maximal strength, and power.  
+<br><br><br>
+
+
+Workouts are still divided by muscle groups, but only in a manner to always allow for recuperation.  We force your body to adapt based on how your body is using your muscles - sets, rep ranges, and the tempo at which you contract your muscles will change during each phase, and the types of exercise that you do will change as well.  By the time your body adapts to the work load, you will have already moved on to a different phase that forces your body to adapt in a whole new manner.  In this way, you will constantly be getting in better shape, and you will simultaneously allow your body to rest from the previous training method both physically and mentally. <br><br><br>
+
+
+Since our application uses an automated method of generating workouts that tracks previous workouts and can recall information immediately from our database, we can efficiently fill your specified time allotment for exercising every day with effective workouts.  Avoiding the logical split of muscle groups and working more body parts in any given workout will burn more fat and build more functional strength.  
+
+
+<br><br><br>
+
+Check out a <a href='../sampleworkout/'>sample workout</a> to see our page layout and the capabilities of our application!<br><br><br><br>
+
+</span>
+{% endblock %}
+
+

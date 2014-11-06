@@ -1,0 +1,84 @@
+{% extends "skeleton.html" %}
+{% block title %} - New User{% endblock %}
+
+
+
+{% block content %}
+
+<script type="text/javascript">
+
+function checkform(form)
+{
+  if(form.email.value!=form.confirmEmail.value)
+  {
+    alert("Your emails didn't match.  Did you make a typo?");
+    return false;
+  }
+  if(form.password.value!=form.confirmPassword.value)
+  {
+    alert("Your passwords didn't match.  Did you make a typo?");
+    return false;
+  }
+  if(form.username.value=="")
+  {
+    alert("Pick a username.  It can be anything your little heart desires.");
+    return false;
+
+  }
+  if(form.password.value=="")
+  {
+    alert("Pick a password please.");
+    return false;
+
+  }
+
+
+  return true;
+}
+
+
+</script>
+
+{% if error %}
+<h3>That username already exists.</h3>
+{% endif %}
+
+{% if passwordError %}
+<h4>Password doesn't match up with confirmation.  Re-enter passwords.</h4>
+{%endif%}
+
+
+<form action="." method="POST" onsubmit="return checkform(this)">
+  <table>
+
+<tr><td style='text-align: right;'>Username:</td><td><input type="text" class="text" name="username"></td><td></td><td></td></tr>
+<tr><td style='text-align: right;'>Password:</td><td><input type="password" class="text" name="password"></td><td></td><td></td></tr>
+<tr><td style='text-align: right;'>Confirm Password:</td><td><input type ="password" class="text"  name="confirmPassword"></td><td></td><td></td></tr>
+<tr><td style='text-align: right;'>Paypal Email Address <br><b>(Must match!  This is used only to verify payment):</b></td><td><input type ="text" class="text"  name="email"></td><td></td><td></td></tr>
+<tr><td style='text-align: right;'>Confirm Email Address:</td><td><input type ="text" class="text"  name="confirmEmail"></td><td></td><td></td></tr>
+
+
+<tr><td></td><td>
+<input type="image" src="https://www.sandbox.paypal.com/en_US/i/btn/btn_subscribeCC_LG.gif" value = "submit"></p>
+</td></tr>
+  </table>
+
+By clicking "Sign me up!" you agree to the OracleFitness <a href='../termsofservice'>terms of service</a>.
+<br><br>  Your information will be used only to create a better user experience in accordance with our <a href="../privacypolicy">privacy policy</a>.
+<p>
+</form>
+<form action="https://www.sandbox.paypal.com/cgi-bin/webscr" method="post">
+<input type="hidden" name="cmd" value="_s-xclick">
+<input type="hidden" name="hosted_button_id" value="45247">
+<input type="image"
+src="https://www.sandbox.paypal.com/en_US/i/btn/btn_subscribeCC_LG.gif"
+border="0" name="submit" alt="PayPal - The safer, easier way to pay
+online!">
+<img alt="" border="0"
+src="https://www.sandbox.paypal.com/en_US/i/scr/pixel.gif" width="1"
+height="1">
+</form>
+
+
+{% endblock %}
+

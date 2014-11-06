@@ -1,0 +1,33 @@
+{% extends "skeleton.html" %}
+{% block title %} - Home{% endblock %}
+
+
+
+{% block content %}
+<h2>Edit Phases</h2>
+
+<p style='width: 600px;'>
+Pretty straightforward...this is the tempo and rest associated with a phase.  Just ensure tempo maintains the format of "x-y-z".  Anything else will break it.  Make sure those are single digits too.
+</p>
+
+<form action='.' method='POST'>
+
+<table>
+<tr><td></td><td><b>Tempo</b> (seconds)</td><td><b>Rest</b> (seconds)</td></tr>
+
+
+
+
+
+
+{% for outerIterator in allPhases %}
+
+<tr class="{% cycle 'row1' 'row2' %}"><td>{{outerIterator.name}}</td><td><input type='text' size='3' name='{{outerIterator.id}}tempo' value='{{outerIterator.tempo}}' onFocus='makeBlank(this);' onBlur='updateValue(this);'></td><td><input type='text' size='3' name='{{outerIterator.id}}rest' value='{{outerIterator.rest}}' onFocus='makeBlank(this);' onBlur='updateValue(this);'></td><td><textarea name='{{outerIterator.id}}description' rows='7' cols='35'>{{outerIterator.description.text}}</textarea></td></tr>
+{% endfor %}
+<tr><td></td><td><input type='submit' value='Save'></td></tr>
+</table>
+
+</form>
+{% endblock %}
+
+

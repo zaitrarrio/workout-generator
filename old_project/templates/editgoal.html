@@ -1,0 +1,76 @@
+{% extends "skeleton.html" %}
+{% block title %} - Edit Goal{% endblock %}
+
+
+
+{% block content %}
+<h2>Edit Goal</h2>
+
+<script type="text/javascript">
+function makeVisible(intVal)
+{
+  if(document.getElementById('input'+intVal).style.visibility=='hidden')
+  {
+    document.getElementById('input'+intVal).style.visibility='visible';
+  }
+  else
+  {
+    document.getElementById('input'+intVal).style.visibility='hidden';
+  }
+}
+</script>
+
+<form action='../delete/' method='POST'>
+<input type="hidden" name="type" value="goal">
+<input type="hidden" name="id" value="{{currentGoal.id}}">
+<input type='submit' value="Delete this Item" onClick="return confirm('You sure bra?')">
+</form>
+
+<form action="." method="POST">
+<input type="hidden" name="goalID" value="{{currentGoal.id}}">
+<table>
+<tr><td>Goal name</td><td><input name="name" type="text" value="{{currentGoal.name}}"></td></tr>
+<tr><td>Phases</td><td></td></tr>
+{% for iterator in allPhases %}
+<tr><td></td><td><input type="checkbox" name="{{iterator.id}}" id="{{iterator.id}}" value="1" onClick='makeVisible({{iterator.id}})'>{{iterator.name}}</td><td><p style="visibility: hidden;" id='input{{iterator.id}}'><input type='text' size='3' name='minLength{{iterator.id}}' id='minLength{{iterator.id}}' onFocus='makeBlank(this);' onBlur='updateValue(this);'>-<input type='text' size='3' name='maxLength{{iterator.id}}' id='maxLength{{iterator.id}}' onFocus='makeBlank(this);' onBlur='updateValue(this);'></p></td></tr>
+{% endfor %}
+
+<tr><td>Cardio Type</td><td>
+<select name='cardioType'>
+<option value='{{currentCardio.id}}'>{{currentCardio.name}}</option>
+{% for iterator in allCardioTypes %}
+<option value='{{iterator.id}}'>{{iterator.name}}</option>
+{% endfor %}
+</select>
+</td></tr>
+<tr><td>Starting Phase</td><td>
+<select name='startPhase'>
+{% for iterator in allPossiblePhases %}
+<option value='{{iterator.id}}' {% ifequal currentGoal.startPhase iterator %}SELECTED{% endifequal %}>{{iterator.name}}</option>
+{% endfor %}
+</select>
+</td></tr>
+<tr><td>Image name</td><td><input type='text' name='image' value='{{currentGoal.image}}'></td></tr>
+<tr><td>Description</td><td><textarea name='description' rows='7' cols='35'>{{currentGoal.description.text}}</textarea></td></tr>
+<tr><td></td><td><input type="submit" value="Save Goal"></td></tr>
+
+</table>
+
+</form>
+
+
+
+
+<script type="text/javascript">
+{% for iterator in checkedPhases %}
+document.getElementById({{iterator.id}}).checked=true;
+makeVisible({{iterator.id}});
+{% endfor %}
+{% for iterator in phaseDictionaries %}
+document.getElementById('{{iterator.key}}').value='{{iterator.value}}'
+{% endfor %}
+</script>
+
+{% endblock %}
+
+

@@ -1,0 +1,128 @@
+{% extends "skeleton.html" %}
+{% block title %} - Edit Exercises{% endblock %}
+
+
+
+{% block content %}
+<h2>Edit Exercises</h2>
+
+<a href='../viewmutex/'>View Mutually Exclusive Exercises</a>
+<form action ="../addexercise">
+<input type="submit" value="Add a new exercise">
+</form>
+
+
+<form action='.' method='POST'>
+<table><tr>
+<td>FILTER:</td>
+
+<td>
+
+<select name="filterPhase">
+<option value='none'>Filter Phase</option>
+{% for iterator in allPhases %}
+<option value="{{iterator.id}}">{{iterator.name}}</option>
+{% endfor %}
+</select>
+</td>
+
+<td>
+<select name="filterEquipment">
+<option value='none'>Filter Equipment</option>
+{% for iterator in allEquipment %}
+<option value="{{iterator.id}}">{{iterator.name}}</option>
+{% endfor %}
+</select>
+</td>
+
+<td>
+<select name="filterMuscleGroup">
+<option value='none'>Filter Muscle Group</option>
+{% for iterator in allMuscleGroup %}
+<option value="{{iterator.id}}">{{iterator.name}}</option>
+{% endfor %}
+</select>
+</td>
+</tr><tr><td></td>
+<td>
+<select name="filterWorkoutComponent">
+<option value='none'>Filter Component</option>
+{% for iterator in allWorkoutComponent %}
+<option value="{{iterator.id}}">{{iterator.name}}</option>
+{% endfor %}
+</select>
+</td>
+
+<td>
+<select name="filterExerciseType">
+<option value='none'>Filter Exercise Type</option>
+{% for iterator in allExerciseType %}
+<option value="{{iterator.id}}">{{iterator.name}}</option>
+{% endfor %}
+</select>
+</td>
+
+<td>
+<select name="filterUrl">
+<option value='none'>Filter Youtube video</option>
+<option value="present">Video Present</option>
+<option value="absent">Video Absent</option>
+</select>
+</td>
+</tr><tr><td></td>
+
+<td>
+<select name="filterCompound">
+<option value='none'>Filter Compound</option>
+<option value="compound">Compound</option>
+<option value="isolated">Isolated</option>
+</select>
+</td>
+
+<td>
+<select name="filterTimed">
+<option value='none'>Filter Time/Repped</option>
+<option value="repped">Repped</option>
+<option value="timed">Timed</option>
+</select>
+</td>
+
+
+<td>
+<input type="submit" value="Filter">
+</td>
+</tr></table>
+
+</form>
+
+
+
+
+
+
+
+{% for outer in newMatrix %}
+<table class="exerciseTable">
+<tr><td><b>Exercise</b></td><td><b>Type</b></td><td><b>Compound</b></td><td><b>Component</b></td><td><b>Muscle Group</b></td><td><b>Phases</b></td><td><b>Equipment</b></td><td><b>Difficulty(exp/fit)</b></td><td><b>Modified</b></td></tr>
+
+{% for iterator in outer %}
+<tr class="{% cycle 'row1' 'row2' %}"><td><a href="../editexercise{{iterator.id}}">{{iterator.name}}</a></td><td>{{iterator.exerciseType.name}}</td><td>
+{% if iterator.compound %}Compound{% else %}Isolated {% endif %}
+</td><td>{{iterator.workoutComponent.name}}{% if iterator.workoutComponent2 %}<br>{{iterator.workoutComponent2.name}}{% endif %}
+{% if iterator.workoutComponent3 %}<br>{{iterator.workoutComponent3.name}}{% endif %}
+</td><td>{{iterator.muscleGroup.name}}</td><td>
+{{iterator.phase}}
+
+</td><td>{% for inner in iterator.equipment %}[{{inner.name}}]{% endfor %}</td>
+<td>{{iterator.minExperience.value}}, {{iterator.minFitnessLevel.value}}</td><td>{{iterator.dayOfWeek}}, {{iterator.lastModified}}</td></tr>
+{% endfor %}
+</table>
+{% endfor %}
+
+
+
+
+
+{% endblock %}
+
+

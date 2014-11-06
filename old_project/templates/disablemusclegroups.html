@@ -1,0 +1,28 @@
+{% extends "skeleton.html" %}
+{% block title %}{% endblock %}
+
+{% block content %}
+
+<span class="bodyText">
+        <table width="661" border="0" align="center" cellpadding="0" cellspacing="0">
+          <tr>
+            <td height="11" background="../site_media/innercontenthead.png"></td>
+          </tr>
+          <tr>
+            <td valign="top" background="../site_media/innercontentbg.png" style="padding:15px 15px 0 25px;">
+
+<table width="600" border="0" cellpadding="2" cellspacing="1">
+{% for iterator in allMuscleGroups %}
+<tr><td class="bodyText">{{iterator.name}}</td><td  class="bodyText">{% if iterator.enabled %}Enabled{% else %}<a href='../enablemusclegroup{{iterator.id}}'>Enable</a>{% endif %}</td><td class="bodyText">{% if iterator.enabled %}<a href='../disablemusclegroup{{iterator.id}}'>Disable</a>{%else %}Disabled{% endif %}</td></tr>
+{% endfor %}
+</table>
+            <br /></td>
+          </tr>
+          <tr>
+            <td height="18" background="../site_media/innercontentbottom.png">&nbsp;</td>
+          </tr>
+        </table>
+
+
+</span>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends "skeleton.html" %}
+{% block title %} | Sign In{% endblock %}
+
+
+
+{% block content %}
+<span class="bodyText">
+{% ifequal login 2 %}
+<h3>You have been logged off because another client from a different location has logged in to the same account. </h3>
+{% endifequal %}
+
+{% if error %}
+<h3>That username/password combination does not exist.</h3>
+{% endif %}
+
+
+<br><br>
+Not signed up yet?  That sucks.  Go ahead and <a href="../createuser/">sign up</a>!  Or did you <a href="../forgotpassword/">forget your password</a>?
+
+<form action="." method="POST">
+
+
+
+<br><br><br><br>
+
+<table border="0" cellpadding="2" cellspacing="1">
+
+
+              <tr>
+                <td width="258" align="right" valign="top" class="bodyText5">Username:</td>
+                <td width="6" valign="top">&nbsp;</td>
+                <td width="314" valign="top"><input type="text" class="form" style="width: 200px;" name="username"></td>
+              </tr>
+<tr><td align="right">Password:</td><td></td><td><input type="password" class="form" style="width: 200px;" name="password"></td></tr>
+<tr><td></td><td></td><td><input type="submit" class="buttonSubmit" value="" /></td></tr>
+</table>
+
+
+
+</form>
+
+
+
+
+
+
+
+</span>
+{% endblock %}
+

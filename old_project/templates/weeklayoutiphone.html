@@ -1,0 +1,313 @@
+
+{% extends "iphoneskeleton.html" %}
+{% block title %} | Week Layout{% endblock %}
+
+
+
+{% block content %}
+
+<script type="text/javascript">
+function fillDate()
+{
+var now = new Date();
+
+var day = now.getDate();
+var month=now.getMonth()+1;
+var year = now.getFullYear()
+
+document.getElementById('day').value=day;
+document.getElementById('month').value=month;
+document.getElementById('year').value=year;
+
+
+
+
+}
+function fillDate2()
+{
+var now = new Date();
+
+var day = now.getDate();
+var month=now.getMonth()+1;
+var year = now.getFullYear()
+
+document.getElementById('day2').value=day;
+document.getElementById('month2').value=month;
+document.getElementById('year2').value=year;
+}
+
+
+function fillDate3()
+{
+var now = new Date();
+
+var day = now.getDate();
+var month=now.getMonth()+1;
+var year = now.getFullYear()
+
+document.getElementById('day3').value=day;
+document.getElementById('month3').value=month;
+document.getElementById('year3').value=year;
+}
+
+function fillDate4()
+{
+var now = new Date();
+
+var day = now.getDate();
+var month=now.getMonth()+1;
+var year = now.getFullYear()
+
+document.getElementById('day4').value=day;
+document.getElementById('month4').value=month;
+document.getElementById('year4').value=year;
+}
+
+function fillDate5()
+{
+var now = new Date();
+
+var day = now.getDate();
+var month=now.getMonth()+1;
+var year = now.getFullYear()
+
+document.getElementById('day5').value=day;
+document.getElementById('month5').value=month;
+document.getElementById('year5').value=year;
+}
+
+</script>
+
+{% if needTime %}
+
+
+<span class="bodyText">OracleFitness is generating your workouts.  This could take up to a minute, please wait...</span><br><br>
+<div id='box1' style="background-color: #ed2131; border: 1px solid black; display: inline-block; width: 20px; height: 20px;"></div>
+<div id='box2' style="background-color: #ed2131; border: 1px solid black; display: inline-block; width: 20px; height: 20px;"></div>
+<div id='box3' style="background-color: #ed2131; border: 1px solid black; display: inline-block; width: 20px; height: 20px;"></div>
+<div id='box4' style="background-color: #ed2131; border: 1px solid black; display: inline-block; width: 20px; height: 20px;"></div>
+<div id='box5' style="background-color: #ed2131; border: 1px solid black; display: inline-block; width: 20px; height: 20px;"></div>
+<div id='box6' style="background-color: #ed2131; border: 1px solid black; display: inline-block; width: 20px; height: 20px;"></div>
+<div id='box7' style="background-color: #ed2131; border: 1px solid black; display: inline-block; width: 20px; height: 20px;"></div>
+<div id='box8' style="background-color: #ed2131; border: 1px solid black; display: inline-block; width: 20px; height: 20px;"></div>
+<div id='box9' style="background-color: #ed2131; border: 1px solid black; display: inline-block; width: 20px; height: 20px;"></div>
+<div id='box10' style="background-color: #ed2131; border: 1px solid black; display: inline-block; width: 20px; height: 20px;"></div>
+<div id='box11' style="background-color: #ed2131; border: 1px solid black; display: inline-block; width: 20px; height: 20px;"></div>
+<div id='box12' style="background-color: #ed2131; border: 1px solid black; display: inline-block; width: 20px; height: 20px;"></div>
+<div id='box13' style="background-color: #ed2131; border: 1px solid black; display: inline-block; width: 20px; height: 20px;"></div>
+<div id='box14' style="background-color: #ed2131; border: 1px solid black; display: inline-block; width: 20px; height: 20px;"></div>
+<div id='box15' style="background-color: #ed2131; border: 1px solid black; display: inline-block; width: 20px; height: 20px;"></div>
+<div id='box16' style="background-color: #ed2131; border: 1px solid black; display: inline-block; width: 20px; height: 20px;"></div>
+<div id='box17' style="background-color: #ED2131; border: 1px solid black; display: inline-block; width: 20px; height: 20px;"></div>
+
+
+<script type='text/javascript'>
+var currentBox=5;
+var maxBoxes2=17;
+var trailer1=4, trailer2=3, trailer3=2, trailer4=1;
+var tColor1="#2d2131", tColor2="#6d2131", tColor3="#Ad2131", tColor4="#Ed2131";
+function updateBoxes()
+{
+  timerID = self.setTimeout("updateBoxes()", 100)
+
+
+  document.getElementById("box"+currentBox).style.backgroundColor="#000000";
+  document.getElementById("box"+trailer1).style.backgroundColor=tColor1;
+  document.getElementById("box"+trailer2).style.backgroundColor=tColor2;
+  document.getElementById("box"+trailer3).style.backgroundColor=tColor3;
+  document.getElementById("box"+trailer4).style.backgroundColor=tColor4;
+
+  trailer4=trailer3;
+  trailer3=trailer2;
+  trailer2=trailer1;
+  trailer1=currentBox;
+  currentBox++;
+
+  if(currentBox>maxBoxes2)
+    currentBox=1;
+}
+updateBoxes();
+</script>
+<form name='myForm' method='POST' action='.'>
+<input type='hidden' name='year' id='year' value='0'>
+<input type='hidden' name='day' id='day' value='0'>
+<input type='hidden' name='month' id='month' value='0'>
+</form>
+<script type="text/javascript">
+fillDate();
+
+document.myForm.submit();
+</script> 
+{% endif %}
+
+
+
+        <center>
+          <div class="innerbodyheadbg">Week Layout</div>
+        </center>
+        <span class="bodyText">        <br />
+        </span>
+        <table width="400" border="0" align="center" cellpadding="0" cellspacing="0">
+          <tr>
+            <td height="11" background="../site_media/innercontenthead2.png"></td>
+          </tr>
+          <tr>
+            <td valign="top" background="../site_media/innercontentbg2.png" style="padding:10px 10px 0 10px;"><span class="bodyText">Here's the layout for the week. 
+
+
+
+
+
+
+
+
+
+
+
+</span><span class="bodyText"><br />
+                    <br />
+              </span>
+
+
+
+
+              <center>
+                <table width="363" border="0" cellpadding="5" cellspacing="1" class="tableborder">
+
+
+
+                  <tr>
+                    <td width="153" align="left" valign="top" {% ifequal weekday 0 %}bgcolor="#fdd4d4"{% else%}bgcolor="#f9f5f5"{%endifequal%} class="bodyText4">Monday</td>
+                    <td width="418" align="left" valign="top" {% ifequal weekday 0 %}bgcolor="#fdd4d4"{% else%}bgcolor="#f9f5f5"{%endifequal%} class="bodyText">{% for iterator in weekDictionary.0%}-{{iterator.exercise.name}}<br />{% endfor %}</p>
+                    <p class="bodyText5">{% if weekDictionary.cardio0 %}{{weekDictionary.cardioLevel0}} Cardio{%else%}<br>{% endif %}</td></p></td>
+                  </tr>
+
+
+
+
+                  <tr>
+                    <td align="left" valign="top" {% ifequal weekday 1 %}bgcolor="#fdd4d4"{% else%}bgcolor="#f9f5f5"{%endifequal%} class="bodyText4">Tuesday</td>
+                    <td align="left" valign="top" {% ifequal weekday 1 %}bgcolor="#fdd4d4"{% else%}bgcolor="#f9f5f5"{%endifequal%} class="bodyText">{% for iterator in weekDictionary.1%}-{{iterator.exercise.name}}<br />{% endfor %}</p>
+                    <p class="bodyText5">{% if weekDictionary.cardio1 %}{{weekDictionary.cardioLevel1}} Cardio{%else%}<br>{% endif %}</td></p></td>
+                  </tr>
+
+
+
+
+
+
+                  <tr>
+                    <td align="left" valign="top" {% ifequal weekday 2 %}bgcolor="#fdd4d4"{% else%}bgcolor="#f9f5f5"{%endifequal%} class="bodyText4">Wednesday</td>
+                    <td align="left" valign="top" {% ifequal weekday 2 %}bgcolor="#fdd4d4"{% else%}bgcolor="#f9f5f5"{%endifequal%} class="bodyText">{% for iterator in weekDictionary.2%}-{{iterator.exercise.name}}<br />{% endfor %}</p>
+                    <p class="bodyText5">{% if weekDictionary.cardio2 %}{{weekDictionary.cardioLevel2}} Cardio{%else%}<br>{% endif %}</td></p></td>
+                  </tr>
+
+
+
+
+                  <tr>
+                    <td align="left" valign="top" {% ifequal weekday 3 %}bgcolor="#fdd4d4"{% else%}bgcolor="#f9f5f5"{%endifequal%} class="bodyText4">Thursday</td>
+                    <td align="left" valign="top" {% ifequal weekday 3 %}bgcolor="#fdd4d4"{% else%}bgcolor="#f9f5f5"{%endifequal%}><p class="bodyText">
+
+{% for iterator in weekDictionary.3%}-{{iterator.exercise.name}}<br />{% endfor %}</p>
+
+
+                    <p class="bodyText5">{% if weekDictionary.cardio3 %}{{weekDictionary.cardioLevel3}} Cardio{%else%}<br>{% endif %}</td></p></td>
+                  </tr>
+
+
+                  <tr>
+                    <td align="left" valign="top" {% ifequal weekday 4 %}bgcolor="#fdd4d4"{% else%}bgcolor="#f9f5f5"{%endifequal%} class="bodyText4">Friday</td>
+                    <td align="left" valign="top" {% ifequal weekday 4 %}bgcolor="#fdd4d4"{% else%}bgcolor="#f9f5f5"{%endifequal%}><p class="bodyText">{% for iterator in weekDictionary.4%}-{{iterator.exercise.name}}<br />{% endfor %}</p>
+                    <p class="bodyText5">{% if weekDictionary.cardio4 %}{{weekDictionary.cardioLevel4}} Cardio{%else%}<br>{% endif %}</td></p></td>
+                  </tr>
+
+
+                  <tr>
+                    <td align="left" valign="top" {% ifequal weekday 5 %}bgcolor="#fdd4d4"{% else%}bgcolor="#f9f5f5"{%endifequal%} class="bodyText4">Saturday</td>
+                    <td align="left" valign="top" {% ifequal weekday 5 %}bgcolor="#fdd4d4"{% else%}bgcolor="#f9f5f5"{%endifequal%}><p class="bodyText">{% for iterator in weekDictionary.5%}-{{iterator.exercise.name}}<br />{% endfor %}</p>
+                    <p class="bodyText5">{% if weekDictionary.cardio5 %}{{weekDictionary.cardioLevel5}} Cardio{%else%}<br>{% endif %}</td></p></td>
+                  </tr>
+
+
+                  <tr>
+                    <td align="left" valign="top" {% ifequal weekday 6 %}bgcolor="#fdd4d4"{% else%}bgcolor="#f9f5f5"{%endifequal%} class="bodyText4">Sunday</td>
+                    <td align="left" valign="top" {% ifequal weekday 6 %}bgcolor="#fdd4d4"{% else%}bgcolor="#f9f5f5"{%endifequal%} class="bodyText">{% for iterator in weekDictionary.6%}-{{iterator.exercise.name}}<br />{% endfor %}</p>
+                    <p class="bodyText5">{% if weekDictionary.cardio6 %}{{weekDictionary.cardioLevel6}} Cardio{%else%}<br>{% endif %}</td></p></td>
+                  </tr>
+                </table>
+
+
+
+                <br />
+
+
+                <table width="363" border="0" cellpadding="15" cellspacing="1" class="tableborder">
+
+
+                  <tr class="bodyText">
+                    <td width="132" align="left" bgcolor="#F9F5F5" class="bodyText">Current Phase<br />
+                    Days in Phase <br />
+                    Day in week <br />
+                    Phase Length </td>
+                    <td width="143" align="left" bgcolor="#F9F5F5" class="bodyText"> <a href="javascript:void(0)" onclick="window.open('../descriptionlauncher{{myPhase.description.id}}', 'launcher', 'height=350','width=425')">
+{{myPhase.name}}</a><br />
+                      {{userInfo.currentDay}}<br />
+                      {{dayOfWeek}}<br />
+                      {{userInfo.phaseLength}} weeks</td>
+                  </tr>
+                </table>
+
+
+
+
+                <br />
+                <br />
+
+
+
+
+
+
+
+
+
+                <br />
+              </center>
+            </td>
+          </tr>
+          <tr>
+            <td height="18" background="../site_media/innercontentbottom2.png">&nbsp;</td>
+          </tr>
+        </table>
+        <br />
+        <span class="bodyText">        </span>
+        <table width="400" border="0" align="center" cellpadding="0" cellspacing="0">
+
+          <tr>
+            <td height="11" background="../site_media/innercontenthead2.png"></td>
+          </tr>
+          <tr>
+            <td align="center" valign="top" background="../site_media/innercontentbg2.png" style="padding:10px 10px 0 10px;">
+
+
+<br />
+            <br />
+              </span>
+              <center>
+              </center></td>
+          </tr>
+          <tr>
+            <td height="18" background="../site_media/innercontentbottom2.png"></td>
+          </tr>
+        </table>
+
+        <center>
+          <br />
+          <br />
+  <br />
+        </center>
+
+{% endblock %}
+
+

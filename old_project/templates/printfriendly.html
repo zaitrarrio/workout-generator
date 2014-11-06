@@ -1,0 +1,131 @@
+
+
+
+
+<html lang="en">
+<head>
+	<title>Workout Generator</title>
+
+<style>
+.printtd 
+{ 
+  border: 1px solid black; 
+  margin: 0px;
+  padding: 0px;
+
+}
+.basic
+{
+border: 1px solid black; 
+border-collapse: collapse;
+padding: 0px;
+margin: 0px;
+}
+
+</style>
+{% if needTime %}
+
+
+<form name='myForm' method='POST' action='.' >
+<input type='hidden' name='day' id='day' value='0'>
+<input type='hidden' name='year' id='year' value='0'>
+
+<input type='hidden' name='month' id='month' value='0'>
+</form>
+
+
+{% endif %}
+
+
+
+
+
+
+
+
+<a href='../todaysworkout'>Go Back</a><br><br>
+
+<table class='basic'>
+<tr><td class='printtd' style='min-width: 13em;'>
+<table class='basic'>
+{% for iterator in todaysExercises %} 
+{% if iterator.change %}</table ></td></tr>
+<tr><td class='printtd'>{{iterator.exercise.workoutComponent.name}}
+{%ifnotequal iterator.exercise.workoutComponent.name  'Flexibility'%}
+<br>(Rest for {{iterator.rest}})
+<br>Tempo: {{iterator.tempo}}
+{% endifnotequal %}
+</td><td class='printtd'><table class='basic' style='width: 100%;'>
+{%endif %}
+<tr><td class='printtd' style='max-width: 8em;'>{{iterator.exercise.name}}{% if iterator.superSet %} superset with {{iterator.superSet.exercise.name}}{% endif %}
+<br/>
+<img id='{{iterator.exercise.id}}'src="http://img.youtube.com/vi/{{iterator.exercise.url}}/2.jpg" width=65px  style="display: inline; float: left;"/>
+{% if iterator.superSet %}
+
+<img id='{{iterator.exercise.id}}'src="http://img.youtube.com/vi/{{iterator.superSet.exercise.url}}/2.jpg" width=65px style="display: inline; float: right;/">
+{% endif %}
+</td>{%ifnotequal iterator.exercise.workoutComponent.name  'Flexibility'%}{% for integerObject in iterator.setsList%}<td class='printtd' style='min-width: 4em;'>Set {{integerObject}} (Wt/Reps)</td>{% endfor %}{% endifnotequal %}</tr>
+
+{%ifnotequal iterator.exercise.workoutComponent.name  'Flexibility'%}<tr><td>Target: {{iterator.sets}} x {% if not iterator.exercise.timed%}{{iterator.reps}}{% if iterator.superSet %} + {{iterator.superSet.reps}}{% endif %} reps{% endif %}</td>{% for integerObject in iterator.setsList%}<td class='printtd'  style='min-width: 4em;'><br><br></td>{% endfor %}
+
+
+</tr>{%endifnotequal%}
+{%endfor%}
+</table></table>
+
+
+
+
+
+{%autoescape off %}
+{% if existingWorkout.cardio %}<br><br><br>
+{{existingWorkout.cardio}}
+{% endif %}
+
+
+{% endautoescape %}
+
+{% if needTime %}
+
+<script type="text/javascript">
+function fillDate()
+{
+try
+{
+var now = new Date();
+
+var day = now.getDate();
+var month = now.getMonth()+1;
+var year = now.getFullYear();
+
+document.getElementById('day').value=day;
+document.getElementById('month').value=month;
+document.getElementById('year').value=year;
+
+}
+catch(err)
+{
+alert(err);
+}
+
+}
+</script>
+
+<script type="text/javascript">
+try
+{
+fillDate();
+document.myForm.submit();
+}
+catch(err)
+{
+alert(err);
+}
+
+
+</script> 
+
+{% endif %}
+
+
+

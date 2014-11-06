@@ -1,0 +1,47 @@
+{% extends "skeleton.html" %}
+{% block title %} | View Exercises{% endblock %}
+
+
+
+{% block content %}
+
+<span class="bodyText">
+There are currently {{totalCount}} exercises in our database
+
+
+
+
+
+        <table width="661" border="0" align="center" cellpadding="0" cellspacing="0">
+          <tr>
+            <td height="11" background="../site_media/innercontenthead.png"></td>
+          </tr>
+          <tr>
+            <td valign="top" background="../site_media/innercontentbg.png" style="padding:15px 15px 0 25px;">
+<table width="600" border="0" cellpadding="2" cellspacing="1">
+
+
+{% for iterator in allExercises %}
+<tr>
+<td width="258" align="left" valign="top" class="bodyText5">{% if iterator.video %}<a href='http://youtube.com/watch?v={{iterator.url}}'>{{iterator.name}}</a>{% else %}{{iterator.name}}{% endif %}</td><td width="6" valign="top"></td><td class="bodyText5" width="314" valign="top">{{iterator.muscleGroup.name}}</td>
+
+</tr>
+{% endfor %}              
+
+              
+
+
+</table>
+            <br /></td>
+          </tr>
+          <tr>
+            <td height="18" background="../site_media/innercontentbottom.png">&nbsp;</td>
+          </tr>
+        </table>
+
+
+
+
+{% endblock %}
+
+

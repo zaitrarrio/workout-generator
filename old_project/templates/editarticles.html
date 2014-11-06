@@ -1,0 +1,53 @@
+{% extends "skeleton.html" %}
+{% block title %} - Edit Articles{% endblock %}
+
+
+
+{% block content %}
+<h2>Edit Articles</h2>
+<form action ="../editarticles/" method='POST'>
+<table>
+<tr><td>Title</td><td><input type='text' name='title'></td></tr>
+<tr><td>Author</td><td><input type='text' name='author'></td></tr>
+<tr><td>url</td><td><input type='text' name='url'></td></tr>
+<tr><td>Applicable Gender</td><td><select name='gender'>
+<option value='none'>Either</option>
+<option value='male'>Male</option>
+<option value='female'>Female</option>
+</select></td></tr>
+<tr><td>Applicable Goals</td><td>
+{% for iterator in allGoals %}
+<input type="checkbox" class="checkbox" name="goal{{iterator.id}}" id="{{iterator.id}}" value="1">{{iterator.name}}<br>
+{% endfor %}
+
+</td></tr>
+<tr><td>Body</td><td><textarea name='body' rows='7' cols='35'></textarea></td></tr>
+</table>
+<input type="submit" value="Add this new article">
+</form>
+
+
+{% for outer in allObjects %}
+{{outer.goal}} for {{outer.gender}}s
+<table>
+<tr><td>Title</td><td>URL</td><td>Date Added</td></tr>
+{% for iterator in outer.list%}
+<tr class="{% cycle 'row1' 'row2' %}"><td>{{iterator.title}}</td><td><a href='{{iterator.url}}'>{{iterator.url}}</a></td><td>{{iterator.date}}</td>
+<td>
+<form action='../delete/' method='POST'>
+<input type="hidden" name="type" value="article">
+<input type="hidden" name="id" value="{{iterator.id}}">
+<input type='submit' value="Delete this Item" onClick="return confirm('You sure bra?')">
+</form>
+</td>
+
+
+</tr>
+{% endfor %}
+</table>
+{% endfor %}
+
+
+{% endblock %}
+
+

@@ -1,0 +1,98 @@
+{% extends "skeleton.html" %}
+{% block title %} | Payment{% endblock %}
+
+{% block content %}
+<span class="bodyText"><ul><li>You will not be charged for the first 60 days of <b>RISK FREE</b> service</li><li>Your credit card will receive a one time charge of $34.95 thereafter.</li><li>Get in shape <div style='color: red; display: inline'><b>TODAY</b></div></li></ul></span>
+<script type="text/javascript">
+
+function checkform(junk)
+{
+  form=document.getElementById("myForm");
+  if(form.newPassword.value=="")
+  {
+    alert("You need to input a value for your new password!");
+    return false;
+  }
+  if(form.newPassword.value != form.confirmPassword.value)
+  {
+    alert("Your passwords don't match.  Did you make a typo?");
+    return false;
+  }
+  return true;
+}
+
+
+</script>
+
+
+<form id="myForm" action="../home/" method="POST" >
+
+
+
+<br><br><br><br>
+        <table width="661" border="0" align="center" cellpadding="0" cellspacing="0">
+          <tr>
+            <td height="11" background="../site_media/innercontenthead.png"></td>
+          </tr>
+          <tr>
+            <td valign="top" background="../site_media/innercontentbg.png" style="padding:15px 15px 0 25px;"><table width="600" border="0" cellpadding="2" cellspacing="1">
+
+
+              <tr>
+                <td width="158" align="left" valign="top" class="bodyText5">First Name: <input type="text" class="form" style="width: 100px;" name="firstName"></td><td width="6" valign="top"></td>
+                <td class="bodyText5" width="314" valign="top">Last Name:<input type="text" class="form" style="width: 100px;" name="lastName"></td>
+              </tr>
+
+<tr><td width="158" align="left" valign="top" class="bodyText5">Credit Card Number:</td><td width="6" valign="top"></td><td><input type="text" class="form" style="width: 177px;" name="cardNumber"></td></tr>
+<tr><td class="bodyText5" align="left">Expiration</td><td></td><td>
+
+<select name="month">
+<option value="01">01</option>
+<option value="02">02</option>
+<option value="03">03</option>
+<option value="04">04</option>
+<option value="05">05</option>
+<option value="06">06</option>
+<option value="07">07</option>
+<option value="08">08</option>
+<option value="09">09</option>
+<option value="10">10</option>
+<option value="11">11</option>
+<option value="12">12</option>
+</select>
+
+<select name="year">
+<option value="2010">2010</option>
+<option value="2011">2011</option>
+<option value="2012">2012</option>
+<option value="2013">2013</option>
+<option value="2014">2014</option>
+<option value="2015">2015</option>
+<option value="2016">2016</option>
+<option value="2017">2017</option>
+<option value="2018">2018</option>
+<option value="2019">2019</option>
+<option value="2020">2020</option>
+
+</select>
+
+</td></tr>
+<tr><td><img src='../site_media/creditcards.png'></td></tR>
+<tr><td></td><td></td><td><input type="image" name="Submit" src="../site_media/submit.gif" onclick='return checkform(this)'/></td></tr>
+</table>
+            <br /></td>
+          </tr>
+          <tr>
+            <td height="18" background="../site_media/innercontentbottom.png">&nbsp;</td>
+          </tr>
+        </table>
+
+</form>
+
+<span class="bodyText"><ul><li>By clicking 'Submit' you agree to our <a href='../termsofservice'>Terms of Service</a></li>
+                           <li>We respect your privacy in accordance with our <a href='../privacypolicy'>privacy policy</a></ul></span>
+<script type="text/javascript">
+window.scrollBy(0,550);
+</script>
+
+{% endblock %}

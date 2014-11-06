@@ -1,0 +1,12 @@
+{% extends "skeleton.html" %}
+{% block title %}{% endblock %}
+
+{% block content %}
+<table>
+{% for iterator in allPriorities %}
+<tr class="{% cycle 'row1' 'row2' %}"><td>{{iterator.goal.name}}</td><td>{{iterator.phase.name}}</td><td>{{iterator.fitnessLevel.name}}</td><td><input type='text' size='3' name ='priority{{iterator.id}}' value='{{iterator.percent}}' onFocus='makeBlank(this);' onBlur='updateValue(this);'>%</td></tr>
+{% endfor %}
+</table>
+
+
+{% endblock %}

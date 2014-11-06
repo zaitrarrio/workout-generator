@@ -1,0 +1,36 @@
+{% extends "skeleton.html" %}
+{% block title %} - Edit Goals{% endblock %}
+
+
+
+{% block content %}
+<h2>Edit Goals</h2>
+
+<p style='width: 600px;'>
+Every goal encapsulates several phases.  Make sure there are at least 3, Adam said that will always be the minimum, and anything less might lead to a bug (might).  Each goal has a type of cardio associated with it, and a range for the number of weeks a phase in that goal will last.  Make sure no phase is longer than 6 weeks, that will break things.  
+</p>
+
+
+<form action ="../addgoal">
+<input type="submit" value="Add a new goal">
+</form>
+
+<table>
+<tr><td><b>Goal</b></td><td><b>Phases</b></td><td><b>Cardio Type</b></td></tr>
+{% for iterator in allGoals %}
+<tr class="row1"><td><a href="../editgoal{{iterator.id}}">{{iterator.name}}</a></td><td></td><td>{{iterator.cardioType.name}}</td></tr>
+{% for nestedIterator in iterator.phase %}
+<tr><td></td><td>{{nestedIterator.name}}</td></tr>
+{% endfor %}
+<tr><td>{{iterator.description.text}}</td></tr>
+
+
+{% endfor %}
+<table>
+
+
+
+
+{% endblock %}
+
+

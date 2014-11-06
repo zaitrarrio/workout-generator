@@ -1,0 +1,190 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>{% block title %}{% endblock %} | Workout Generator</title>
+<meta name="google-site-verification" content="Prm9ydaPlepiE5UnBdDjelOD02wZe3g-amAoN1DnGEo" />
+<meta name="keywords" content="workout generator routine routines exercise exercises" />
+<meta name="description" content="" />
+<meta name="google-site-verification" content="H5pAjAqWgDLq_U7FoRFitU-Ezww9H5rQgWhA_IzcEXw" />
+<meta name="google-site-verification" content="Rzl2JiRoDPoIMXv6gHyJxi_TBj0SsF0Fnw_aZWQqxFo" />
+<link href="/site_media/default.css" rel="stylesheet" type="text/css" media="all" />
+<link rel="shortcut icon" type="image/x-icon" href="../site_media/images/favicon.ico" />
+</head>
+
+<body>
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-28956011-1']);
+  _gaq.push(['_setDomainName', 'workoutgenerator.net']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+
+var oldValue;
+var newValue;
+function makeBlank(textInput)
+{
+  oldValue=textInput.value;
+  textInput.value="";
+}
+function updateValue(textInput)
+{
+  if(textInput.value=="")
+  {
+    textInput.value=oldValue;
+  }
+}
+
+
+
+function MoveBackGround () {
+window.cssXPos=window.cssXPos-1;
+if (window.cssXPos>=window.cssMaxWidth) {
+window.cssXPos=0;
+}
+toMove=document.getElementById("scroller");
+toMove.style.backgroundPosition=window.cssXPos+"px 0px";
+
+}
+</script>
+<table width="100%" border="0" cellpadding="0" cellspacing="0" id="wrapper">
+	<tr>
+		<td><table width="980" border="0" align="center" cellpadding="0" cellspacing="0" id="header">
+				<tr>
+					<td valign="top"><table width="980" border="0" cellspacing="0" cellpadding="0">
+							<tr valign="top">
+								<td id="menu" {% if not login %} style="font-size: 11px;"{% endif %}><ul>
+										<li class="first"><a href="/" accesskey="1" title="">Home</a></li>
+{% if login %}
+										<li><a href="/mygoalsnew" accesskey="2" title="">Sign Up</a></li>
+{% else %}
+
+										<li><a href="/mygoals" accesskey="2" title="">My Goals</a></li>
+										<li><a href="/todaysworkout" accesskey="2" title="">Today's Workout</a></li>
+{% endif%}
+										<li><a href="http://blog.workout-generator.net" accesskey="3" title="">Blog</a></li>
+										<li><a href="/resources" accesskey="4" title="">Resources</a></li>
+										<li><a href="/aboutus" accesskey="5" title="">About Us</a></li>
+									</ul></td>
+								<td id="search">
+<form method="get" action="">
+
+										<fieldset>
+
+										<input id="search-input-text" type="text" name="q" value="" class="input-text" />
+										<input id="search-input-submit" type="submit" value="Search" class="input-submit" />
+										</fieldset>
+									</form>
+
+</td>
+							</tr>
+						</table>
+						<table width="980" border="0" align="center" cellpadding="0" cellspacing="0">
+							<tr>
+								<td><img src="/images/homepage02.jpg"  width="980" height="165" alt="Workout Generator Banner"/><img src="/images/logo2.png" width='200' style="position: absolute; margin-left: -500px; margin-top: -100px;" alt="Running Man"/></td>
+							</tr>
+						</table></td>
+				</tr>
+			</table>
+			<table width="980" border="0" align="center" cellpadding="0" cellspacing="0" id="page">
+				<tr>
+					<td id="page-bg-top"><table width="980" border="0" cellpadding="0" cellspacing="0">
+							<tr>
+								<td id="page-bg-bottom">
+                                                                        <div id="content">
+<table width="100%" border="0" cellpadding="0" cellspacing="0" class="box-style1">
+{% if login %}
+											<tr>
+												<td>{% if login %}<h2 class="title"><a href="../mygoalsnew">Sign up</a> or <a href="../signin">Sign in</a></h2>{% endif %}</td>
+											</tr>
+{% endif %}
+											<tr>
+												<td class="content">
+{%block content%}{% endblock %}
+
+  												</td>
+											</tr>
+
+</table>
+									</div>
+									<div id="sidebar">
+										<table width="100%" border="0" cellpadding="0" cellspacing="0" class="box-style3">
+{% if login %}
+											<tr>
+												<td>
+
+													<center><a href="../mygoalsnew"><div class="buttonStart"></div></a></center>
+</td>
+											</tr>
+											<tr>
+												<td class="content">
+<!--<p><div style="width: 226px; background-image: url(/images/cyborgs.png); background-repeat: repeat-x; height: 381px;" id = "scroller"></div></p>-->
+
+
+</td>
+<td></td>
+											</tr>
+{% else %}
+
+{% endif %}
+<tr><td>
+{% block sidebar %}{% endblock %}
+</td></tr>
+										</table>
+										<table width="100%" border="0" cellpadding="0" cellspacing="0" class="box-style4">
+{% if not login%}
+<tr><td><center><br/><a style="margin-top: 10px;" href="../logout">Log Out</a><br/><br/></center></td></tr>
+{% endif%}
+<tr><td style="text-align: center;">
+<br/><br/><br/><br/></td></tr>
+<tr><td>
+</td></tr>
+</table>
+<!--
+<tr><td><img src="../site_media/checkOutDown.png" alt="check out our other project"/></td></tr>
+<tr><td><a href="http://yourworkoutlog.com"><img src="../site_media/YourWorkoutLog.jpg" alt="Workout Log"/></a></td></tr>
+											<tr>
+												<td><h3 class="title"><span>Join us</span></h3></td>
+											</tr>
+											<tr>
+												<td class="content"><ul class="ul-style2">
+														<li>
+<a href="https://twitter.com/W_Generator"><img src="/images/twitter.png" width='226' alt="twitter"/></a></li>
+
+													</ul></td>
+											</tr>
+										</table>-->
+<center>
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-8798361157795747";
+/* Workout Generator ad2 */
+google_ad_slot = "1934017176";
+google_ad_width = 160;
+google_ad_height = 600;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+</center>									</div></td>
+							</tr>
+						</table></td>
+				</tr>
+			</table>
+
+			<table width="980" border="0" align="center" cellpadding="0" cellspacing="0">
+				<tr>
+					<td id="footer"><p>Copyright (c) 2012 <a href="../">Workout Generator</a>. All rights reserved.<br/>For any inquiries you can contact me at scott@workoutgenerator.net</p></td>
+				</tr>
+			</table></td>
+	</tr>
+</table>
+</body>
+</html>

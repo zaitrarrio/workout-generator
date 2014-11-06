@@ -1,0 +1,31 @@
+{% extends "skeleton.html" %}
+{% block title %} - Edit Goals{% endblock %}
+
+
+
+{% block content %}
+<h2>Edit Goals</h2>
+
+<p style='width: 600px;'>
+This is every description we have in no order...find the grammatical mistakes and correct</p>
+
+<table>
+{% for iterator in allDescriptions %}
+<form action ="." method='POST'>
+<tr><td>
+<textarea rows="8" cols="80" name="finalText">{{iterator.text}}</textarea>
+<input type="hidden" name="id" value="{{iterator.id}}"/>
+</td><td>
+<input type="submit" value="Save">
+</td></tr>
+</form>
+
+{% endfor %}
+<table>
+
+
+
+
+{% endblock %}
+
+

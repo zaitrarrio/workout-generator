@@ -1,0 +1,11 @@
+
+ <form action="/finish_checkout/" method="POST">
+ <script src="https://checkout.stripe.com/checkout.js"
+
+  class="stripe-button"
+  data-key="{{ publishable_key }}"
+  data-amount="500.00"
+  data-name="Airborne Imaging"
+  data-description="$5.00 in Video Credits"
+  data-image="{% static 'assets/img/helicopter.png' %}">
+ </form>

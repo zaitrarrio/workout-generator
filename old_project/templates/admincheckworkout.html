@@ -1,0 +1,20 @@
+
+{% extends "skeleton.html" %}
+{% block title %} | Today's Workout{% endblock %}
+
+
+
+{% block content %}
+<span class="bodyText">
+<table>
+{%for iterator in allUsers %}
+<tr>
+<td>
+<a href='../admincheckworkoutuser{{iterator.user.id}}'>{{iterator.user.username }}</a><br>
+</td>
+<td><span class="bodyText">{{iterator.age}}</span></td>
+<td><span class="bodyText">{{iterator.goal.name}}</span></td></tr>
+{% endfor %}
+</table>
+</span>
+{% endblock %}

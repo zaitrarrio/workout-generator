@@ -1,0 +1,318 @@
+{% extends "skeleton.html" %}
+{% block title %} | My Goals{% endblock %}
+
+
+
+{% block content %}
+<script type="text/javascript">
+
+function checkform(form)
+{
+  if(!(form.age.value>0 && form.age.value<=130))
+  {
+    alert("We need to know your age!  We can't just assume you're a strapping 23 year old in your prime like the designers of this website are!");
+    return false;
+  }
+  if (!(form.minutesPerDay.value>=20 && form.minutesPerDay.value<=10000))
+  {
+    alert("Tell us how many minutes per day you have available for exercise (at least 20 minutes).  That way, we can have fun packing your schedule with exercises much like a game of tetris.");
+    return false;
+  }
+  if (!(form.daysPerWeek.value>0 && form.daysPerWeek.value<=7))
+  {
+    alert("We need to know how many days a week you can commit to exercising.  We create your schedule around you, so the least you can do is input a valid range.");
+    return false;
+  }
+  var choice=false;
+  for(j=0;j<form.goal.length;j++)
+  {
+    if(form.goal[j].checked)choice=true;
+  }
+  if(!choice)
+  {
+    alert("You need to pick a goal you big goof!");
+    return false;
+  }
+
+
+  return true;
+}
+
+
+
+function updateChecks(checkBox)
+{
+  {% for outer in allEquipment %}
+    {% for iterator in outer %}
+      document.getElementById({{iterator.id}}).checked=checkBox.checked;
+    {% endfor %}
+  {% endfor %}
+
+}
+function commonEquipment(checkBox)
+{
+  document.getElementById('1').checked=checkBox.checked;
+  document.getElementById('2').checked=checkBox.checked;
+  document.getElementById('5').checked=checkBox.checked;
+  document.getElementById('9').checked=checkBox.checked;
+  document.getElementById('10').checked=checkBox.checked;
+  document.getElementById('15').checked=checkBox.checked;
+  document.getElementById('16').checked=checkBox.checked;
+  document.getElementById('18').checked=checkBox.checked;
+  document.getElementById('21').checked=checkBox.checked;
+}
+
+var totalChecks=0
+
+function updateTotal(checkBox)
+{
+  if(checkBox.checked)
+  {
+    totalChecks++;
+    if(totalChecks>7-document.getElementById("daysPerWeek").value)
+    {
+      totalChecks--;
+      checkBox.checked=false;
+    }
+  }
+  else totalChecks --;
+}
+
+function makeVisible(textInput)
+{
+  totalChecks=0;
+  if(!(document.getElementById("daysPerWeek").value>0 && document.getElementById("daysPerWeek").value<=7))
+  {
+    alert('Input a value between 1 and 7 please');
+    document.getElementById("daysPerWeek").value=5;
+  }
+  innerHTML='<span class="innerbodyText5">Which days of the<br>week are your normal<br>off days?</span>'
+  document.getElementById('toFill1').innerHTML = innerHTML;
+  innerHTML="<span class='innerbodyText5'><input style='display: inline;' type='checkbox' name='mon'  value='1' onClick='updateTotal(this)'>Monday<br><input name='tues' type='checkbox'   value='1' onClick='updateTotal(this)'>Tuesday<br><input type='checkbox'   name='wed' value='1' onClick='updateTotal(this)'>Wednesday<br><input type='checkbox'  name='thurs' value='1' onClick='updateTotal(this)'>Thursday<br><input type='checkbox' name='fri'  value='1' onClick='updateTotal(this)'>Friday<br><input type='checkbox' name='sat'  value='1' onClick='updateTotal(this)'>Saturday<br><input type='checkbox' name='sun'  value='1' onClick='updateTotal(this)'>Sunday<br></span>"
+  document.getElementById('toFill2').innerHTML = innerHTML;
+}
+
+
+
+</script>
+
+<form action="." method="POST" onsubmit="return checkform(this)">
+
+<input type='hidden' name='day' id='day' value='0'>
+<input type='hidden' name='year' id='year' value='0'>
+<input type='hidden' name='month' id='month' value='0'>
+
+        <center>
+          <div class="innerbodyheadbg">My Goal	</div>
+        </center>
+        <span class="bodyText">        <br />
+        </span>
+        <table width="661" border="0" align="center" cellpadding="0" cellspacing="0">
+          <tr>
+            <td height="11" background="../site_media/innercontenthead.png"></td>
+          </tr>
+          <tr>
+            <td valign="top" background="../site_media/innercontentbg.png" style="padding:15px 15px 0 25px;"><table width="600" border="0" cellpadding="2" cellspacing="1">
+              <tr>
+                <td width="258" align="right" valign="top" class="bodyText5">Age :</td>
+                <td width="6" valign="top">&nbsp;</td>
+                <td width="314" valign="top"><input type="text" class="text" name="age" size="3" value={{userInfo.age}} onFocus='makeBlank(this);' onBlur='updateValue(this);'></td>
+              </tr>
+              <tr>
+                <td align="right" valign="top" class="bodyText5">Gender:</td>
+                <td valign="top">&nbsp;</td>
+                <td valign="top"><select name="gender">
+{% if isMale %}
+<option value="Male">Male</option>
+{% else %}
+<option value="Female">Female</option>
+{% endif %}
+<option value="Male">Male</option>
+<option value="Female">Female</option>
+</select></td>
+              </tr>
+              <tr>
+                <td align="right" valign="top" class="bodyText5">Experience:</td>
+                <td valign="top">&nbsp;</td>
+                <td valign="top"><select name="experience">
+{% if currentExperience %}
+<option value="{{currentExperience.id}}" >{{currentExperience.name}}</option>
+{% endif %}
+{% for iterator in experience %}
+<option value="{{iterator.id}}" >{{iterator.name}}</option>
+{% endfor %}
+</select>
+</td>
+              </tr>
+              <tr>
+                <td align="right" valign="top" class="bodyText5">Minutes per day available for exercise :</td>
+                <td valign="top">:</td>
+                <td valign="top"><input type="text"  class="text" name="minutesPerDay" size="3" value={{userInfo.minutesPerDay}} onFocus='makeBlank(this);' onBlur='updateValue(this);'>
+                  <br />
+                  <span class="innerbodyText5">(We recommend at least 75 minutes per day to 
+                  allow time for both lifting and cardio)</span></td>
+              </tr>
+              <tr>
+                <td align="right" valign="top" class="bodyText5">Days per week available for exercise :</td>
+                <td valign="top">&nbsp;</td>
+                <td valign="top"><input type="text" class="text" id="daysPerWeek" name="daysPerWeek" size="3" value={{userInfo.daysPerWeek}} onKeyUp='makeVisible(this)' onFocus='makeBlank(this);' onBlur='updateValue(this);'>
+                  <br />
+                  <span class="innerbodyText5">(We recommend 3-5 days per week to allow
+                  for consistency, effectiveness, and recuperation)</span></td>
+              </tr>
+
+<tr><td id='toFill1' style="text-align: right;"></td><td></td><td id='toFill2'></td></tr>
+
+              <tr>
+                <td align="right" valign="top" class="bodyText5">Current fitness Level :</td>
+                <td valign="top">&nbsp;</td>
+                <td valign="top"><select name="fitnessLevel">
+{% if currentExperience %}
+<option value="{{currentFitness.id}}" >{{currentFitness.name}}</option>
+{% endif %}
+
+
+{% for iterator in allFitnessLevel %}
+<option value="{{iterator.id}}">{{iterator.name}}</option>
+{% endfor %}
+</selectl>
+</td>
+              </tr>
+            </table>
+            <br /></td>
+          </tr>
+          <tr>
+            <td height="18" background="../site_media/innercontentbottom.png">&nbsp;</td>
+          </tr>
+        </table>
+
+        <table width="660" border="0" align="center" cellpadding="0" cellspacing="0">
+          <tr>
+            <td width="668" height="11" background="../site_media/innercontenthead.png"></td>
+          </tr>
+          <tr>
+            <td align="center" valign="top" background="../site_media/innercontentbg.png" style="padding:15px 15px 0 25px;"><span class="innerbodyText">Resources Available </span><span class="bodyText3"><br />
+              </span><span class="innerbodyText5">(OR CHECK SOLELY THE ITEMS YOU WOULD LIKE TO USE)</span><br />
+              <table width="550" border="0" align="center" cellpadding="3" cellspacing="1">
+                <tr>
+                  <td height="40" colspan="3" align="left"><span class="bodyText3">
+                    <input type="checkbox" class="checkbox"  id="selectAll" value="1" onClick='updateChecks(this)'>
+                    Select All <img src="../site_media/specer.gif" width="30" height="1" />
+<input type="checkbox" class="checkbox"  id="selectAll" value="1" onClick='commonEquipment(this)'>
+                  Select Common Gym Equipment</span></td>
+                </tr>
+
+
+{% for outer in allEquipment %}
+<tr>
+  {% for iterator in outer %}
+<td width="{% cycle '209' '181' '196' %}" align="left"><span class="bodyText3"><input type="checkbox" name="{{iterator.id}}" id="{{iterator.id}}" value="1">{{iterator.name}}</td><td></td>
+  {% endfor %}
+</tr>
+{% endfor %}
+
+
+
+
+
+
+
+              </table>
+              <br />
+              <br />
+              <table width="550" border="0" cellpadding="10" cellspacing="1">
+
+
+
+{% for outer in allGoals %}
+<tr>
+  <td width="20" align="left" valign="top"><input type="radio" name="goal" value="{{outer.id}}" {% ifequal outer.id userInfo.goal.id%}CHECKED {% endifequal %}></td>
+  <td width="355" align="left" valign="top" class="bodyText"><div align="justify"><strong class="bodyText3">{{outer.name}}</strong><br />
+                 <span class="bodyText8">{{outer.description.text}}</span></div></td>
+                  <td width="161" align="left" valign="top"><img src="../site_media/{{outer.image}}" width="161" height="140" /></td>
+                </tr>
+
+
+                <tr>
+                  <td colspan="3" align="center" valign="top"><img src="../site_media/line.gif" width="580" height="2" align="absmiddle" /></td>
+                </tr>
+{% endfor%}
+
+
+
+
+
+              </table>
+              <center>
+              </center></td>
+          </tr>
+          <tr>
+            <td height="18" background="../site_media/innercontentbottom.png">&nbsp;</td>
+          </tr>
+        </table>
+        <br />
+            <center>
+
+
+
+<input type="Submit"  style='cursor: pointer; width: 226px; height: 47px; border: none; background:url(../site_media/save.gif)' value=''>
+
+
+
+             <br />
+<br />
+            </center>
+
+</form>
+
+
+{% for iterator in allGoals %}<br><br>{% endfor %}
+<script type="text/javascript">
+{% for iterator in checkedEquipment %}
+document.getElementById({{iterator.id}}).checked=true;
+{% endfor %}
+
+
+
+
+function fillDate()
+{
+try
+{
+var now = new Date();
+
+var day = now.getDate();
+var month = now.getMonth()+1;
+var year = now.getFullYear();
+
+document.getElementById('day').value=day;
+document.getElementById('month').value=month;
+document.getElementById('year').value=year;
+
+}
+catch(err)
+{
+alert(err);
+}
+
+}
+</script>
+
+<script type="text/javascript">
+try
+{
+fillDate();
+}
+catch(err)
+{
+alert(err);
+}
+
+
+
+
+
+
+</script>
+
+{% endblock %}

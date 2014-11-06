@@ -1,0 +1,30 @@
+{% extends "skeleton.html" %}
+{% block title %}{% endblock %}
+
+{% block content %}
+
+
+This is just a list of random comical statements to add some personality to the site.  These statements will appear on off days in lieue of a workout.  If a comical statement is exclusive to a particular gender, you can mark it as such.  If it's generic you can mark that as such too.
+
+
+<table border=0>
+<tr><td><b>Comical Statement</b></td>
+<td><b>Gender</b></td>
+<td></td>
+</tr>
+{% for iterator in allComicalStatements %}
+<tr><td>{{iterator.statement}}</td><td>{{iterator.gender}}</td>
+<td><form action='../delete/' method='POST'>
+<input type="hidden" name="type" value="comicalStatement">
+<input type="hidden" name="id" value="{{iterator.id}}">
+<input type='submit' value="Delete this Item" onClick="return confirm('You sure bra?')">
+</form></td></tr>
+{% endfor %}
+</table>
+<form action='.' method='POST'>
+<input type='text' name='statement' ><select name="gender">
+<option value="Male">Male</option>
+<option value="Female">Female</option>
+<option value="Either">Either</option>
+</select><input type='submit' value='Add a new one'>
+{% endblock %}

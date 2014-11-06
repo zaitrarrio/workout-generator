@@ -1,0 +1,21 @@
+{% extends "skeleton.html" %}
+{% block title %}{{currentExercise.name}}{% endblock %}
+
+
+
+{% block content %}
+<center><h3>{{currentExercise.name}}</h3>
+<iframe class='youtube-player' type='text/html' width='425' height='344' src='http://www.youtube.com/embed/{{currentExercise.url}}' frameborder='0'></iframe>
+</center>
+<br>
+<p>
+In our workout generator, {{currentExercise.pluralName}} are classified as {{word}} <strong>{{currentExercise.muscleGroup.name}}</strong> exercise.  They will appear in the following phases: {{phases}}
+</p>
+<a href="../exerciselibrary{{backNumber}}">Go Back</a><br/>
+
+
+
+
+{% endblock %}
+
+

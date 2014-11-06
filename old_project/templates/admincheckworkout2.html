@@ -1,0 +1,359 @@
+
+{% extends "skeleton.html" %}
+{% block title %} | Today's Workout{% endblock %}
+
+
+
+{% block content %}
+
+<script type="text/javascript">
+function fillDate()
+{
+var now = new Date();
+
+var day = now.getDate();
+var month=now.getMonth()+1;
+var year = now.getFullYear()
+
+document.getElementById('day').value=day;
+document.getElementById('month').value=month;
+document.getElementById('year').value=year;
+
+
+
+
+}
+function fillDate2()
+{
+var now = new Date();
+
+var day = now.getDate();
+var month=now.getMonth()+1;
+var year = now.getFullYear()
+
+document.getElementById('day2').value=day;
+document.getElementById('month2').value=month;
+document.getElementById('year2').value=year;
+}
+
+
+function fillDate3()
+{
+var now = new Date();
+
+var day = now.getDate();
+var month=now.getMonth()+1;
+var year = now.getFullYear()
+
+document.getElementById('day3').value=day;
+document.getElementById('month3').value=month;
+document.getElementById('year3').value=year;
+}
+
+function fillDate4()
+{
+var now = new Date();
+
+var day = now.getDate();
+var month=now.getMonth()+1;
+var year = now.getFullYear()
+
+document.getElementById('day4').value=day;
+document.getElementById('month4').value=month;
+document.getElementById('year4').value=year;
+}
+
+function fillDate5()
+{
+var now = new Date();
+
+var day = now.getDate();
+var month=now.getMonth()+1;
+var year = now.getFullYear()
+
+document.getElementById('day5').value=day;
+document.getElementById('month5').value=month;
+document.getElementById('year5').value=year;
+}
+
+</script>
+
+
+
+        <center>
+          <div class="innerbodyheadbg">Today’s Workout</div>
+        </center>
+        <span class="bodyText">        <br />
+        </span>
+        <table width="661" border="0" align="center" cellpadding="0" cellspacing="0">
+          <tr>
+            <td height="11" background="../site_media/innercontenthead.png"></td>
+          </tr>
+          <tr>
+            <td valign="top" background="../site_media/innercontentbg.png" style="padding:15px 15px 0 25px;"><span class="bodyText">Here's the layout for the week. 
+
+
+
+
+
+
+
+
+
+
+
+</span><a href="#scrollDown" class="readmoreLink">Scroll down</a><span class="bodyText"> to today's workout. If this turns out to be too easy or too hard, adjust your fitness level at </span><a href='../mygoals/' class="readmoreLink">My Goals</a><span class="innerbodyText2">. </span><span class="bodyText"><br />
+                    <br />
+              </span>
+
+
+
+
+              <center>
+                <table width="600" border="0" cellpadding="5" cellspacing="1" class="tableborder">
+
+
+                  <tr>
+                    <td width="153" align="left" valign="top" {% ifequal weekday 0 %}bgcolor="#fdd4d4"{% else%}bgcolor="#f9f5f5"{%endifequal%} class="bodyText4">Monday</td>
+                    <td width="418" align="left" valign="top" {% ifequal weekday 0 %}bgcolor="#fdd4d4"{% else%}bgcolor="#f9f5f5"{%endifequal%} class="bodyText">{% for iterator in weekDictionary.0%}-{{iterator.exercise.name}}<br />{% endfor %}</p>
+                    <p class="bodyText5">{% if weekDictionary.cardio0 %}{{weekDictionary.cardioLevel0}} Cardio{%else%}<br>{% endif %}</td></p></td>
+                  </tr>
+
+
+
+
+                  <tr>
+                    <td align="left" valign="top" {% ifequal weekday 1 %}bgcolor="#fdd4d4"{% else%}bgcolor="#f9f5f5"{%endifequal%} class="bodyText4">Tuesday</td>
+                    <td align="left" valign="top" {% ifequal weekday 1 %}bgcolor="#fdd4d4"{% else%}bgcolor="#f9f5f5"{%endifequal%} class="bodyText">{% for iterator in weekDictionary.1%}-{{iterator.exercise.name}}<br />{% endfor %}</p>
+                    <p class="bodyText5">{% if weekDictionary.cardio1 %}{{weekDictionary.cardioLevel1}} Cardio{%else%}<br>{% endif %}</td></p></td>
+                  </tr>
+
+
+
+
+
+
+                  <tr>
+                    <td align="left" valign="top" {% ifequal weekday 2 %}bgcolor="#fdd4d4"{% else%}bgcolor="#f9f5f5"{%endifequal%} class="bodyText4">Wednesday</td>
+                    <td align="left" valign="top" {% ifequal weekday 2 %}bgcolor="#fdd4d4"{% else%}bgcolor="#f9f5f5"{%endifequal%} class="bodyText">{% for iterator in weekDictionary.2%}-{{iterator.exercise.name}}<br />{% endfor %}</p>
+                    <p class="bodyText5">{% if weekDictionary.cardio2 %}{{weekDictionary.cardioLevel2}} Cardio{%else%}<br>{% endif %}</td></p></td>                  </tr>
+
+
+
+
+                  <tr>
+                    <td align="left" valign="top" {% ifequal weekday 3 %}bgcolor="#fdd4d4"{% else%}bgcolor="#f9f5f5"{%endifequal%} class="bodyText4">Thursday</td>
+                    <td align="left" valign="top" {% ifequal weekday 3 %}bgcolor="#fdd4d4"{% else%}bgcolor="#f9f5f5"{%endifequal%}><p class="bodyText">
+
+{% for iterator in weekDictionary.3%}-{{iterator.exercise.name}}<br />{% endfor %}</p>
+
+
+                    <p class="bodyText5">{% if weekDictionary.cardio3 %}{{weekDictionary.cardioLevel3}} Cardio{%else%}<br>{% endif %}</td></p></td>
+                  </tr>
+
+
+                  <tr>
+                    <td align="left" valign="top" {% ifequal weekday 4 %}bgcolor="#fdd4d4"{% else%}bgcolor="#f9f5f5"{%endifequal%} class="bodyText4">Friday</td>
+                    <td align="left" valign="top" {% ifequal weekday 4 %}bgcolor="#fdd4d4"{% else%}bgcolor="#f9f5f5"{%endifequal%}><p class="bodyText">{% for iterator in weekDictionary.4%}-{{iterator.exercise.name}}<br />{% endfor %}</p>
+                    <p class="bodyText5">{% if weekDictionary.cardio4 %}{{weekDictionary.cardioLevel4}} Cardio{%else%}<br>{% endif %}</td></p></td>
+                  </tr>
+
+
+                  <tr>
+                    <td align="left" valign="top" {% ifequal weekday 5 %}bgcolor="#fdd4d4"{% else%}bgcolor="#f9f5f5"{%endifequal%} class="bodyText4">Saturday</td>
+                    <td align="left" valign="top" {% ifequal weekday 5 %}bgcolor="#fdd4d4"{% else%}bgcolor="#f9f5f5"{%endifequal%}><p class="bodyText">{% for iterator in weekDictionary.5%}-{{iterator.exercise.name}}<br />{% endfor %}</p>
+                    <p class="bodyText5">{% if weekDictionary.cardio5 %}{{weekDictionary.cardioLevel5}} Cardio{%else%}<br>{% endif %}</td></p></td>
+                  </tr>
+
+
+                  <tr>
+                    <td align="left" valign="top" {% ifequal weekday 6 %}bgcolor="#fdd4d4"{% else%}bgcolor="#f9f5f5"{%endifequal%} class="bodyText4">Sunday</td>
+                    <td align="left" valign="top" {% ifequal weekday 6 %}bgcolor="#fdd4d4"{% else%}bgcolor="#f9f5f5"{%endifequal%} class="bodyText">{% for iterator in weekDictionary.6%}-{{iterator.exercise.name}}<br />{% endfor %}</p>
+                    <p class="bodyText5">{% if weekDictionary.cardio6 %}{{weekDictionary.cardioLevel6}} Cardio{%else%}<br>{% endif %}</td></p></td>
+                  </tr>
+                </table>
+
+
+
+                <br />
+
+
+                <table width="600" border="0" cellpadding="15" cellspacing="1" class="tableborder">
+
+
+                  <tr class="bodyText">
+                    <td width="219" align="left" bgcolor="#F9F5F5" class="bodyText">Current Phase<br />
+                    Days in Phase <br />
+                    Day in week <br />
+                    Phase Length </td>
+                    <td width="238" align="left" bgcolor="#F9F5F5" class="bodyText"> <a href="javascript:void(0)" onclick="window.open('../descriptionlauncher{{myPhase.description.id}}', 'launcher', 'height=350','width=425')">
+{{myPhase.name}}</a><br />
+                      {{userInfo.currentDay}}<br />
+                      {{dayOfWeek}}<br />
+                      {{userInfo.phaseLength}} weeks</td>
+                  </tr>
+                </table>
+
+{% if firstTime %}
+<span class="bodyText">This is your first time in this phase using our program.  Read below before you start...{% autoescape off %}<br><br>
+{{firstTimeDescription}}
+{% endautoescape %}
+</span>
+{% endif%}
+
+
+
+                <br />
+                <br />
+
+
+{% if todaysWorkout.offDay %}
+
+
+<span class="bodyText">Today is an off day.  <a name='scrollDown'></a>{{comicalStatement.statement}}.</span>
+
+{% endif %}
+
+
+
+
+
+{% if todaysExercises %}
+
+                <table width="600" border="0" cellpadding="5" cellspacing="1" class="tableborder">
+
+                  <tr>
+                    <td colspan="2" align="center" bgcolor="#c82733" class="bodyText"><strong class="bodyText7"><strong><a name='scrollDown'></a>Sets x Number of Reps of an Exercise</strong></td>
+
+{% for iterator in todaysExercises %} 
+{% if iterator.change %}
+                  <tr>
+                    <td colspan="2" align="left" bgcolor="#fdd4d4" class="bodyText4">{{iterator.exercise.workoutComponent.name}} {% if iterator.actualRest %}(Rest for {{iterator.actualRest}}){% endif %}{% ifequal myPhase.name 'muscle endurance' %}{% if iterator.superSet %} Use a <a href="javascript:void(0)" onclick="window.open('../descriptionlauncher17', 'Tempo', 'height=350','width=425').focus()">tempo</a> of {{iterator.tempo}} and superset at a <a href="javascript:void(0)" onclick="window.open('../descriptionlauncher17', 'Tempo', 'height=350','width=425').focus()">tempo</a> of {{iterator.superSet.tempo}}{% endif %}{% endifequal %}</td>
+                  </tr>{% endif%}
+
+
+                  <tr>
+                    <td align="left" bgcolor="#eae9e9" class="bodyText">{{iterator.sets}} x {% if not iterator.exercise.timed %}{{iterator.reps}}{% endif %}</td>
+                    <td align="left" bgcolor="#eae9e9" class="bodyText6">{% if superuser %}
+<a href="../editexercise{{iterator.exercise.id}}" target="_blank">
+{% else %}
+<a href="javascript:void(0)" onclick="window.open('../youtubelauncher{{iterator.exercise.id}}', 'launcher', 'height=370, width=425').focus()">
+{% endif %}
+
+{{iterator.exercise.name}}
+</a>
+{% if iterator.superSet %}
+superset with {% if not iterator.superSet.exercise.timed %}{{iterator.superSet.reps}}{% endif %} {% if superuser %}
+<a href="../editexercise{{iterator.superSet.exercise.id}}" target="_blank">
+{% else %}
+<a href="javascript:void(0)" onclick="window.open('../youtubelauncher{{iterator.superSet.exercise.id}}', 'launcher', 'height=370, width=425').focus()">
+{% endif %}
+{{iterator.superSet.exercise.name}}
+</a>
+{% endif %}</td>
+                  </tr>
+{% endfor %} 
+
+                  <tr>
+                    <td colspan="2" align="center" bgcolor="#000000" class="bodyText7">Try and complete all sets with a relative <a href="javascript:void(0)" onclick="window.open('../descriptionlauncher17', 'Tempo', 'height=350','width=425').focus()">
+
+
+tempo</a> of {{actualTempo}}.</strong></td>
+                  </tr>
+                </table>
+                <br />
+                <br />
+
+
+{% endif%}
+{% if todaysWorkout.cardio %}
+                <table width="600" border="0" cellpadding="10" cellspacing="1" class="tableborder">
+                  <tr>
+                    <td align="left" bgcolor="#F9F5F5" class="bodyText">{% autoescape off %}{{todaysWorkout.cardio}}{% endautoescape %}</td>
+                  </tr>
+                </table>
+{% endif %}
+
+
+                <br />
+              </center>
+            </td>
+          </tr>
+          <tr>
+            <td height="18" background="../site_media/innercontentbottom.png">&nbsp;</td>
+          </tr>
+        </table>
+        <br />
+        <span class="bodyText">        </span>
+        <table width="661" border="0" align="center" cellpadding="0" cellspacing="0">
+
+          <tr>
+            <td height="11" background="../site_media/innercontenthead.png"></td>
+          </tr>
+          <tr>
+            <td align="center" valign="top" background="../site_media/innercontentbg.png" style="padding:15px 15px 0 25px;">
+
+{% if not todaysWorkout.offDay %}
+<span class="innerbodyText3"><a href='../printfriendly'>Print Friendly Version</a><br />
+              <img src="../site_media/line2.gif" width="550" height="2" style="margin-top:10px;" /><br />
+              <br />
+              <br />
+
+<form action="../emailworkout/" method="POST" style="display: inline;">
+<input type='hidden' name='year' id='year2' value='0'>
+<input type='hidden' name='day' id='day2' value='0'>
+<input type='hidden' name='month' id='month2' value='0'>
+<script type="text/javascript">
+fillDate2();
+</script> 
+
+
+              </span><strong><span class="bodyText">Email Address</span></strong><span class="innerbodyText3">
+<input name="email" type="text" id="textfield" size="50" />
+              </span><span class="bodyText"><br />
+            <br />
+
+
+<input type="image" name="Submit" src="../site_media/emailworkout.gif" width="157" height="47" border="0" style="display: inline;"/></form>
+<form action="../todaysworkout/" method="POST" style="display: inline;">
+<input type='hidden' name='offDay'>
+<input type='hidden' name='year' id='year3' value='0'>
+<input type='hidden' name='day' id='day3' value='0'>
+<input type='hidden' name='month' id='month3' value='0'>
+<script type="text/javascript">
+fillDate3();
+</script> 
+<input type="image" name="Submit" src="../site_media/todayoffday.gif" width="180" height="47" border="0" style="display: inline;"/>
+</form>
+{% endif %}
+{% if missedYesterdayButton %}
+<form action="../todaysworkout/" method="POST" style="display: inline;">
+<input type='hidden' name='missed'>
+<input type='hidden' name='year' id='year5' value='0'>
+<input type='hidden' name='day' id='day5' value='0'>
+<input type='hidden' name='month' id='month5' value='0'>
+<script type="text/javascript">
+fillDate5();
+</script> 
+<input type="image" name="Submit" src="../site_media/yesterdayworkout.gif" width="223" height="47" border="0" style="display: inline;"/></form>{% endif %}
+
+<br />
+            <br />
+              </span>
+              <center>
+              </center></td>
+          </tr>
+          <tr>
+            <td height="18" background="../site_media/innercontentbottom.png"></td>
+          </tr>
+        </table>
+
+        <center>
+          <br />
+          <br />
+  <br />
+        </center>
+
+{% endblock %}
+
+

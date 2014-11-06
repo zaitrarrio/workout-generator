@@ -1,0 +1,81 @@
+
+
+
+
+<html lang="en">
+<head>
+	<title>Workout Generator</title>
+
+<style>
+.printtd 
+{ 
+  border: 1px solid black; 
+  margin: 0px;
+  padding: 0px;
+
+}
+.basic
+{
+border: 1px solid black; 
+border-collapse: collapse;
+padding: 0px;
+margin: 0px;
+}
+.close
+{
+  page-break-after: always;
+}
+</style>
+
+
+
+
+<a href='../todaysworkout'>Go Back</a><br><br>
+{% for dictionary in outer %}
+<h1>{{dictionary.date}}, {{dictionary.date2}}</h1>
+
+    {% if not dictionary.todaysExercises %}
+      <tr><td>Rest Day</td></tr>
+{% else %}
+  <table class='basic'>
+  <tr><td class='printtd' style='min-width: 13em;'>
+  <table class='basic'>
+  {% for iterator in dictionary.todaysExercises %} 
+    {% if iterator.change %}</table ></td></tr>
+      <tr><td class='printtd'>{{iterator.exercise.workoutComponent.name}}
+      {%ifnotequal iterator.exercise.workoutComponent.name  'Flexibility'%}
+        <br>(Rest for {{iterator.rest}})
+        <br>Tempo: {{iterator.tempo}}
+      {% endifnotequal %}
+      </td><td class='printtd'><table class='basic' style='width: 100%;'>
+    {%endif %}
+    <tr><td class='printtd' style='max-width: 8em;'>{{iterator.exercise.name}}{% if iterator.superSet %} superset with {{iterator.superSet.exercise.name}}{% endif %}
+    <br/>
+    <img id='{{iterator.exercise.id}}'src="http://img.youtube.com/vi/{{iterator.exercise.url}}/2.jpg" width=65px  style="display: inline; float: left;"/>
+    {% if iterator.superSet %}
+
+      <img id='{{iterator.exercise.id}}'src="http://img.youtube.com/vi/{{iterator.superSet.exercise.url}}/2.jpg" width=65px style="display: inline; float: right;/">
+    {% endif %}
+    </td>{%ifnotequal iterator.exercise.workoutComponent.name  'Flexibility'%}{% for integerObject in iterator.setsList%}<td class='printtd' style='min-width: 4em;'>Set {{integerObject}} (Wt/Reps)</td>{% endfor %}{% endifnotequal %}</tr>
+
+    {%ifnotequal iterator.exercise.workoutComponent.name  'Flexibility'%}<tr><td>Target: {{iterator.sets}} x {% if not iterator.exercise.timed%}{{iterator.reps}}{% if iterator.superSet %} + {{iterator.superSet.reps}}{% endif %} reps{% endif %}</td>{% for integerObject in iterator.setsList%}<td class='printtd'  style='min-width: 4em;'><br><br></td>{% endfor %}
+
+
+    </tr>{%endifnotequal%}
+  {%endfor%}
+</table></table>
+
+
+
+
+{%autoescape off %}
+{% if dictionary.cardio %}<br><br><br>
+{{dictionary.cardio}}
+{% endif %}
+{% endautoescape %}
+<div class="close"><br/></div>
+    {% endif %}
+{% endfor %}
+
+
+

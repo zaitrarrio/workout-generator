@@ -1,0 +1,127 @@
+{% extends "skeleton.html" %}
+{% block title %} - Add Exercise{% endblock %}
+
+
+
+{% block content %}
+<h2>Add Exercises</h2>
+<form action="." method="POST">
+<table>
+<tr><td>Exercise name</td><td><input name="name" type="text"></td></tr>
+
+<tr><td>Component</td><td>
+<select name="workoutComponent">
+{% for iterator in allComponents %}
+<option value="{{iterator.id}}">{{iterator.name}}</option>
+{% endfor %}
+</select>
+</td></tr>
+
+<tr><td>Alternate Component</td><td>
+<select name="workoutComponent2">
+<option value='none'>None</option>
+{% for iterator in allComponents %}
+<option value="{{iterator.id}}">{{iterator.name}}</option>
+{% endfor %}
+</select>
+</td></tr>
+
+<tr><td>Alternate Component</td><td>
+<select name="workoutComponent3">
+<option value='none'>None</option>
+{% for iterator in allComponents %}
+<option value="{{iterator.id}}">{{iterator.name}}</option>
+{% endfor %}
+</select>
+</td></tr>
+
+{% for iterator in allExerciseTypes %}
+<tr><td></td><td><input type="checkbox" class="checkbox" name="exerciseType{{iterator.id}}" id="exerciseType{{iterator.id}}"  value="1">{{iterator.name}}</td></tr>
+{% endfor %}
+
+
+<tr><td>Exercise is timed instead of repped out: (i.e. Stretches and planks)</td><td><input type="checkbox" id ="timed" name="timed" value="1" ></td></tr>
+<tr><td>Exercise is done 1 limb at a time (i.e. alternating curls; this will determine time consumption)</td><td><input type="checkbox" id ="oneLimb" name="oneLimb" value="1" ></td></tr>
+
+<tr><td><input type="radio" name="compound" value="0">Isolated</td><td><input type="radio" name="compound" value="1">Compound</td></tr>
+
+<tr><td>Video URL:</td><td><input name="video" type="text"></td></tr>
+<tr><td>Difficulty</td><td>at least
+
+
+<select name="fitnessLevel">
+{% for iterator in allFitnessLevels %}
+<option value="{{iterator.id}}">{{iterator.name}}</option>
+{% endfor %}
+
+</select>
+and at least <b>
+<select name="experience">
+{% for iterator in allExperiences %}
+<option value="{{iterator.id}}">{{iterator.name}}</option>
+{% endfor %}
+</td></tr>
+
+
+{% for iterator in allPhases %}
+<tr><td>{{iterator.name}}</td><td><input name="{{iterator.id}}" type="checkbox"></td></tr>
+{% endfor %}
+
+
+
+<tr><td>Equipment</td><td>
+
+<table>
+{% for outer in allEquipment %}
+<tr class="row1" style="font-size: .75em;">
+  {% for iterator in outer %}
+<td><input type="checkbox" id ="equipment{{iterator.id}}" name="equipment{{iterator.id}}" value="1" >{{iterator.name}}</td><td></td>
+  {% endfor %}
+</tr>
+{% endfor %}
+
+</table>
+
+<tr><td>Primary Muscle Group</td><td>
+<select name="muscleGroup">
+{% for iterator in allMuscleGroups %}
+<option value="{{iterator.id}}">{{iterator.name}}</option>
+{% endfor %}
+</select>
+</td></tr>
+
+
+<tr><td>Mutually Exclusive with:</td><td>
+<select name="mutuallyExclusive">
+<option value="none">(none)</option>
+{% for iterator in similarExercises %}
+<option value="{{iterator.id}}" {%ifequal currentMutex iterator.id %}SELECTED{% endifequal %}>{{iterator.name}}</option>
+{% endfor %}
+</select>
+</td></tr>
+
+
+<tr><td>Don't use following muscle groups tomorrow:</td><td> 
+
+
+
+
+<table>
+{% for outer in matrixMuscleGroup %}
+<tr class="row1" style="font-size: .75em;">
+  {% for iterator in outer %}
+<td><input type="checkbox" id ="helper{{iterator.id}}" name="helper{{iterator.id}}" value="1" >{{iterator.name}}</td><td></td>
+  {% endfor %}
+</tr>
+{% endfor %}
+
+</table>
+<tr><td></td><td><input type="submit" value="Add Exercise"></td></tr>
+
+</table>
+</form>
+
+
+{% endblock %}
+
+

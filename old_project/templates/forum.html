@@ -1,0 +1,24 @@
+{% extends "skeleton.html" %}
+{% block title %} - Threads{% endblock %}
+
+
+
+{% block content %}
+
+<table>
+<tr><td><b>User</b></td><td style="text-align: center;"><b>Post</b></td></tr>
+{% for iterator in allPosts %}
+<tr class="{% cycle 'row1' 'row2' %}"><td>{{iterator.user.username}}</td><td>{% autoescape off %}
+{{iterator.message}}{% endautoescape %}</a></td></tr>
+<tr class="{% cycle 'row1' 'row2' %}"><td></td><td><br></td></tr>
+{% endfor %}
+<tr><td></td><td><form action='.' method='POST'>
+<textarea name='message' rows='10' cols='60'>Write something...</textarea>
+<input type='submit' value='submit'>
+</form></td>
+<table>
+
+
+
+
+{% endblock %}

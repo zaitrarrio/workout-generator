@@ -1,0 +1,28 @@
+{% extends "skeleton.html" %}
+{% block title %} - Edit Volumes{% endblock %}
+
+
+
+{% block content %}
+<h2>Edit Volumes</h2>
+<p style='width: 600px;'>
+Here's one of the more extensive aspects of the database.  Phase and fitness level act as dependent variables to determine set and rep ranges for a person, determines the amount of cardio done in a week, and sets the number of exercises per workout component (which is established a week at a time...go back up to "edit component frequencies").  Volumes are used extensively during the generation of a single workout.
+</p>
+<form action ="../addvolume">
+<input type="submit" value="Add a new volume">
+</form>
+
+<table>
+<tr><td><b>Volumes</b></td></tr>
+{% for iterator in allVolumes %}
+<tr class="{% cycle 'row1' 'row2' %}"><td><a href="../editvolume{{iterator.id}}">{{iterator.phase.name}} for clients who are {{iterator.fitnessLevel.name}}</a></td></tr>
+
+{% endfor %}
+<table>
+
+
+
+
+{% endblock %}
+
+

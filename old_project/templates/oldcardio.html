@@ -1,0 +1,107 @@
+{% extends "skeleton.html" %}
+{% block title %} - Edit Cardio{% endblock %}
+
+
+
+{% block content %}
+
+<script type="text/javascript">
+function test(inElement)
+{
+myInner="<table>";
+
+if(inElement.value=='0')
+{
+myInner=myInner+"<tr><td>Sets:</td><td><input type='text' name='sets' size='3' value='{{currentCardio.sets}}'></td></tr>";
+myInner=myInner+"<tr><td>Rest:</td><td><input type='text' name='rest' size='3' value='{{currentCardio.rest}}'></td></tr>";
+myInner=myInner+"<tr><td>Distance:</td><td><input type='text' name='distance' size='3' value='{{currentCardio.distance}}'></td></tr>";
+
+
+}
+else
+{
+myInner=myInner+"<tr><td>Time:</td><td><input type='text' name='time' size='3' value='{{currentCardio.time}}'></td></tr>";
+myInner=myInner+"<tr><td>Heart Rate:</td><td><input type='text' name='heartrate' size='3' value='{{currentCardio.heartRate}}'></td></tr>";
+
+}
+myInner=myInner+"<tr><td>Description:</td><td><textarea name='description' rows='7' cols='35'>{{currentCardio.description}}</textarea></td></tr>"
+myInner=myInner+"<tr><td></td><td><input type='submit' value='Save'></td></tr>"
+
+
+myInner=myInner+"</table>"
+document.getElementById('toFill').innerHTML=myInner;
+}
+</script>
+
+
+<h2>Edit Cardio</h2>
+<form action='../delete/' method='POST'>
+<input type="hidden" name="type" value="cardio">
+<input type="hidden" name="id" value="{{currentCardio.id}}">
+<input type='submit' value="Delete this Item">
+</form>
+
+<form action="." method="POST">
+<input type='hidden' name='currentCardio' value='{{currentCardio.id}}'>
+<table>
+<tr><td>Cardio name</td><td><input name="name" type="text" value='{{currentCardio.name}}'></td></tr>
+
+<tr><td>Equipment</td><td>
+<select name="equipment">
+<option value="{{currentCardio.equipment.id}}">{{currentCardio.equipment.name}}</option>
+{% for iterator in allEquipment %}
+<option value="{{iterator.id}}">{{iterator.name}}</option>
+{% endfor %}
+</select>
+
+<tr><td>Minimum Fitness Level:</td><td>
+<select name="fitness">
+<option value="{{currentCardio.minFitnessLevel.id}}">{{currentCardio.minFitnessLevel.name}}</option>
+{% for iterator in allFitness %}
+<option value="{{iterator.id}}">{{iterator.name}}</option>
+{% endfor %}
+</select>
+
+<tr><td>Estimated completion time</td><td><input type="text" size="3" name="totalTime" value='{{currentCardio.totalTime}}'></td></tr>
+
+
+
+
+<tr><td><input type=RADIO name="timeOrDistance" value="1" onClick="test(this)" {% if currentCardio.timeOrDistance %}CHECKED {% endif %}>Timed</td><td><input type="radio" name="timeOrDistance" value="0" onClick="test(this)" {% if not currentCardio.timeOrDistance %}CHECKED {% endif %}>Distance</td></tr>
+
+
+
+</table>
+
+<div id="toFill">
+
+<table>
+{% if currentCardio.timeOrDistance %}
+
+<tr><td>Time:</td><td><input type='text' name='time' size='3' value='{{currentCardio.time}}'></td></tr>
+<tr><td>Heart Rate:</td><td><input type='text' name='heartrate' size='3' value='{{currentCardio.heartRate}}'></td></tr>
+
+{% else %}
+<tr><td>Sets:</td><td><input type='text' name='sets' size='3' value='{{currentCardio.sets}}'></td></tr>
+<tr><td>Rest:</td><td><input type='text' name='rest' size='3' value='{{currentCardio.rest}}'></td></tr>
+<tr><td>Distance:</td><td><input type='text' name='distance' size='3' value='{{currentCardio.distance}}'></td></tr>
+
+
+{% endif %}
+<tr><td>Description:</td><td><textarea name='description' rows='7' cols='35'>{{currentCardio.description}}</textarea></td></tr>
+<tr><td></td><td><input type='submit' value='Save'></td></tr>
+
+
+</table>
+
+
+
+</div>
+
+
+</form>
+
+
+{% endblock %}
+
+

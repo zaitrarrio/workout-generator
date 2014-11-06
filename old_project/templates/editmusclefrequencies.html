@@ -1,0 +1,65 @@
+{% extends "skeleton.html" %}
+{% block title %} - Edit Muscle Frequencies{% endblock %}
+
+
+
+{% block content %}
+
+<p style='width: 600px;'>
+I'm 99% sure the website is bug free, but if you screw up input here then that will trigger bugs.  This just allows you to add exceptions to muscle groups so you can adjust the allowed frequency in a given week.  I didn't work on this part all that much, so display might be a little weird...be weary...I'd argue that things work well enough at the moment.
+</p>
+<p style='width: 600px;'>
+If you create an exception for a muscle group you need to make sure and do it for all 5 ranges (Low-High).  Also, you can't make any mistakes on set and rep ranges that don't logically follow in order or leave any case unaccounted for as far as a set/rep range.  That will break things.
+</p>
+<h2>Edit Muscle Frequencies</h2>
+<form action='../editfrequencyexceptions'>
+<input type='submit' value='Edit Frequency Exceptions'>
+</form>
+
+<form action='.' method='POST'>
+<input type='hidden' name='case1' value='1'>
+<table>
+<tr><td><b>Frequency</b></td><td></td><td><b>Sets and Reps</b></td><td><b>Definition of a "week"</b></td></tr>
+{% for iterator in allMuscleFrequencies %}
+<tr class="{% cycle 'row1' 'row2' %}"><td>{{iterator.name}}</td><td>({{iterator.minimum}} - {{iterator.maximum}} times per week)</td><td>({{iterator.minSets}} - {{iterator.maxSets}} x {{iterator.minReps}} - {{iterator.maxReps}})<td><input type='text' name='weekLength{{iterator.id}}' value='{{iterator.weekLength}}' size='3'> days</td></tr>
+{% endfor %}
+<tr><td></td><td></td><td></td><td><input type='submit' value='Save'></td></tr>
+</table>
+</form>
+{% for iterator in allMuscleFrequencies %}
+<br><br>
+{% endfor %}
+<form action='.' method='POST'>
+<h2>Exercises Per Muscle Group by Phase (per day).This prevents pansy exercises from dominating a workout (whole workout of forearms or ankles or something)</h2>
+
+{% for outer2 in allFitnessLevels %}
+
+<h3>{{outer2.name}}</h3>
+<table >
+<tr><td></td>{% for iterator in allPhases %}<td> {{iterator.name}} </td>{% endfor %}</tr>
+{% for outer in allMuscleGroups %}
+<tr class="{% cycle 'row1' 'row2' %}"><td>{{outer.name}}</td>{% for inner in allPhases %}<td ALIGN=CENTER><input name ='{{outer.id}}_{{inner.id}}_{{outer2.id}}_1' id='{{outer.id}}_{{inner.id}}_{{outer2.id}}_1' type='text' size='3' onFocus='makeBlank(this);' onBlur='updateValue(this);'>-<input input name ='{{outer.id}}_{{inner.id}}_{{outer2.id}}_2' id='{{outer.id}}_{{inner.id}}_{{outer2.id}}_2' type='text' size='3' onFocus='makeBlank(this);' onBlur='updateValue(this);'></td>{% endfor %}</tr>
+{% endfor %}
+<tr><td></td><td><input type='submit' value='Save'></td></tr>
+</table>
+{% endfor %}
+</form>
+
+
+{% if alreadyExists %}
+<script type="text/javascript">
+{% for iterator in existingList %}
+document.getElementById('{{iterator.key}}').value='{{iterator.value}}';
+{% endfor %}
+
+{% for iterator in existingList2 %}
+document.getElementById('{{iterator.key}}').value='{{iterator.value}}';
+{% endfor %}
+
+
+</script>
+{% endif %}
+
+{% endblock %}
+
+

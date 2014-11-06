@@ -1,0 +1,25 @@
+{% extends "skeleton.html" %}
+{% block title %}Pay What You Want! {% endblock %}
+{% block content %}
+<div style="display: block;  margin: 10px 50px;">
+    Thanks for signing up!  Before you get started:
+    <br/>
+    <br/>
+    <br/>
+    <div style="width: 300px; margin: auto; overflow: hidden;">
+        <h3>Pay What You Want</h3>
+        <form action="../payment_flow/" method="post">
+        <select name="payment_amount">
+            <option value="0">$0 (No thanks)</option>
+            <option value="5" selected="selected">$5 (I want to support this site and help it grow!)</option>
+            <option value="20">$20 (I'm all in!)</option>
+        </select>
+        <input type="submit" value="Continue" style="position: relative; float: right; margin-top: 10px;"/>
+        </form>
+    </div>
+    <br/><br/>
+    <span style="font-size: 0.8em; margin-top: 20px;">
+        Only recently have we decided to monetize this site.  We would like to make the site faster, optimize the user interface, upload better videos, and add support for mobile applications.  However, none of these things can happen without our audience's support.  We aim to give you far more value than what you decide to spend!
+    </span>
+</div>
+{% endblock %}

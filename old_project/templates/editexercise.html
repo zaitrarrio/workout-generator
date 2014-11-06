@@ -1,0 +1,203 @@
+{% extends "skeleton.html" %}
+{% block title %} - Edit Exercise{% endblock %}
+
+
+
+{% block content %}
+
+
+<script type="text/javascript">
+function changeLink(object)
+{
+  myVar=object.value
+  document.getElementById('testLink').href='http://www.youtube.com/watch?v='+myVar
+  document.getElementById('testLinkText').innerHTML='http://www.youtube.com/watch?v='+myVar
+} 
+
+</script>
+
+
+<h2>Edit {{currentExercise.name}}</h2>
+<a href='../editexercise{{previousIndex}}/'>Previous Exercise</a> <a href='../editexercise{{nextIndex}}/'>Next Exercise</a>
+
+
+
+<form action='../delete/' method='POST'>
+<input type="hidden" name="type" value="exercise">
+<input type="hidden" name="id" value="{{currentExercise.id}}">
+<input type='submit' value="Delete this Item" onClick="return confirm('You sure bra?')">
+</form>
+
+<form action="." method="POST">
+<input type="hidden" value="{{currentExercise.id}}" name="currentID">
+<table class="exerciseTable">
+<tr><td><a name='scrollDown'>Exercise name</a></td><td><input name="name" type="text" value="{{currentExercise.name}}"></td></tr>
+
+<tr><td>Component</td><td>
+<select name="workoutComponent">
+<option value="{{currentExercise.workoutComponent.id}}">{{currentExercise.workoutComponent.name}}</option>
+{% for iterator in allComponents %}
+<option value="{{iterator.id}}">{{iterator.name}}</option>
+{% endfor %}
+</select>
+</td></tr>
+
+<tr><td>Alternate Component</td><td>
+<select name="workoutComponent2">
+{% if currentExercise.workoutComponent2 %}<option value="{{currentExercise.workoutComponent2.id}}">{{currentExercise.workoutComponent2.name}}</option>{% endif %}
+<option value='none'>None</option>
+{% for iterator in allComponents %}
+<option value="{{iterator.id}}">{{iterator.name}}</option>
+{% endfor %}
+</select>
+</td></tr>
+
+<tr><td>Alternate Component</td><td>
+<select name="workoutComponent3">
+{% if currentExercise.workoutComponent3 %}<option value="{{currentExercise.workoutComponent3.id}}">{{currentExercise.workoutComponent3.name}}</option>{% endif %}
+<option value='none'>None</option>
+{% for iterator in allComponents %}
+<option value="{{iterator.id}}">{{iterator.name}}</option>
+{% endfor %}
+</select>
+</td></tr>
+
+{% for iterator in allExerciseTypes %}
+<tr><td></td><td><input type="checkbox" class="checkbox" name="exerciseType{{iterator.id}}" id="exerciseType{{iterator.id}}" value="1">{{iterator.name}}</td></tr>
+{% endfor %}
+
+
+<tr><td>Exercise is timed instead of repped out: (i.e. Stretches and planks)</td><td><input type="checkbox" id ="timed" name="timed" value="1" {% if currentExercise.timed %}CHECKED{% endif %}
+<tr><td>Exercise is done 1 limb at a time (i.e. alternating curls; this will determine time consumption)</td><td><input type="checkbox" id ="oneLimb" name="oneLimb" value="1" {% if currentExercise.oneLimb %}CHECKED{% endif %}></td></tr>
+
+<tr><td>Video URL:</td><td><input id='myInput' name="video" type="text" value="{{currentExercise.url}}" onKeyUp='changeLink(this)'></td></tr>
+<tr><td></td><td><a id='testLink' href='http://www.youtube.com/watch?v={{currentExercise.url}}'><p id='testLinkText'>http://www.youtube.com/watch?v={{currentExercise.url}}</p></a></td></tr>
+<tr><td><input type="radio" name="compound" value="0" {% if not currentExercise.compound %}checked{% endif %}>Isolated</td><td><input type="radio" name="compound" value="1" {% if currentExercise.compound %}checked{% endif %}>Compound</td></tr>
+<tr><td>Difficulty</td><td>
+
+<select name="fitnessLevel">
+<option value="{{currentExercise.minFitnessLevel.id}}">{{currentExercise.minFitnessLevel.name}}</option>
+{% for iterator in allFitnessLevels %}
+<option value="{{iterator.id}}">{{iterator.name}}</option>
+{% endfor %}
+
+</select>
+and at least <b>
+<select name="experience">
+<option value="{{currentExercise.minExperience.id}}">{{currentExercise.minExperience.name}}</option>
+{% for iterator in allExperiences %}
+<option value="{{iterator.id}}">{{iterator.name}}</option>
+{% endfor %}
+</td></tr>
+
+
+
+{% for iterator in allPhases %}
+<tr><td>{{iterator.name}}</td><td><input name="{{iterator.id}}" id="{{iterator.id}}" type="checkbox"></td></tr>
+{% endfor %}
+
+
+<script type="text/javascript">
+{% for iterator in checkedPhases %}
+document.getElementById({{iterator.id}}).checked=true;
+{% endfor %}
+
+</script>
+
+
+
+<tr><td>Equipment</td><td>
+<table>
+{% for outer in allEquipment %}
+<tr class="row1" style="font-size: .75em;">
+  {% for iterator in outer %}
+<td><input type="checkbox" id ="equipment{{iterator.id}}" name="equipment{{iterator.id}}" value="1" >{{iterator.name}}</td><td></td>
+  {% endfor %}
+</tr>
+{% endfor %}
+
+</table>
+<script type="text/javascript">
+{% for iterator in checkedEquipment %}
+document.getElementById("equipment"+{{iterator.id}}).checked=true;
+{% endfor %}
+{% for iterator in checkedExerciseTypes %}
+document.getElementById("exerciseType"+{{iterator.id}}).checked=true;
+{% endfor %}
+</script>
+<tr><td>Primary Muscle Group</td><td>
+<select name="muscleGroup">
+<option value="{{currentMuscleGroup.id}}">{{currentMuscleGroup.name}}</option>
+{% for iterator in allMuscleGroups %}
+<option value="{{iterator.id}}">{{iterator.name}}</option>
+{% endfor %}
+</select>
+
+</td></tr>
+
+
+<tr><td>Mutually Exclusive with:</td><td>
+<select name="mutuallyExclusive">
+<option value="none">(none)</option>
+{% for iterator in similarExercises %}
+<option value="{{iterator.id}}" {%ifequal currentMutex iterator.id %}SELECTED{% endifequal %}>{{iterator.name}}</option>
+{% endfor %}
+</select>
+</td></tr>
+
+<tr><td>Don't use following muscle groups tomorrow:</td><td> 
+
+
+
+
+<table>
+{% for outer in matrixMuscleGroup %}
+<tr class="row1" style="font-size: .75em;">
+  {% for iterator in outer %}
+<td><input type="checkbox" id ="helper{{iterator.id}}" name="helper{{iterator.id}}" value="1" >{{iterator.name}}</td><td></td>
+  {% endfor %}
+</tr>
+{% endfor %}
+
+</table>
+<script type="text/javascript">
+{% for iterator in checkedHelpers %}
+document.getElementById("helper"+{{iterator.id}}).checked=true;
+{% endfor %}
+</script>
+
+</td></tr>
+
+
+<tr><td></td><td><input type="submit" value="Save"></td></tr>
+
+</table>
+</form>
+<span class="bodyText">
+<p style='width: 600px;'>
+CHECK OUT THIS CRAZINESS:  The alternate workout components were added in WAY AFTER the initial design of the project, so it's more or less a duct tape solution.  If you add alternate workout components, the resulting workouts MIGHT NOT BE INTUITIVE TO YOU.  The end workout will display the component as indicated by THE FIRST WORKOUT COMPONENT.  So for debugging purposes OR if you want a certain order to be maintained in the workout, make 'balance' or 'reactive' the first workout component.
+</p>
+
+<p style='width: 600px;'>
+This should be fairly straightforward, but a couple of things:  Isolated/compound is a very subjective term, but the program basically ensures that compound exercises are present if a muscle group is worked.  This is to prevent a chest workout of nothing but flyes and cable crossovers to happen, which would be incredibly lame.  And this website will not be lame, I refuse.  So make sure that even if you have something that just works triceps but it's still a "mass builder" (for lack of a better term), make sure and tag it as compound.  A better way to think of it might be primary/secondary exercise.
+</p>
+<p style='width: 600px;'>
+Also too, whatever phases are checked, those are the only phases that this exercise will appear in.  Tagging by workout component puts the exercise in a pool of all other exercises within the same workout component.  Frameworks for the week are built around workout components, then volumes determine the amount of exercises per workout component, then exercises of that same workout component are selected.
+</p>
+<p style='width: 600px;'>
+There is a minimum difficulty, but no max difficulty.  So the higher your fitness level, the bigger the pool of exercises to choose from.
+</p>
+<p style='width: 600px;'>
+Oh yeah, this is important...for the URL, don't actually type in a URL.  Instead, use the ID of the youtube video.  So for something like 'http://www.youtube.com/watch?v='aqSkj8dhsyQ' just put in 'aqSkj8dhsyQ' as the URL.  It makes for a lot less work for me if things are done like that.
+</p>
+<p style='width: 600px;'>
+If an exercise is done one limb at a time, this is for trimming a workout to time.  If an exercise is timed instead of repped, exercises will appear in today's workout as '3 x Plank' or whatever instead of '3x10' plank.  From there, guidance about how long to do the exercise can be present on the video itself with youtube captions.
+</p>
+<p style='width: 600px;'>
+Finally, 'don't use the following muscle groups tomorrow'...there's been some debate about that term, but that's basically all the program uses that functionality for at the moment.  So don't tag triceps as a secondary exercise to benchpress; triceps could still be worked the following day.  The problem comes when we have squats one day and then lunges the very next day.  The important thing is really that you are consistent with your tagging, because muscle groups are only used to determine what exercises can be appear where within the week.  
+</p>
+
+</span>
+{% endblock %}
+
+

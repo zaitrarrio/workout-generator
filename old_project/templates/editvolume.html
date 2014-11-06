@@ -1,0 +1,95 @@
+{% extends "skeleton.html" %}
+{% block title %} - Edit Volume{% endblock %}
+
+
+
+{% block content %}
+<h2>Edit Volume</h2>
+<a href='../editvolume{{previousIndex}}/'>Previous Volume</a> <a href='../editvolume{{nextIndex}}/'>Next Volume</a>
+
+
+<form action='../delete/' method='POST'>
+<input type="hidden" name="type" value="volume">
+<input type="hidden" name="id" value="{{currentVolumeTable.id}}">
+<input type='submit' value="Delete this Item" onClick="return confirm('You sure bra?')">
+</form>
+
+<form action="." method="POST">
+<table><tr><td>
+
+<input type="hidden" name="phase" value="{{currentVolumeTable.phase.id}}">
+
+<b>{{currentVolumeTable.phase.name}}</b>
+
+for clients who are
+
+<input type="hidden" name="fitness" value="{{currentVolumeTable.fitnessLevel.id}}">
+
+<b>{{currentVolumeTable.fitnessLevel.name}}</b>
+
+</div>
+
+
+
+
+
+</td></tr></table>
+
+<table >
+<tr><td>
+
+<table  id="myTable2">
+<tr><td></td><td>Exercises</td></tr>
+{% for iterator in components %}
+<tr class="{% cycle 'row1' 'row2' %}"><td>{{iterator.name}}</td>
+<td><input name = "exer10{{iterator.name}}" id="exer10{{iterator.name}}" type="text" size="3" value='0' onFocus='makeBlank(this);' onBlur='updateValue(this);'>-<input name = "exer20{{iterator.name}}" id="exer20{{iterator.name}}" type="text" size="3" value='0' onFocus='makeBlank(this);' onBlur='updateValue(this);'></td>
+</tr>
+{% endfor %}
+</table>
+
+</tr></tr>
+<tr><td>
+
+{% for outerIterator in allVolumeTables %}
+<table  id="myTable3">
+<tr><td>Week {{outerIterator.week}}</td><td>Reps</td><td>Sets</td><td>Max reps total</td></tr>
+{% for iterator in components %}
+<tr class="{% cycle 'row1' 'row2' %}"><td>{{iterator.name}}</td><td><input name="reps1{{outerIterator.week}}{{iterator.name}}" id="reps1{{outerIterator.week}}{{iterator.name}}" type="text" size="3" value='0' onFocus='makeBlank(this);' onBlur='updateValue(this);'>-<input
+name = "reps2{{outerIterator.week}}{{iterator.name}}" id="reps2{{outerIterator.week}}{{iterator.name}}" type="text" size="3" value='0' onFocus='makeBlank(this);' onBlur='updateValue(this);'></td>
+<td><input name = "sets1{{outerIterator.week}}{{iterator.name}}" id="sets1{{outerIterator.week}}{{iterator.name}}" type="text" size="3" value='0' onFocus='makeBlank(this);' onBlur='updateValue(this);'>-<input name = "sets2{{outerIterator.week}}{{iterator.name}}" id="sets2{{outerIterator.week}}{{iterator.name}}" type="text" size="3" value='0' onFocus='makeBlank(this);' onBlur='updateValue(this);'></td>
+
+<td><input name="matr1{{outerIterator.week}}{{iterator.name}}" id="matr1{{outerIterator.week}}{{iterator.name}}" type="text" size="3" value='0' onFocus='makeBlank(this);' onBlur='updateValue(this);'></td>
+
+
+</tr>
+{% endfor %}
+</table>
+
+<table>
+<tr class='row1'><td>Week {{outerIterator.week}}</td><td>Times/Week</td></tr>
+<tr class='row2'><td>Timed Cardio per week</td><td><input name="tCar1{{outerIterator.week}}" id="tCar1{{outerIterator.week}}"type="text" size="3" value='0' onFocus='makeBlank(this);' onBlur='updateValue(this);'>-<input name="tCar2{{outerIterator.week}}" id="tCar2{{outerIterator.week}}" type="text" size="3" value='0' onFocus='makeBlank(this);' onBlur='updateValue(this);'></td></tr>
+<tr class='row1'><td>Distance Cardio per week</td><td><input name="dCar1{{outerIterator.week}}" id="dCar1{{outerIterator.week}}" type="text" size="3" value='0' onFocus='makeBlank(this);' onBlur='updateValue(this);'>-<input name="dCar2{{outerIterator.week}}" id="dCar2{{outerIterator.week}}" type="text" size="3" value='0' onFocus='makeBlank(this);' onBlur='updateValue(this);'></td></tr>
+
+
+</table>
+
+</td></tr><tr><td>
+{% endfor %}
+
+
+
+<tr><td></td><td><input type="submit" value="Save"></td></tr>
+
+
+</form>
+
+<script type="text/javascript">
+{% for iterator in existingList %}
+document.getElementById('{{iterator.key}}').value='{{iterator.value}}';
+{% endfor %}
+</script>
+
+
+{% endblock %}
+
+
