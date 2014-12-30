@@ -125,7 +125,7 @@ if os.environ.get("I_AM_IN_DEV_ENV"):
 else:
     STATICFILES_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
     DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
-    STATIC_URL = "http://s3.amazonaws.com/%s" % AWS_STORAGE_BUCKET_NAME
+    STATIC_URL = "http://s3.amazonaws.com/%s/" % AWS_STORAGE_BUCKET_NAME
 
 if os.environ.get("I_AM_IN_DEV_ENV"):
     BROKER_URL = 'amqp://guest:guest@localhost//'
