@@ -32,7 +32,7 @@ if os.environ.get("I_AM_IN_DEV_ENV"):
 
 ALLOWED_HOSTS = [
     ".herokuapp.com",
-    ".onerepmaxcalculator.com"
+    ".workoutgenerator.net",
 ]
 
 INSTALLED_APPS = (
@@ -118,7 +118,7 @@ STATIC_ROOT = 'staticfiles'
 
 AWS_ACCESS_KEY_ID = os.environ["AWS_ACCESS_KEY_ID"]
 AWS_SECRET_ACCESS_KEY = os.environ["AWS_SECRET_ACCESS_KEY"]
-AWS_STORAGE_BUCKET_NAME = "one-rep-max-static"
+AWS_STORAGE_BUCKET_NAME = "workout-generator-static"
 
 if os.environ.get("I_AM_IN_DEV_ENV"):
     STATIC_URL = '/static/'
@@ -131,7 +131,7 @@ else:
 if os.environ.get("I_AM_IN_DEV_ENV"):
     BROKER_URL = 'amqp://guest:guest@localhost//'
 else:
-    BROKER_URL = "amqp://nxwmvyul:5Zhb-we6IDlFPOJQAT5k2p5ePZm_IiSw@tiger.cloudamqp.com/nxwmvyul"
+    BROKER_URL = os.environ["CLOUDAMQP_URL"]
 
 
 CELERY_ACCEPT_CONTENT = ['json']

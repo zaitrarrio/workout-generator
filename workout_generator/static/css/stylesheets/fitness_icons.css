@@ -1,0 +1,160 @@
+.custom-icon {
+    height: 72px;
+    width: 72px;
+    background: url(../img/fitnessIcons.png);
+    display: inline-block;
+}
+
+.custom-icon.jump-rope {
+    background-position: 0 -28px;
+}
+
+.custom-icon.stretch-side{
+    background-position: 0 -200px;
+}
+
+.custom-icon.toe-touch-crunch{
+    background-position: 0 -280px;
+}
+
+.custom-icon.deadlift-stand {
+    background-position: 0 -345px;
+}
+
+.custom-icon.deadlift-stand-side {
+    background-position: 0 -435px;
+}
+
+.custom-icon.standing-shoulder-press {
+    background-position: 2px -555px;
+}
+
+.custom-icon.back-squat-standing {
+    background-position: 0 -755px;
+}
+
+.custom-icon.standing-shoulder-press-extended {
+    background-position: 0 -960px;
+}
+
+.custom-icon.squat-down {
+    background-position: -2px -1140px;
+}
+
+.custom-icon.squat-down-side {
+    background-position: -2px -1230px;
+}
+
+.custom-icon.jerk-standing {
+    background-position: -2px -1338px;
+}
+
+.custom-icon.treadmill {
+    background-position: 0 -1560px;
+}
+
+.custom-icon.treadmill2 {
+    background-position: 0 -2990px;
+}
+
+.custom-icon.crunch-balls {
+    background-position: 0 -1730px;
+}
+
+.custom-icon.bench-press {
+    background-position: 1px -2020px;
+}
+
+.custom-icon.jump-rope2 {
+    background-position: 0 -2108px;
+}
+
+.custom-icon.run {
+    background-position: 0 -2286px;
+}
+
+.custom-icon.stretch-touch-toes {
+    background-position: 0 -2460px;
+}
+
+.custom-icon.curls {
+    background-position: 0 -2730px;
+}
+
+.custom-icon.kettlebell {
+    background-position: 3px -2905px;
+}
+
+.custom-icon.ab-wheel {
+    background-position: 0 -3080px;
+}
+
+.custom-icon.bike {
+    background-position: 0 -3230px;
+}
+
+.custom-icon.glute-raise {
+    background-position: 0 -3400px;
+}
+
+.custom-icon.leg-raise {
+    background-position: 0 -3485px;
+}
+
+.custom-icon.dumbbell-shoulder-press {
+    background-position: 0 -3565px;
+}
+
+.custom-icon.overhead-squat {
+    background-position: 0 -3645px;
+}
+
+.custom-icon.power-clean {
+    background-position: 0 -3730px;
+}
+
+.custom-icon.clean-side {
+    background-position: 0 -3820px;
+}
+
+.custom-icon.snatch {
+    background-position: 0 -3930px;
+}
+.custom-icon.snatch-side {
+    background-position: 0 -4035px;
+}
+.custom-icon.yoga{
+    background-position: 0 -4310px;
+}
+
+.custom-icon.elliptical {
+    background-position: 0 -4458px;
+}
+
+.custom-icon.single-toe-touch {
+    background-position: 0 -4990px;
+}
+
+.custom-icon.ball-crunch {
+    background-position: 0 -5480px;
+}
+
+.custom-icon.ball-crunch2{
+    background-position: 0 -6405px;
+}
+
+.custom-icon.bench-press2 {
+    background-position: 0 -5790px;
+}
+
+.custom-icon.single-arm-curl {
+    background-position: 0 -5895px;
+}
+
+.custom-icon.lat-pulldown{
+    background-position: 0 -5995px;
+}
+
+.custom-icon.bosu-ball{
+    background-position: 0 -6200px;
+}

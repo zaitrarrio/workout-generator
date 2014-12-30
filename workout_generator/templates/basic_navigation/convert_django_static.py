@@ -1,11 +1,15 @@
 import sys
 
 
-str_to_replace = "img/"
+strs_to_replace = [
+    "img/",
+    "css/",
+    "js/",
+]
 end_char = "\""
 
 
-def clean_string(entire_string):
+def clean_string(entire_string, str_to_replace):
     start_index = 0
     new_str = ""
     while start_index < len(entire_string):
@@ -25,8 +29,9 @@ def clean_string(entire_string):
 
 def make_static(target_file):
     with open(target_file, "rb") as read_file:
-        entire_string = read_file.read()
-        new_html = clean_string(entire_string)
+        new_html = read_file.read()
+        for str_to_replace in strs_to_replace:
+            new_html = clean_string(new_html, str_to_replace)
     with open("updated-%s" % target_file, "w+") as write_file:
         write_file.write(new_html)
 

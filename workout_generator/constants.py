@@ -141,7 +141,7 @@ class Phase(object):
 
 
 class CardioType(object):
-    # id, name, minimum
+    # id, name, minimum_times_per_week
     VALUES = (
         (1, "Endurance Focused", 6),
         (2, "Athlete/Performance Focused", 3),
@@ -193,7 +193,8 @@ class CardioZone(object):
     '''
     Query by level and zone
     '''
-    # id, level, zone, minInterval, maxInterval, minPrevious, maxPrevious, minHeartRate, heartRate, totalTime, maxOverall
+    # id, level, zone, minInterval, maxInterval, minPrevious, maxPrevious, minHeartRate,
+    #   heartRate, totalTime, maxOverall
     VALUES = (
         (1, 1, 1, 20, 20, 0, 0, 65, 75, 20, 20),
         (2, 1, 2, 1, 2, 4, 8, 80, 85, 12, 20),
@@ -232,6 +233,12 @@ class CardioZone(object):
         (35, 3, 2, 18, 25, 2, 3, 80, 85, 25, 30),
         (36, 3, 3, 0.5, 1, 1, 3, 86, 90, 15, 55),
     )
+
+    MAP = {(t[1], t[2]): t[3:] for t in VALUES}
+
+    @classmethod
+    def get_by_level_and_zone(cls, level, zone):
+        return cls.MAP[(level, zone)]
 
 
 class HardcodedRule(object):
@@ -1011,8 +1018,20 @@ class WorkoutComponentFrequency(object):
         (750, 4, 4, 5, 5, 5, 6),
     )
 
+    MAP = {(t[3], t[4], t[5], t[6]): (t[1], t[2]) for t in VALUES}
+
+    @classmethod
+    def get_by_args(cls, phase_id, fitness_level_id, workout_component_id, week_num):
+        key = (phase_id, fitness_level_id, workout_component_id, week_num)
+        return cls.MAP[key]
+
 
 class MuscleFrequency(object):
+    '''
+    This is ONLY referenced by MuscleGroup object Forearms for the frequency exception stuff
+
+    Otherwise this generically applies to everything.  But holy shit, this sucks
+    '''
     # id, name, minimum, maximum, minSets, maxSets, minReps, maxReps, weekLength, exception
     VALUES = (
         (1, "Low", 2, 4, 1, 2, 15, 20, 7, 0),
@@ -1020,6 +1039,7 @@ class MuscleFrequency(object):
         (3, "Mid", 2, 2, 3, 4, 6, 15, 7, 0),
         (4, "Mid-High", 1, 1, 3, 5, 4, 12, 4, 0),
         (5, "High", 1, 1, 1, 6, 1, 6, 5, 0),
+
         (6, "Low", 1, 1, 1, 2, 15, 20, 7, 1),
         (7, "Low-Mid", 1, 1, 2, 3, 12, 20, 7, 1),
         (8, "Mid", 1, 1, 3, 4, 6, 15, 7, 1),
@@ -1826,6 +1846,9 @@ class ExercisesPerMuscleGroup(object):
 
 
 class CardioVolume(object):
+    # queries by fitness level, phase, and week
+
+    # this is originally VolumeTable
     # id, fitnessLevel_id, phase_id, week, minTimedCardio, maxTimedCardio, minDistanceCardio, maxDistanceCardio
     VALUES = (
         (1, 1, 1, 1, 2, 2, 0, 0),
@@ -1980,110 +2003,162 @@ class CardioVolume(object):
         (150, 5, 5, 6, 2, 4, 0, 0),
     )
 
+    MAP = {(t[1], t[2], t[3]): t for t in VALUES}
+
+    class VolumeInfo(object):
+
+        def __init__(self, cardio_row, lifting_row):
+            self.min_reps = lifting_row[1]
+            self.max_reps = lifting_row[2]
+
+            self.min_sets = lifting_row[3]
+            self.max_sets = lifting_row[4]
+
+            self.min_exercises = lifting_row[5]
+            self.max_exercises = lifting_row[6]
+
+            self.min_timed_cardio = cardio_row[4]
+            self.max_timed_cardio = cardio_row[5]
+
+    @classmethod
+    def get_all_volume_info(cls, phase_id, fitness_level_id, week, workout_component_id):
+        key = (fitness_level_id, phase_id, week)
+        cardio_row = cls.MAP[key]
+        id = cardio_row[0]
+        lifting_row = LiftingVolume.get(id, workout_component_id)
+        return cls.VolumeInfo(cardio_row, lifting_row)
+
 
 class LiftingVolume(object):
-    # id, minReps, maxReps, minSets, maxSets, minExercises, maxExercises, workoutComponent_id, parentTable_id, maxTotalReps
+    # this is originally Volume
+
+    # queries by workout_component_id and parent_table_id
+
+    # id, minReps, maxReps, minSets, maxSets, minExercises, maxExercises,
+    # workoutComponent_id, parentTable_id, maxTotalReps
+
+    # parentTable_id references the fucking cardio table
     VALUES = (
         (1, 20, 30, 1, 3, 3, 3, 1, 1, 1000),
         (2, 12, 12, 1, 1, 1, 2, 2, 1, 1000),
         (3, 12, 12, 1, 1, 1, 2, 3, 1, 1000),
         (4, 5, 5, 1, 1, 1, 1, 4, 1, 1000),
         (5, 12, 12, 1, 1, 4, 6, 5, 1, 1000),
+
         (6, 20, 30, 1, 3, 3, 3, 1, 2, 1000),
         (7, 15, 15, 2, 2, 1, 2, 2, 2, 1000),
         (8, 15, 15, 2, 2, 1, 2, 3, 2, 1000),
         (9, 5, 5, 2, 2, 1, 1, 4, 2, 1000),
         (10, 15, 15, 2, 2, 4, 6, 5, 2, 1000),
+
         (11, 20, 30, 1, 3, 3, 3, 1, 3, 1000),
         (12, 20, 20, 2, 2, 1, 2, 2, 3, 1000),
         (13, 20, 20, 2, 2, 1, 2, 3, 3, 1000),
         (14, 6, 6, 2, 2, 1, 1, 4, 3, 1000),
         (15, 20, 20, 2, 2, 4, 6, 5, 3, 1000),
+
         (16, 20, 30, 1, 3, 3, 3, 1, 4, 1000),
         (17, 20, 20, 3, 3, 1, 2, 2, 4, 1000),
         (18, 20, 20, 3, 3, 1, 2, 3, 4, 1000),
         (19, 8, 8, 2, 2, 1, 1, 4, 4, 1000),
         (20, 20, 20, 3, 3, 4, 6, 5, 4, 1000),
+
         (21, 20, 30, 1, 3, 3, 3, 1, 5, 1000),
         (22, 15, 15, 3, 3, 1, 2, 2, 5, 1000),
         (23, 15, 15, 3, 3, 1, 2, 3, 5, 1000),
         (24, 6, 6, 3, 3, 1, 1, 4, 5, 1000),
         (25, 15, 20, 3, 3, 4, 6, 5, 5, 1000),
+
         (26, 20, 30, 1, 3, 3, 3, 1, 6, 1000),
         (27, 15, 20, 2, 3, 1, 2, 2, 6, 1000),
         (28, 15, 20, 2, 3, 1, 2, 3, 6, 1000),
         (29, 6, 8, 2, 3, 1, 1, 4, 6, 1000),
         (30, 12, 20, 2, 3, 4, 6, 5, 6, 1000),
+
         (31, 20, 30, 1, 3, 3, 6, 1, 7, 1000),
         (32, 12, 12, 2, 2, 1, 2, 2, 7, 1000),
         (33, 12, 12, 2, 2, 1, 2, 3, 7, 1000),
         (34, 8, 8, 2, 2, 1, 2, 4, 7, 1000),
         (35, 12, 12, 2, 2, 3, 5, 5, 7, 1000),
+
         (36, 20, 30, 1, 3, 3, 6, 1, 8, 1000),
         (37, 12, 12, 2, 2, 1, 2, 2, 8, 1000),
         (38, 12, 12, 2, 2, 1, 2, 3, 8, 1000),
         (39, 8, 8, 2, 2, 1, 2, 4, 8, 1000),
         (40, 12, 12, 2, 2, 3, 5, 5, 8, 1000),
+
         (41, 20, 30, 1, 3, 3, 6, 1, 9, 1000),
         (42, 12, 12, 2, 2, 1, 2, 2, 9, 1000),
         (43, 12, 12, 2, 2, 1, 2, 3, 9, 1000),
         (44, 8, 8, 2, 2, 1, 2, 4, 9, 1000),
         (45, 10, 10, 2, 2, 3, 5, 5, 9, 1000),
+
         (46, 20, 30, 1, 3, 3, 6, 1, 10, 1000),
         (47, 12, 12, 2, 2, 1, 2, 2, 10, 1000),
         (48, 12, 12, 2, 2, 1, 2, 3, 10, 1000),
         (49, 8, 8, 2, 2, 1, 2, 4, 10, 1000),
         (50, 10, 10, 2, 2, 3, 5, 5, 10, 1000),
+
         (51, 20, 30, 1, 3, 3, 6, 1, 11, 1000),
         (52, 10, 12, 2, 2, 1, 2, 2, 11, 1000),
         (53, 10, 12, 2, 2, 1, 2, 3, 11, 1000),
         (54, 6, 8, 2, 2, 1, 2, 4, 11, 1000),
         (55, 10, 12, 2, 2, 3, 5, 5, 11, 1000),
+
         (56, 20, 30, 1, 3, 3, 6, 1, 12, 1000),
         (57, 10, 12, 2, 2, 1, 2, 2, 12, 1000),
         (58, 10, 12, 2, 2, 1, 2, 3, 12, 1000),
         (59, 6, 8, 2, 2, 1, 2, 4, 12, 1000),
         (60, 10, 12, 2, 2, 3, 5, 5, 12, 1000),
+
         (61, 20, 30, 1, 3, 1, 3, 1, 13, 1000),
         (62, 8, 12, 2, 3, 1, 4, 2, 13, 1000),
         (63, 8, 12, 2, 3, 1, 3, 3, 13, 1000),
         (64, 8, 10, 1, 1, 1, 2, 4, 13, 1000),
         (65, 12, 12, 3, 3, 3, 4, 5, 13, 1000),
+
         (66, 20, 30, 1, 3, 1, 3, 1, 14, 1000),
         (67, 8, 12, 2, 3, 1, 4, 2, 14, 1000),
         (68, 8, 12, 2, 3, 1, 3, 3, 14, 1000),
         (69, 8, 10, 1, 1, 1, 2, 4, 14, 1000),
         (70, 10, 10, 3, 3, 3, 4, 5, 14, 1000),
+
         (71, 20, 30, 1, 3, 1, 3, 1, 15, 1000),
         (72, 8, 12, 2, 3, 1, 4, 2, 15, 1000),
         (73, 8, 12, 2, 3, 1, 3, 3, 15, 1000),
         (74, 8, 10, 1, 2, 1, 2, 4, 15, 1000),
         (75, 8, 8, 4, 4, 3, 4, 5, 15, 1000),
+
         (76, 20, 30, 1, 3, 1, 3, 1, 16, 1000),
         (77, 8, 12, 2, 3, 1, 4, 2, 16, 1000),
         (78, 8, 12, 2, 3, 1, 3, 3, 16, 1000),
         (79, 8, 10, 2, 2, 1, 2, 4, 16, 1000),
         (80, 6, 6, 5, 5, 3, 4, 5, 16, 1000),
+
         (81, 20, 30, 1, 3, 1, 3, 1, 17, 1000),
         (82, 8, 12, 2, 3, 1, 4, 2, 17, 1000),
         (83, 8, 12, 2, 3, 1, 3, 3, 17, 1000),
         (84, 8, 10, 2, 2, 1, 2, 4, 17, 1000),
         (85, 6, 12, 3, 5, 3, 4, 5, 17, 1000),
+
         (86, 20, 30, 1, 3, 1, 3, 1, 18, 1000),
         (87, 8, 12, 2, 3, 1, 4, 2, 18, 1000),
         (88, 8, 12, 2, 3, 1, 3, 3, 18, 1000),
         (89, 8, 10, 2, 3, 1, 2, 4, 18, 1000),
         (90, 6, 12, 3, 5, 3, 4, 5, 18, 1000),
+
         (91, 20, 30, 1, 3, 3, 6, 1, 19, 1000),
         (92, 8, 12, 2, 3, 1, 3, 2, 19, 1000),
         (93, 8, 12, 2, 3, 1, 2, 3, 19, 1000),
         (94, 8, 10, 1, 2, 1, 2, 4, 19, 1000),
         (95, 5, 5, 4, 4, 2, 2, 5, 19, 20),
+
         (96, 20, 30, 1, 3, 3, 6, 1, 20, 1000),
         (97, 8, 12, 2, 3, 1, 3, 2, 20, 1000),
         (98, 8, 12, 2, 3, 1, 2, 3, 20, 1000),
         (99, 8, 10, 1, 2, 1, 2, 4, 20, 1000),
         (100, 5, 5, 5, 5, 2, 2, 5, 20, 25),
+
         (101, 20, 30, 1, 3, 3, 6, 1, 21, 1000),
         (102, 8, 12, 2, 3, 1, 3, 2, 21, 1000),
         (103, 8, 12, 2, 3, 1, 2, 3, 21, 1000),
@@ -2736,6 +2811,13 @@ class LiftingVolume(object):
         (750, 8, 10, 3, 6, 6, 8, 5, 150, 48),
     )
 
+    MAP = {(t[8], t[7]): t for t in VALUES}
+
+    @classmethod
+    def get(cls, parent_table_id, workout_component_id):
+        key = (parent_table_id, workout_component_id)
+        return cls.MAP[key]
+
 
 class Goal(object):
     # id, name, cardioType_id, description_id, startPhase_id, image
@@ -2886,7 +2968,7 @@ class CardioIntensity__FitnessLevel(object):
         (1, 1, 2,),
         (1, 1, 1,),
     )
-    MAP = {(t[1], t[2]): t[3] for t in VALUES}
+    MAP = {(t[1], t[2]): t[0] for t in VALUES}
 
     @classmethod
     def get_cardio_level(cls, fitness_level_id, cardio_type_id):

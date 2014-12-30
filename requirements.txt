@@ -16,6 +16,5 @@ python-memcached==1.53
 
 celery==2.5.5
 
-git+https://github.com/slobdell/one_rep_max.git
-
 richenum==1.0.5
+django-htmlmin

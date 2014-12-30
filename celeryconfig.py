@@ -4,7 +4,7 @@ import os
 if os.environ.get("I_AM_IN_DEV_ENV"):
     BROKER_URL = 'amqp://guest:guest@localhost//'
 else:
-    BROKER_URL = "amqp://nxwmvyul:5Zhb-we6IDlFPOJQAT5k2p5ePZm_IiSw@tiger.cloudamqp.com/nxwmvyul"
+    BROKER_URL = os.environ["CLOUDAMQP_URL"]
 
 CELERY_IMPORTS = (
     'workout_generator.tasks',

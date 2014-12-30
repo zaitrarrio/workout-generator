@@ -16,7 +16,7 @@ def home(request):
         "dev": True if os.environ.get("I_AM_IN_DEV_ENV") else False,
         "publishable_key": get_publishable_key()
     }
-    return render_to_response("basic_navigation/index.html", render_data)
+    return render_to_response("basic_navigation/base.html", render_data)
 
 
 def sitemap(request):

@@ -1,1 +1,1 @@
-web: gunicorn one_rep_max.wsgi --log-file -;
+web: gunicorn workout_generator.wsgi --log-file -;
