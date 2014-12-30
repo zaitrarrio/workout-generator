@@ -123,10 +123,9 @@ AWS_STORAGE_BUCKET_NAME = "workout-generator-static"
 if os.environ.get("I_AM_IN_DEV_ENV"):
     STATIC_URL = '/static/'
 else:
-    # this won't work for collectstatic locally
     STATICFILES_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
     DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
-    STATIC_URL = 'http://' + AWS_STORAGE_BUCKET_NAME + '.s3.amazonaws.com/'
+    STATIC_URL = "http://s3.amazonaws.com/%s" % AWS_STORAGE_BUCKET_NAME
 
 if os.environ.get("I_AM_IN_DEV_ENV"):
     BROKER_URL = 'amqp://guest:guest@localhost//'
