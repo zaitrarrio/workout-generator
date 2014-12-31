@@ -38,7 +38,8 @@
 
 	<!-- Favicons
 	================================================== -->
-	<link rel="shortcut icon" href="{% static 'img/favicon.png' %}">
+    <link rel="shortcut icon" href="{% static 'img/favicon.ico' %}" type="image/x-icon">
+    <link rel="icon" href="{% static 'img/favicon.ico' %}" type="image/x-icon">
 	<link rel="apple-touch-icon" href="{% static 'img/apple-touch-icon.png' %}">
 	<link rel="apple-touch-icon" sizes="72x72" href="{% static 'img/apple-touch-icon-72x72.png' %}">
 	<link rel="apple-touch-icon" sizes="114x114" href="{% static 'img/apple-touch-icon-114x114.png' %}">
@@ -237,6 +238,45 @@ You can rest assured that the details of your training have been finely tuned. Y
 	<script type="text/javascript" src="{% static 'js/gmap3.js' %}"></script>
 	<script type="text/javascript" src="{% static 'js/scripts.js' %}"></script>
 
+    <script src="{% static 'js/bootstrap.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/underscore-min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/backbone-min.js' %}"></script>
+    <script src="https://checkout.stripe.com/checkout.js"></script>
+
+    <script type="text/javascript" src="{% static 'js/index_router.js' %}"></script>
+    <script>
+    $(document).ready(function(){
+        {% if dev %}
+            var devMode = true;
+        {% else %}
+            var devMode = false;
+        {% endif %}
+        var indexRouter = new IndexRouter({devMode: devMode});
+        Backbone.history.start();
+
+        window.fbAsyncInit = function() {
+            FB.init({
+                appId      : '644623625654469',
+                xfbml      : true,
+                version    : 'v2.1'
+            });
+            // called when page loads
+            var callback = function(response){
+                indexRouter.facebookStatusChangeCallback(response);
+            };
+            FB.getLoginStatus(callback);
+        };
+
+        (function(d, s, id){
+            var js, fjs = d.getElementsByTagName(s)[0];
+            if (d.getElementById(id)) {return;}
+            js = d.createElement(s); js.id = id;
+            js.src = "//connect.facebook.net/en_US/sdk.js";
+            fjs.parentNode.insertBefore(js, fjs);
+        }(document, 'script', 'facebook-jssdk'));
+    });
+    </script>
+    {% include "google_analytics.html" %}
 <!-- End Document
 ================================================== -->
 </body>
