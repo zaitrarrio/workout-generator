@@ -1177,7 +1177,7 @@ input[type="submit"].alt:hover {
 /* Tabs */
 .ui-tabs-vertical .ui-tabs-nav {
   float: left;
-  width: 28%;
+  width: 39%;
   background: #222;
 }
 .ui-tabs-vertical .ui-tabs-nav a {
@@ -1211,8 +1211,9 @@ input[type="submit"].alt:hover {
 }
 
 .ui-tabs-vertical .ui-tabs-panel {
+  height: 370px;
   float: right;
-  width: 68%;
+  width: 57%;
   padding: 0 2%;
   font-size: 12px;
   background-color: #ddd;
@@ -1221,7 +1222,7 @@ input[type="submit"].alt:hover {
   margin-top: 10px;
 }
 .ui-tabs-vertical .ui-tabs-panel p, .ui-tabs-vertical .ui-tabs-panel li {
-  font-size: inherit;
+  font-size: 1.1em;
   line-height: 20px;
   font-family: "Roboto Condensed", Helvetica, Arial, sans-serif;
 }
