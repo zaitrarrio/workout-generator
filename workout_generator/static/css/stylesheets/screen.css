@@ -1211,6 +1211,7 @@ input[type="submit"].alt:hover {
 }
 
 .ui-tabs-vertical .ui-tabs-panel {
+  overflow-y: scroll;
   height: 430px;
   float: right;
   width: 57%;
