@@ -41,5 +41,11 @@ def notify_admin_signup(facebook_service_id):
 
 
 @task
+def send_verify_email(email):
+    text = "Hey whats up"
+    send_email_with_data(email, "Workout Generator Confirmation Email", text)
+
+
+@task
 def test_send_email():
     send_test_email()

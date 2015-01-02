@@ -132,12 +132,37 @@ class Equipment(object):
 class Phase(object):
     # id, name, tempo, rest, description_id
     VALUES = (
-        (1, "stabilization", "4-2-1", 30, 13),
-        (2, "muscle endurance", "2-2-0", 45, 13),
-        (3, "hypertrophy", "2-2-0", 60, 14),
-        (4, "maximal strength", "0-0-0", 240, 15),
-        (5, "power", "0-0-0", 120, 16),
+        (1, "Stabilization", "4-2-1", 30, 13),
+        (2, "Muscle Endurance", "2-2-0", 45, 13),
+        (3, "Hypertrophy", "2-2-0", 60, 14),
+        (4, "Maximal Strength", "0-0-0", 240, 15),
+        (5, "Power", "0-0-0", 120, 16),
     )
+
+    MAP = {t[0]: t for t in VALUES}
+
+    def __init__(self, tuple_obj):
+        self.id = tuple_obj[0]
+        self.title = tuple_obj[1]
+        self.tempo = tuple_obj[2]
+        self.rest = tuple_obj[3]
+        self.description = tuple_obj[4]
+
+    def to_json(self):
+        return {
+            "title": self.title,
+            "tempo": self.tempo,
+            "rest": self.rest,
+            "description": self.description
+        }
+
+    @classmethod
+    def get_by_id(cls, id):
+        return cls(cls.MAP[id])
+
+    @classmethod
+    def get_by_id_as_json(cls, id):
+        return cls.get_by_id(id).to_json()
 
 
 class CardioType(object):
@@ -149,6 +174,28 @@ class CardioType(object):
         (4, "Bodybuilding", 2),
         (5, "Powerlifting/Strongman", 1),
     )
+
+    MAP = {t[0]: t for t in VALUES}
+
+    def __init__(self, tuple_obj):
+        self.id = tuple_obj[0]
+        self.title = tuple_obj[1]
+        self.min_times_per_week = tuple_obj[2]
+
+    def to_json(self):
+        return {
+            "id": self.id,
+            "title": self.title,
+            "min_times_per_week": self.min_times_per_week
+        }
+
+    @classmethod
+    def get_by_id(cls, id):
+        return CardioType(cls.MAP[id])
+
+    @classmethod
+    def get_by_id_as_json(cls, id):
+        return cls.get_by_id(id).to_json()
 
 
 class CardioMax(object):
@@ -2820,20 +2867,34 @@ class LiftingVolume(object):
 
 
 class Goal(object):
-    # id, name, cardioType_id, description_id, startPhase_id, image
+    # id, name, cardioType_id, description, startPhase_id, image
     VALUES = (
-        (1, "I want to be healthy and fit", 3, 1, 1, "ofactive.jpg"),
-        (3, "I want to be stronger", 5, 2, 4, "ofstrong.jpg"),
-        (4, "I want to  get toned and trim (women)", 3, 3, 2, "ofgoodForGuys.jpg"),
-        (5, "I want an optimal body (men)", 3, 4, 3, "ofgoodForLadies.jpg"),
-        (6, "I want to gain muscle mass", 4, 5, 3, "ofbodybuilder.jpg"),
-        (7, "I want to be healthy and fit (50+)", 5, 6, 1, "ofold.jpg"),
-        (8, "I want rapid weight loss", 3, 7, 2, "ofweightLoss.jpg"),
-        (9, "I want to cross-train for stamina sports (swimming, soccer, wrestling,", 1, 8, 2, "ofstaminaSport.jpg"),
-        (10, "I want to develop power for sports (football, baseball, competitive th", 2, 9, 5, "ofpowerSport.jpg"),
-        (11, "I want to maximize my athleticism in every aspect", 2, 10, 2, "ofathletic.jpg"),
-        (21, "I want to cross-train for running, cycling, and long distance sports", 1, 11, 1, "ofdistance.jpg"),
+        (1, "I want to be healthy and fit", 3, "A blend of resistance and cardio designed for people who want to maintain a healthy, but not overly intense, workout routine.", 1, "ofactive.jpg"),
+        (3, "I want to be stronger", 5, "Emphasizes big lifts for increased muscle mass, higher muscle tension, and improved intermuscular coordination.", 4, "ofstrong.jpg"),
+        (4, "I want to  get toned and trim (women)", 3, "A mix of cardio and resistance training specifically designed to help you get toned and trim without getting bulky.", 2, "ofgoodForGuys.jpg"),
+        (5, "I want an optimal body (men)", 3, "Includes a variety of resistance training styles as well as a mix of cardio to keep your body guessing and your mind engaged.", 3, "ofgoodForLadies.jpg"),
+        (6, "I want to gain muscle mass", 4, "Optimized for maximum hypertrophy. If you want to look like a beast, this is your program.", 3, "ofbodybuilder.jpg"),
+        (7, "I want to be healthy and fit (50+)", 5, "A conservative approach to raise heart rate, maintain range of motion, and make you feel healthier.", 1, "ofold.jpg"),
+        (8, "I want rapid weight loss", 3, "A program to work in combination with a healthy diet to lose weight fast. Uses a combination of cardio and resistance training to keep your body guessing and the fat burning.", 2, "ofweightLoss.jpg"),
+        (9, "I want to cross-train for stamina sports (swimming, soccer, wrestling,", 1, "A conditioning program that includes high level cardio, resistance, plyometric training, flexibility, and ballistics. Develops stamina and strength, and prevent injuries.", 2, "ofstaminaSport.jpg"),
+        (10, "I want to develop power for sports (football, baseball, competitive th", 2, "Develops every aspect of fitness with special emphasis on power.", 5, "ofpowerSport.jpg"),
+        (11, "I want to maximize my athleticism in every aspect", 2, "This is the broadest of all programs, providing a well balanced mix of stability, endurance, hypertrophy, strength, and power.", 2, "ofathletic.jpg"),
+        (21, "I want to cross-train for running, cycling, and long distance sports", 1, "Facilitates efficiency over long distance by combining only specific resistance exercises with your cardio program to enhance performance.", 1, "ofdistance.jpg"),
     )
+
+    @classmethod
+    def as_json(cls):
+        json_data = []
+        for goal_tuple in cls.VALUES:
+            json_data.append({
+                "id": goal_tuple[0],
+                "title": goal_tuple[1],
+                "description": goal_tuple[3],
+                "start_phase": Phase.get_by_id_as_json(goal_tuple[4]),
+                "image": goal_tuple[5],
+                "cardio_type": CardioType.get_by_id_as_json(goal_tuple[2])
+            })
+        return json_data
 
 
 class PhaseLengthByGoal(object):

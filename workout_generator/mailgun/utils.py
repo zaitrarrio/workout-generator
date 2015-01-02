@@ -3,11 +3,11 @@ from .constants import API_KEY
 
 
 def send_email_with_data(customer_email, subject, text):
-    domain = "onerepmaxcalculator.com"
+    domain = "workoutgenerator.net"
     return requests.post(
         "https://api.mailgun.net/v2/%s/messages" % domain,
         auth=("api", API_KEY),
-        data={"from": "One Rep Max Calculator<no-reply@OneRepMaxCalculator.com>",
+        data={"from": "Workout Generator<no-reply@WorkoutGenerator.net>",
               "to": customer_email,
               "subject": subject,
               "text": text})

@@ -1,8 +1,6 @@
 
 {% load staticfiles %}
 
-{% include "underscore_templates/copy.html" %}
-
 <script type="text/html" id="button_area_facebook">
     <div class="two columns bottom"></div>
     <div class="five columns buttom">
@@ -280,4 +278,177 @@ Email Address: <input id='settings-email' type='text' value='<%= email %>' style
             Continue
         </a>
     </div>
+</script>
+
+<script type="text/html" id="sign-up-view">
+<div class="four columns" style="height: 10px;"></div>
+
+<div class="six columns">
+    <div>
+        <p style="width: 30%; display: inline-block;">E-Mail Address:</p>
+        <input  style="width: 60%; display: inline-block;" type="text" class="email-input" />
+        <br/>
+        <p style="width: 30%; display: inline-block;">Password:</p>
+        <input style="width: 60%; display: inline-block;" type="password" class="password-input" />
+        <p class="error-area" style="margin-left: 30%; color: #8f0000;"></p>
+        <a href="javascript:void(0);" class="button large rounded sign-up-continue" style="padding: 20px 60px; margin-left: 40%; margin-bottom: 20px;">Continue <i class="icon-arrow-right"></i></a>
+        <img class="loading-icon" src="{% static 'img/loading-icon.gif' %}" alt="Loading" style="display: none; margin-left: 40%;">
+    </div>
+</div>
+
+<div class="four columns" style="height: 10px;"></div>
+<div class="divider"></div>
+<div class="five columns" style="height: 10px;"></div>
+<div class="four columns">
+    <center><h3>-OR-</h3></center>
+    <a href="javascript: void(0);">
+        <img class="facebook-button" style="width: 100%;" src="{% static 'img/facebook_signup.png' %}" alt="sign up with facebook">
+    </a>
+</div>
+<div class="five columns" style="height: 10px;"></div>
+</script>
+
+<script type="text/html" id="landing-view">
+<div class="eight columns">
+    <div class="lined-header">
+        <h3><span>How it Works</span></h3>
+    </div>
+    <div class="tabs bottom ui-tabs ui-widget ui-widget-content ui-corner-all ui-tabs-vertical ui-helper-clearfix">
+
+        <ul class="ui-tabs-nav ui-helper-reset ui-helper-clearfix ui-widget-header ui-corner-all" role="tablist">
+        <li class="ui-state-default ui-corner-top ui-tabs-active ui-state-active" role="tab" tabindex="0" aria-controls="tabs-1" aria-labelledby="ui-id-1" aria-selected="true"><a href="#tabs-1" class="ui-tabs-anchor" role="presentation" tabindex="0" id="ui-id-1">Step 1: Pick a Goal</a></li>
+
+        <li class="ui-state-default ui-corner-top" role="tab" tabindex="-1" aria-controls="tabs-2" aria-labelledby="ui-id-2" aria-selected="false"><a href="#tabs-2" class="ui-tabs-anchor" role="presentation" tabindex="-1" id="ui-id-2">Step 2: Define Your Schedule</a></li>
+
+        <li class="ui-state-default ui-corner-top" role="tab" tabindex="-1" aria-controls="tabs-3" aria-labelledby="ui-id-3" aria-selected="false"><a href="#tabs-3" class="ui-tabs-anchor" role="presentation" tabindex="-1" id="ui-id-3">Step 3: Input Your Gym Equipment</a></li>
+
+        <li class="ui-state-default ui-corner-top" role="tab" tabindex="-1" aria-controls="tabs-3" aria-labelledby="ui-id-3" aria-selected="false"><a href="#tabs-4" class="ui-tabs-anchor" role="presentation" tabindex="-1" id="ui-id-3">Step 4: Get Your Workouts</a></li>
+        <li class="ui-state-default ui-corner-top" role="tab" tabindex="-1" aria-controls="tabs-3" aria-labelledby="ui-id-3" aria-selected="false"><a href="#tabs-5" class="ui-tabs-anchor" role="presentation" tabindex="-1" id="ui-id-3">Step 5: Go Lift</a></li>
+        </ul>
+
+        <div id="tabs-1" aria-labelledby="ui-id-1" class="ui-tabs-panel ui-widget-content ui-corner-bottom" role="tabpanel" aria-expanded="false" aria-hidden="true" style="display: none;">
+        <h5>Pick a Goal</h5>
+            <p>
+                Different fitness goals require unique training methods.  A training program created for you will vary depending on your goal.  We can define programs based on any one of:
+            </p>
+                <ul>
+                    <li>
+                        <i class="icon-check"></i> Maximizing Weight Loss
+                    </li>
+                    <li>
+                        <i class="icon-check"></i> Maximizing Strength
+                    </li>
+                    <li>
+                        <i class="icon-check"></i> Maximizing Muscle Gain
+                    </li>
+                    <li>
+                        <i class="icon-check"></i> Creating an Aesthetic Physique
+                    </li>
+                    <li>
+                        <i class="icon-check"></i> Developing Functional Strength
+                    </li>
+                    <li>
+                        <i class="icon-check"></i> Staying Active
+                    </li>
+                    <li>
+                        <i class="icon-check"></i> Cross-Training for Endurance Sports
+                    </li>
+
+                </ul>
+            <p style="margin-top: 10px;">
+                And more...
+            </p>
+        </div>
+        <div id="tabs-2" aria-labelledby="ui-id-2" class="ui-tabs-panel ui-widget-content ui-corner-bottom" role="tabpanel" aria-expanded="true" aria-hidden="false" style="display: block;">
+        <h5>Define Your Schedule</h5>
+            <p>
+Pick which days you're avaiable during the week to work out.</p><p>Your frequency will determine the composition of your workouts, and the rest days will affect how muscle groups get selected.  </p><p>Training intensity will vary based on your training volume.</p><p>Whatever your schedule is, we can accomodate it and still create a well defined program.
+            </p>
+        </div>
+        <div id="tabs-3" aria-labelledby="ui-id-3" class="ui-tabs-panel ui-widget-content ui-corner-bottom" role="tabpanel" aria-expanded="false" aria-hidden="true" style="display: none;">
+        <h5>Input Your Equipment</h5>
+        <p>
+Exercises will only be prescribed based on your available equipment.</p><p>Whether you work out at a well-equipped gym or your garage with a bench and a barbell, you'll have no problem getting sufficient variety and effective exercises.
+        </p>
+        </div>
+        <div id="tabs-4" aria-labelledby="ui-id-3" class="ui-tabs-panel ui-widget-content ui-corner-bottom" role="tabpanel" aria-expanded="false" aria-hidden="true" style="display: none;">
+        <h5>Get Your Workouts</h5>
+        <p>
+Workouts are generated on a weekly basis.  You'll receive exact instructions with a well-defined schedule with example video footage of every exercise.  Over the course of several days you'll see a standard variance in muscle groups worked, but over the course of several weeks you'll see how the training guidance will change from week to week in cardio frequency and intensity, types of exercises prescribed, rep ranges, and supersets.</p>
+<p>
+At a high level your training will be broken down into phases that vary based on your initial goal.  Each phase has its own lower level purpose for your body to respond to.
+        </p>
+<p>
+You can rest assured that the details of your training have been finely tuned. You can choose to comprehend the reasoning behind it or you can simply enjoy the variety of the workouts prescribed.
+</p>
+        </div>
+        <div id="tabs-5" aria-labelledby="ui-id-3" class="ui-tabs-panel ui-widget-content ui-corner-bottom" role="tabpanel" aria-expanded="false" aria-hidden="true" style="display: none;">
+        <h5>Go Lift</h5>
+        <p>
+            We can only show you the door.  You have to walk through it.
+        </p>
+        </div>
+        <div class="clearfix"></div>
+    </div>
+</div>
+
+<div class="eight columns" style="height: 300px;">
+    <p>
+        <center>
+<a href="javascript:void(0);" class="button large rounded sign-up" style="padding: 20px 60px; margin-top: 140px;">Sign Up Now <i class="icon-arrow-right"></i></a>
+        </center>
+    </p>
+</div>
+<div class="sixteen columns">
+
+</div>
+</script>
+
+<script type="text/html" id="confirm-view">
+<div class="five columns" style="height: 1px;"></div>
+<div class="six columns">
+    <p style="font-size: 1.2em;">
+        A confirmation E-Mail was sent to <span style="font-weight: bold;"><%= email %></span>.
+    </p>
+    <p style="font-size: 1.2em;">
+        You'll need to check your E-Mail and verify your address before you can get any workouts.
+    </p>
+</div>
+<div class="five columns" style="height: 1px;"></div>
+
+<div class="six columns" style="height: 1px;"></div>
+<div class="four columns">
+<a href="#!goal" class="button large rounded sign-up-continue" style="margin-top: 20px; padding: 20px 60px;">Continue <i class="icon-arrow-right"></i></a>
+</div>
+<div class="six  columns" style="height: 1px;"></div>
+</script>
+
+<script type="text/html" id="goal-view">
+<p>
+<% for (var row = 0; row < goalMatrix.length; row++) { %>
+    <div class="row">
+        <% for (var col = 0; col < goalMatrix[row].length; col++) { %>
+        <% var goal = goalMatrix[row][col] %>
+        <div class="members" id="goal_<%= goal.id %>">
+            <div class="one-third column">
+                <div class="member-container">
+<img src="{% static '' %}/img/goals/<%= goal.image %> " title="<%= goal.title %>">
+                    <div class="member-title">
+                        <h4><%= goal.title %></h4>
+                    </div>
+                    <div class="clear"></div>
+                    <p class="member-info">
+                        <%= goal.description %>
+                    </p>
+                    <p class="member-info extra">
+                        Start Phase: <%= goal.start_phase.title %><br/>
+                        Cardio Type: <%= goal.cardio_type.title%>
+                    </p>
+                </div>
+            </div>
+        </div>
+        <% } %>
+    </div>
+<% } %>
+</p>
 </script>

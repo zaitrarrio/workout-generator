@@ -181,32 +181,247 @@ FormulaView = Backbone.View.extend({
 });
 */
 
-TemplateView = Backbone.View.extend({
-    el: "#button-fill-area",
-    initialize: function(){
-        this.template = null;
+AbstractView = Backbone.View.extend({
+    transitionIn: function (callback) {
+        var view = this;
+        var animateIn = function () {
+        view.$el.addClass('is-visible');
+            view.$el.one('transitionend', function () {
+                if (_.isFunction(callback)) {
+                    callback();
+                }
+            });
+        };
+        _.delay(animateIn, 20);
     },
-    updateTemplate: function(templateSelector){
-        this.template = _.template($(templateSelector).html());
+
+    transitionOut: function (callback) {
+        var view = this;
+        view.$el.addClass('pushed-away');
+
+        view.$el.one('transitionend', function () {
+            view.$el.hide();
+            if (_.isFunction(callback)) {
+                callback();
+            }
+            else {
+                view.remove();
+            }
+        });
+
     },
-    render: function(){
-        var goBackHTML = '<a id="close-button" style="margin-top: 5px; font-size: 18px;" href="#" class="button large alt cancel">Go Back</a>'
-        this.$el.html(this.template() + goBackHTML);
-        window.scrollTo(0, 300);
+
+    postRender: function (options) {
+        options = options || {};
+        if (options.page === true) {
+            this.$el.addClass('page');
+        }
         return this;
+    },
+});
+
+TemplateView = AbstractView.extend({
+    initialize: function(templateSelector, extraRenderData){
+        this.template = _.template($(templateSelector).html());
+        this.renderData = extraRenderData || {};
+    },
+    render: function(options){
+        this.$el.html(this.template(this.renderData));
+        return this.postRender(options);
     }
 });
 
+SignUpView = AbstractView.extend({
+    events: {
+        "click .sign-up-continue": "clickSubmit"
+    },
+    initialize: function($el, model){
+        this.template = _.template($("#sign-up-view").html());
+    },
+    clickSubmit: function(){
+        var email = this.$(".email-input").val();
+        var password = this.$(".password-input").val();
+        var isValidEmail = validateEmail(email);
+        if(!isValidEmail){
+            this.$(".error-area").html("Input a valid E-Mail address");
+        }
+        else if (password.length < 7){
+            this.$(".error-area").html("Password needs to be at least 7 characters");
+        }
+        else {
+            this.$(".loading-icon").show();
+            this.$(".sign-up-continue").hide();
+            var self = this;
+            this.signUp(email, password, function(){
+                self.$(".loading-icon").hide();
+                self.$(".sign-up-continue").show();
+            });
+
+        }
+    },
+    signUp: function(email, password, callback){
+        $.ajax({
+            url: '/api/signup/',
+            data: {
+                email: email,
+                password: password
+            },
+            cache: false,
+            dataType: 'json',
+            traditional: true,
+            type: 'POST',
+            contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+            success: function(response){
+                if (_.isFunction(callback)) {
+                    callback();
+                }
+                Backbone.history.navigate('!confirmation/' + email, {trigger: true});
+            },
+            error: function(data){
+                alert("error");
+                if (_.isFunction(callback)) {
+                    callback();
+                }
+            }
+        });
+    },
+    render: function(options){
+        this.$el.html(this.template());
+        return this.postRender(options);
+    }
+});
+
+LandingView = AbstractView.extend({
+    events: {
+        "click .sign-up": "goSignUp"
+    },
+    initialize: function(){
+        this.template = _.template($("#landing-view").html());
+    },
+    goSignUp: function(){
+        Backbone.history.navigate('!signup', {trigger: true});
+    },
+    render: function(options){
+        this.$el.html(this.template());
+        return this.postRender(options);
+    }
+});
+
+GoalView = AbstractView.extend({
+    events: {
+        "mouseenter .member-container": "addSelected",
+        "mouseleave .member-container": "removeSelected"
+    },
+    addSelected: function(evt){
+        var element = $(evt.target);
+        var goalRegEx = new RegExp("goal");
+        while(!goalRegEx.test(element.attr("id"))){
+            element = element.parent();
+        }
+        element.addClass("selected");
+    },
+    removeSelected: function(evt){
+        var element = $(evt.target);
+        var goalRegEx = new RegExp("goal");
+        while(!goalRegEx.test(element.attr("id"))){
+            element = element.parent();
+        }
+        element.removeClass("selected");
+    },
+    initialize: function(){
+        this.template = _.template($("#goal-view").html());
+        this.goalJSON = [];
+        this.getGoalData();
+    },
+    getGoalData: function(){
+        var self = this;
+        $.ajax({
+            url: '/api/goals/',
+            cache: false,
+            dataType: 'json',
+            traditional: true,
+            type: 'GET',
+            success: function(response){
+                self.goalJSON = response;
+                self.render();
+            },
+            error: function(data){
+            }
+        });
+    },
+    listToThreeColumnMatrix: function(list){
+        var matrix = [];
+        var buffer = [];
+        for(var i=0; i < list.length; i++){
+            buffer.push(list[i]);
+            if (buffer.length === 3){
+                matrix.push(buffer);
+                buffer = [];
+            }
+        }
+        matrix.push(buffer);
+        return matrix;
+    },
+    render: function(options){
+        this.$el.html(this.template({
+            goalMatrix: this.listToThreeColumnMatrix(this.goalJSON)
+        }));
+        this.postRender(options);
+        this.$el.css("position", "relative");
+        return this.$el;
+    }
+});
+
+GlobalView = Backbone.View.extend({
+    el: ".content-area",
+    initialize: function(){
+        this.currentPage = null;
+    },
+    goto: function (view) {
+
+        var previous = this.currentPage || null;
+        var next = view;
+
+        if (previous) {
+            previous.transitionOut(function () {
+                previous.remove();
+            });
+        }
+
+        next.render({ page: true });
+        this.$el.append( next.$el );
+        next.transitionIn();
+        this.currentPage = next;
+    }
+});
 
 IndexRouter = Backbone.Router.extend({
     routes: {
+        "!confirmation/:email": "confirmEmail",
+        "!signup": "signup",
+        "!goal": "goal",
         "": "defaultRoute"
     },
     initialize: function(options){
         this.devMode = options.devMode;
         this.loggedIn = false;
+        this.globalView = new GlobalView();
+    },
+    confirmEmail: function(email){
+        this.templateView = new TemplateView("#confirm-view", {email: email});
+        this.globalView.goto(this.templateView);
+    },
+    goal: function(){
+        this.goalView = new GoalView();
+        this.globalView.goto(this.goalView);
+    },
+    signup: function(){
+        this.signUpView = new SignUpView();
+        this.globalView.goto(this.signUpView);
     },
     defaultRoute: function(path){
+        this.landingView = new LandingView();
+        this.globalView.goto(this.landingView);
         if (this.loggedIn){
             // this.uploadVideoButtonView.render();
         }
