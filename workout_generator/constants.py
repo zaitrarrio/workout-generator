@@ -1,3 +1,7 @@
+import os
+from storages.backends.s3boto import S3BotoStorage
+
+
 class MuscleGroup(object):
     # id, muscle_group_name, related
     VALUES = (
@@ -2869,17 +2873,17 @@ class LiftingVolume(object):
 class Goal(object):
     # id, name, cardioType_id, description, startPhase_id, image
     VALUES = (
-        (1, "I want to be healthy and fit", 3, "A blend of resistance and cardio designed for people who want to maintain a healthy, but not overly intense, workout routine.", 1, "ofactive.jpg"),
-        (3, "I want to be stronger", 5, "Emphasizes big lifts for increased muscle mass, higher muscle tension, and improved intermuscular coordination.", 4, "ofstrong.jpg"),
-        (4, "I want to  get toned and trim (women)", 3, "A mix of cardio and resistance training specifically designed to help you get toned and trim without getting bulky.", 2, "ofgoodForGuys.jpg"),
-        (5, "I want an optimal body (men)", 3, "Includes a variety of resistance training styles as well as a mix of cardio to keep your body guessing and your mind engaged.", 3, "ofgoodForLadies.jpg"),
-        (6, "I want to gain muscle mass", 4, "Optimized for maximum hypertrophy. If you want to look like a beast, this is your program.", 3, "ofbodybuilder.jpg"),
-        (7, "I want to be healthy and fit (50+)", 5, "A conservative approach to raise heart rate, maintain range of motion, and make you feel healthier.", 1, "ofold.jpg"),
-        (8, "I want rapid weight loss", 3, "A program to work in combination with a healthy diet to lose weight fast. Uses a combination of cardio and resistance training to keep your body guessing and the fat burning.", 2, "ofweightLoss.jpg"),
-        (9, "I want to cross-train for stamina sports (swimming, soccer, wrestling,", 1, "A conditioning program that includes high level cardio, resistance, plyometric training, flexibility, and ballistics. Develops stamina and strength, and prevent injuries.", 2, "ofstaminaSport.jpg"),
-        (10, "I want to develop power for sports (football, baseball, competitive th", 2, "Develops every aspect of fitness with special emphasis on power.", 5, "ofpowerSport.jpg"),
-        (11, "I want to maximize my athleticism in every aspect", 2, "This is the broadest of all programs, providing a well balanced mix of stability, endurance, hypertrophy, strength, and power.", 2, "ofathletic.jpg"),
-        (21, "I want to cross-train for running, cycling, and long distance sports", 1, "Facilitates efficiency over long distance by combining only specific resistance exercises with your cardio program to enhance performance.", 1, "ofdistance.jpg"),
+        (1, "I want to be healthy and fit", 3, "A blend of resistance and cardio designed for people who want to maintain a healthy, but not overly intense, workout routine.", 1, "img/goals/ofactive.jpg"),
+        (3, "I want to be stronger", 5, "Emphasizes big lifts for increased muscle mass, higher muscle tension, and improved intermuscular coordination.", 4, "img/goals/ofstrong.jpg"),
+        (4, "I want to  get toned and trim (women)", 3, "A mix of cardio and resistance training specifically designed to help you get toned and trim without getting bulky.", 2, "img/goals/ofgoodForGuys.jpg"),
+        (5, "I want an optimal body (men)", 3, "Includes a variety of resistance training styles as well as a mix of cardio to keep your body guessing and your mind engaged.", 3, "img/goals/ofgoodForLadies.jpg"),
+        (6, "I want to gain muscle mass", 4, "Optimized for maximum hypertrophy. If you want to look like a beast, this is your program.", 3, "img/goals/ofbodybuilder.jpg"),
+        (7, "I want to be healthy and fit (50+)", 5, "A conservative approach to raise heart rate, maintain range of motion, and make you feel healthier.", 1, "img/goals/ofold.jpg"),
+        (8, "I want rapid weight loss", 3, "A program to work in combination with a healthy diet to lose weight fast. Uses a combination of cardio and resistance training to keep your body guessing and the fat burning.", 2, "/img/goals/ofweightLoss.jpg"),
+        (9, "I want to cross-train for stamina sports (swimming, soccer, wrestling,", 1, "A conditioning program that includes high level cardio, resistance, plyometric training, flexibility, and ballistics. Develops stamina and strength, and prevent injuries.", 2, "img/goals/ofstaminaSport.jpg"),
+        (10, "I want to develop power for sports (football, baseball, competitive th", 2, "Develops every aspect of fitness with special emphasis on power.", 5, "img/goals/ofpowerSport.jpg"),
+        (11, "I want to maximize my athleticism in every aspect", 2, "This is the broadest of all programs, providing a well balanced mix of stability, endurance, hypertrophy, strength, and power.", 2, "img/goals/ofathletic.jpg"),
+        (21, "I want to cross-train for running, cycling, and long distance sports", 1, "Facilitates efficiency over long distance by combining only specific resistance exercises with your cardio program to enhance performance.", 1, "img/goals/ofdistance.jpg"),
     )
 
     @classmethod
@@ -2891,7 +2895,7 @@ class Goal(object):
                 "title": goal_tuple[1],
                 "description": goal_tuple[3],
                 "start_phase": Phase.get_by_id_as_json(goal_tuple[4]),
-                "image": goal_tuple[5],
+                "image": S3BotoStorage().url(goal_tuple[5]) if not os.environ.get("I_AM_IN_DEV_ENV") else "/static/%s" % goal_tuple[5],
                 "cardio_type": CardioType.get_by_id_as_json(goal_tuple[2])
             })
         return json_data

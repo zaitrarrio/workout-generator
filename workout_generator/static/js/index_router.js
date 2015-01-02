@@ -332,6 +332,7 @@ GoalView = AbstractView.extend({
         this.template = _.template($("#goal-view").html());
         this.goalJSON = [];
         this.getGoalData();
+        this.aws_static = $("#aws_static").val();
     },
     getGoalData: function(){
         var self = this;
