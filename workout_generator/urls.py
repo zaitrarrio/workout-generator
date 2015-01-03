@@ -7,4 +7,5 @@ urlpatterns = patterns('',
     url(r'^$', home, name='home'),
     url(r'^api/signup/', api.signup, name="signup"),
     url(r'^api/goals/', api.goals, name="goals"),
+    url(r'^api/user/', api.user, name="user"),
 )

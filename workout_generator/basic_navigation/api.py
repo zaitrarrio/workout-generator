@@ -35,3 +35,27 @@ def placeholder(*args, **kwargs):
 
 def goals(request):
     return render_to_json(Goal.as_json())
+
+
+def user(request):
+    if request.method == "POST":
+        return _update_user(request)
+    else:
+        return _get_user(request)
+
+
+def _update_user(request):
+    user_id = 999 or request.session["user_id"]
+
+    if 'goal_id' in request.POST:
+        _update_goal(user_id, int(request.POST['goal_id']))
+
+    return render_to_json({}, status=204)
+
+
+def _get_user(request):
+    return render_to_json({})
+
+
+def _update_goal(user_id, goal_id):
+    pass

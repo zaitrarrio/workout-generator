@@ -307,32 +307,68 @@ LandingView = AbstractView.extend({
     }
 });
 
+ScheduleView = AbstractView.extend({
+    initialize: function(){
+        this.template = _.template($("#schedule-view").html());
+    },
+    render: function(options){
+        this.$el.html(this.template());
+        return this.postRender(options);
+    }
+});
+
 GoalView = AbstractView.extend({
     events: {
+        "click .member-container": "selectGoal",
         "mouseenter .member-container": "addSelected",
         "mouseleave .member-container": "removeSelected"
-    },
-    addSelected: function(evt){
-        var element = $(evt.target);
-        var goalRegEx = new RegExp("goal");
-        while(!goalRegEx.test(element.attr("id"))){
-            element = element.parent();
-        }
-        element.addClass("selected");
-    },
-    removeSelected: function(evt){
-        var element = $(evt.target);
-        var goalRegEx = new RegExp("goal");
-        while(!goalRegEx.test(element.attr("id"))){
-            element = element.parent();
-        }
-        element.removeClass("selected");
     },
     initialize: function(){
         this.template = _.template($("#goal-view").html());
         this.goalJSON = [];
         this.getGoalData();
         this.aws_static = $("#aws_static").val();
+    },
+    getElement: function(evt){
+        var element = $(evt.target);
+        var goalRegEx = new RegExp("goal");
+        while(!goalRegEx.test(element.attr("id"))){
+            element = element.parent();
+        }
+        return element;
+    },
+    addSelected: function(evt){
+        var element = this.getElement(evt);
+        element.addClass("selected");
+    },
+    removeSelected: function(evt){
+        var element = this.getElement(evt);
+        element.removeClass("selected");
+    },
+    selectGoal: function(evt){
+        var element = this.getElement(evt);
+        var goalId = parseInt(element.attr("id").split("_")[1], 10);
+        this.$(".row").hide();
+        this.$(".loading-icon").show();
+        var self = this;
+        $.ajax({
+            url: '/api/user/',
+            data: {
+                goal_id: goalId
+            },
+            cache: false,
+            dataType: 'json',
+            traditional: true,
+            type: 'POST',
+            success: function(data){
+                Backbone.history.navigate('!schedule', {trigger: true});
+            },
+            error: function(data){
+                self.$(".loading-icon").hide();
+                self.$(".row").show();
+                alert("error");
+            }
+        });
     },
     getGoalData: function(){
         var self = this;
@@ -401,6 +437,7 @@ IndexRouter = Backbone.Router.extend({
         "!confirmation/:email": "confirmEmail",
         "!signup": "signup",
         "!goal": "goal",
+        "!schedule": "schedule",
         "": "defaultRoute"
     },
     initialize: function(options){
@@ -415,6 +452,10 @@ IndexRouter = Backbone.Router.extend({
     goal: function(){
         this.goalView = new GoalView();
         this.globalView.goto(this.goalView);
+    },
+    schedule: function(){
+        this.scheduleView = new ScheduleView();
+        this.globalView.goto(this.scheduleView);
     },
     signup: function(){
         this.signUpView = new SignUpView();
