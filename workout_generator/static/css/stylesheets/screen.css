@@ -2558,3 +2558,16 @@ or wrap each row of columns in a <div class="row"> */
 .weekday-row {
     margin-top: 5px;
 }
+
+.weekday-row .bootstrap-switch .bootstrap-switch-handle-on.bootstrap-switch-primary {
+    background-image: -webkit-gradient(linear,0 0,0 100%,from(#8fba3b),to(#8fca3b));
+    background-color: #005fcc;
+    background-image: -webkit-linear-gradient(top,#8fba3b,#8fca3b);
+    background-image: linear-gradient(to bottom,#8fba3b,#8fca3b);
+    border-color: #8fca3b #8fca3b #005580;
+    font-size: 0;
+}
+
+.bootstrap-switch .bootstrap-switch-handle-off.bootstrap-switch-default {
+    font-size: 0;
+}
