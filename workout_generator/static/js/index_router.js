@@ -187,6 +187,7 @@ AbstractView = Backbone.View.extend({
         var animateIn = function () {
         view.$el.addClass('is-visible');
             view.$el.one('transitionend', function () {
+                view.$el.css("position", "relative");
                 if (_.isFunction(callback)) {
                     callback();
                 }
@@ -404,7 +405,6 @@ GoalView = AbstractView.extend({
             goalMatrix: this.listToThreeColumnMatrix(this.goalJSON)
         }));
         this.postRender(options);
-        this.$el.css("position", "relative");
         return this.$el;
     }
 });
