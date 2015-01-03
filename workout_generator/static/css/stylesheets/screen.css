@@ -272,6 +272,16 @@ blockquote:before {
   padding-right: 10px;
 }
 
+blockquote.no-quote:before {
+  font-family: "fontAwesome";
+  font-size: 20px;
+  font-weight: 300;
+  content: "";
+  color: #8fba3b;
+  padding-right: 10px;
+  display: none;
+}
+
 blockquote {
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-style: italic;
@@ -2540,3 +2550,11 @@ or wrap each row of columns in a <div class="row"> */
     transform: translate3d(-100%, 0, 0);
 }
 
+.weekday-container {
+    float: left;
+    width: 40%;
+}
+
+.weekday-row {
+    margin-top: 5px;
+}

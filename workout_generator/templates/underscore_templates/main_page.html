@@ -316,14 +316,14 @@ Email Address: <input id='settings-email' type='text' value='<%= email %>' style
     <div class="tabs bottom ui-tabs ui-widget ui-widget-content ui-corner-all ui-tabs-vertical ui-helper-clearfix">
 
         <ul class="ui-tabs-nav ui-helper-reset ui-helper-clearfix ui-widget-header ui-corner-all" role="tablist">
-        <li class="ui-state-default ui-corner-top ui-tabs-active ui-state-active" role="tab" tabindex="0" aria-controls="tabs-1" aria-labelledby="ui-id-1" aria-selected="true"><a href="#tabs-1" class="ui-tabs-anchor" role="presentation" tabindex="0" id="ui-id-1">Step 1: Pick a Goal</a></li>
+<li class="ui-state-default ui-corner-top ui-tabs-active ui-state-active" role="tab" tabindex="0" aria-controls="tabs-1" aria-labelledby="ui-id-1" aria-selected="true"><a href="javascript:void(0);" class="ui-tabs-anchor" role="presentation" tabindex="0" id="ui-id-1">Step 1: Pick a Goal</a></li>
 
-        <li class="ui-state-default ui-corner-top" role="tab" tabindex="-1" aria-controls="tabs-2" aria-labelledby="ui-id-2" aria-selected="false"><a href="#tabs-2" class="ui-tabs-anchor" role="presentation" tabindex="-1" id="ui-id-2">Step 2: Define Your Schedule</a></li>
+<li class="ui-state-default ui-corner-top" role="tab" tabindex="-1" aria-controls="tabs-2" aria-labelledby="ui-id-2" aria-selected="false"><a href="javascript:void(0);" class="ui-tabs-anchor" role="presentation" tabindex="-1" id="ui-id-2">Step 2: Define Your Schedule</a></li>
 
-        <li class="ui-state-default ui-corner-top" role="tab" tabindex="-1" aria-controls="tabs-3" aria-labelledby="ui-id-3" aria-selected="false"><a href="#tabs-3" class="ui-tabs-anchor" role="presentation" tabindex="-1" id="ui-id-3">Step 3: Input Your Gym Equipment</a></li>
+<li class="ui-state-default ui-corner-top" role="tab" tabindex="-1" aria-controls="tabs-3" aria-labelledby="ui-id-3" aria-selected="false"><a href="javascript:void(0);" class="ui-tabs-anchor" role="presentation" tabindex="-1" id="ui-id-3">Step 3: Input Your Gym Equipment</a></li>
 
-        <li class="ui-state-default ui-corner-top" role="tab" tabindex="-1" aria-controls="tabs-3" aria-labelledby="ui-id-3" aria-selected="false"><a href="#tabs-4" class="ui-tabs-anchor" role="presentation" tabindex="-1" id="ui-id-3">Step 4: Get Your Workouts</a></li>
-        <li class="ui-state-default ui-corner-top" role="tab" tabindex="-1" aria-controls="tabs-3" aria-labelledby="ui-id-3" aria-selected="false"><a href="#tabs-5" class="ui-tabs-anchor" role="presentation" tabindex="-1" id="ui-id-3">Step 5: Go Lift</a></li>
+<li class="ui-state-default ui-corner-top" role="tab" tabindex="-1" aria-controls="tabs-3" aria-labelledby="ui-id-3" aria-selected="false"><a href="javascript:void(0);" class="ui-tabs-anchor" role="presentation" tabindex="-1" id="ui-id-3">Step 4: Get Your Workouts</a></li>
+<li class="ui-state-default ui-corner-top" role="tab" tabindex="-1" aria-controls="tabs-3" aria-labelledby="ui-id-3" aria-selected="false"><a href="javascript:void(0);" class="ui-tabs-anchor" role="presentation" tabindex="-1" id="ui-id-3">Step 5: Go Lift</a></li>
         </ul>
 
         <div id="tabs-1" aria-labelledby="ui-id-1" class="ui-tabs-panel ui-widget-content ui-corner-bottom" role="tabpanel" aria-expanded="false" aria-hidden="true" style="display: none;">
@@ -455,9 +455,29 @@ You can rest assured that the details of your training have been finely tuned. Y
 </script>
 
 <script type="text/html" id="schedule-view">
-<div class="sixteen columns">
-<p>
-Check out http://www.givainc.com/labs/ibutton_example.htm
-</p>
+<div class="one columns" style="height: 1px;"></div>
+<div class="six columns">
+    <blockquote class="no-quote">
+<% var weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] %>
+<% for (var i = 0; i < weekdays.length; i++) { %>
+        <div class="weekday-row">
+            <span class="weekday-container">
+                <%= weekdays[i] %>
+            </span>
+            <input type="checkbox" name="toggle-switch" checked="">
+        </div>
+        <% } %>
+    </blockquote>
+    <blockquote class="no-quote">
+        <span class="weekday-container">
+        Minutes Per Day:
+        </span>
+<select style="height: 25px; width: 50px; display: inline-block;">
+<% for (var minutes = 15; minutes <= 90; minutes += 5) { %>
+<option value="<%= minutes %>"><%= minutes %></option>
+            <% } %>
+        </select>
+    </blockquote>
 </div>
+<div class="nine columns" style="height: 1px;"></div>
 </script>

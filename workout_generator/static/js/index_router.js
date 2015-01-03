@@ -314,6 +314,7 @@ ScheduleView = AbstractView.extend({
     },
     render: function(options){
         this.$el.html(this.template());
+        this.$("[name='toggle-switch']").bootstrapSwitch();
         return this.postRender(options);
     }
 });
