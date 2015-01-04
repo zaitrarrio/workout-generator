@@ -114,23 +114,35 @@ class ExerciseType(object):
 
 class Equipment(object):
     # id, name
+    IMG_PATH = "img/weight_equipment/%s.jpg"
     VALUES = (
-        (1, "Dumbells"),
-        (2, "Barbells"),
-        (3, "Kettle Bells"),
-        (4, "Olympic Lifting Capability"),
-        (5, "Pull Up Bar"),
-        (6, "Resistive Band/Tubing"),
-        (7, "Medicine Ball"),
-        (8, "Swiss Ball"),
-        (9, "Cable Suite"),
-        (10, "Full Machine Suite"),
-        (11, "Hammer Strength Suite"),
-        (20, "Smith Machine"),
-        (21, "Bench"),
-        (22, "Bosu Ball"),
-        (24, "Rings"),
+        (1, "Dumbells", IMG_PATH % "dumbbells"),
+        (2, "Barbells", IMG_PATH % "barbell"),
+        (3, "Kettle Bells", IMG_PATH % "kettle_bells"),
+        (4, "Olympic Lifting Capability", IMG_PATH % "olympic_lifting_capability"),
+        (5, "Pull Up Bar", IMG_PATH % "pull_up_bar"),
+        (6, "Resistive Band/Tubing", IMG_PATH % "resistive_band_tubing"),
+        (7, "Medicine Ball", IMG_PATH % "medicine_ball"),
+        (8, "Swiss Ball", IMG_PATH % "swiss_ball"),
+        (9, "Cable Suite", IMG_PATH % "cable_suite"),
+        (10, "Full Machine Suite", IMG_PATH % "machine_suite"),
+        (11, "Hammer Strength Suite", IMG_PATH % "hammer_strength_suite"),
+        (20, "Smith Machine", IMG_PATH % "smith_machine"),
+        (21, "Bench", IMG_PATH % "bench"),
+        (22, "Bosu Ball", IMG_PATH % "bosu_ball"),
+        (24, "Rings", IMG_PATH % "rings"),
     )
+
+    @classmethod
+    def as_json(cls):
+        json_data = []
+        for equipment_tuple in cls.VALUES:
+            json_data.append({
+                "id": equipment_tuple[0],
+                "title": equipment_tuple[1],
+                "image": S3BotoStorage().url(equipment_tuple[2]) if not os.environ.get("I_AM_IN_DEV_ENV") else "/static/%s" % equipment_tuple[2],
+            })
+        return json_data
 
 
 class Phase(object):

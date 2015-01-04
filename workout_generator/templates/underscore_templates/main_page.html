@@ -484,8 +484,67 @@ You can rest assured that the details of your training have been finely tuned. Y
     <div class="two columns" style="height: 20px; margin: 0;">
     </div>
     <div class="two columns" style="margin: 0;">
-        <a href="#!goal" class="button large rounded save" style="margin-top: 20px; padding: 10px 20px;">Save <i class="icon-save"></i></a>
+<a href="javascript:void(0);" class="button large rounded save" style="margin-top: 20px; padding: 10px 20px;">Save <i class="icon-save"></i></a>
+<img class="loading-icon" src="{% static 'img/loading-icon.gif' %}" alt="Loading" style="display: none; margin-left: 40%;">
     </div>
 </div>
 <div class="five columns" style="height: 1px;"></div>
+</script>
+
+<script type="text/html" id="fitness-level-view">
+<div class="five columns" style="height: 1px;">
+</div>
+
+<div class="six columns">
+<p>
+  Adjust the sliders to provide an assessment for your current fitness level and experience.  This will help to prescribe exercises for you.
+</p>
+    <blockquote class="no-quote" style="padding: 20px 10px">
+        <div class="slider-wrapper">
+            <h3>Fitness Level</h3>
+            <input type="text" class="slider-fitness" />
+        </div>
+        <div class="slider-wrapper">
+            <br/>
+            <h3>Experience</h3>
+            <input type="text" class="slider-experience" />
+        </div>
+    </blockquote>
+    <div class="two columns" style="height: 20px; margin: 0;">
+    </div>
+    <div class="two columns" style="margin: 0;">
+<a href="javascript:void(0);" class="button large rounded save" style="margin-top: 20px; padding: 10px 20px;">Save <i class="icon-save"></i></a>
+<img class="loading-icon" src="{% static 'img/loading-icon.gif' %}" alt="Loading" style="display: none; margin-left: 40%;">
+    </div>
+</div>
+
+<div class="five columns" style="height: 1px;">
+</div>
+</script>
+
+<script type="text/html" id="equipment-view">
+<% for (var row = 0; row < equipmentMatrix.length; row++) { %>
+    <div class="row">
+        <% for (var col = 0; col < equipmentMatrix[row].length; col++) { %>
+        <% var equipment = equipmentMatrix[row][col] %>
+        <div class="members" id="equipment_<%= equipment.id %>">
+            <div class="one-third column">
+                <div class="member-container">
+                    <img src="<%= equipment.image %> " title="<%= equipment.title %>">
+                    <div class="member-title">
+                        <h4><%= equipment.title %></h4>
+                    </div>
+<blockquote class="no-quote" style="padding: 20px 10px; height: 100px;">
+<div class="custom" style="margin: 20px;">
+            <input type="checkbox" name="toggle-switch" checked="">
+        </div>
+</blockquote>
+
+                    <div class="clear"></div>
+                </div>
+            </div>
+        </div>
+        <% } %>
+    </div>
+<% } %>
 </script>

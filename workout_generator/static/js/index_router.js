@@ -3,6 +3,20 @@ function validateEmail(email) {
     return re.test(email);
 }
 
+function listToColumnMatrix(list, columns){
+    var matrix = [];
+    var buffer = [];
+    for(var i=0; i < list.length; i++){
+        buffer.push(list[i]);
+        if (buffer.length === columns){
+            matrix.push(buffer);
+            buffer = [];
+        }
+    }
+    matrix.push(buffer);
+    return matrix;
+}
+
 /*
 FormulaView = Backbone.View.extend({
     el: "#button-fill-area",
@@ -308,12 +322,119 @@ LandingView = AbstractView.extend({
     }
 });
 
-ScheduleView = AbstractView.extend({
+FitnessLevelView = AbstractView.extend({
+    events: {
+        "click .save": "save"
+    },
     initialize: function(){
-        this.template = _.template($("#schedule-view").html());
+        this.template = _.template($("#fitness-level-view").html());
+    },
+    save: function(){
+        this.$(".save").hide();
+        this.$(".loading-icon").show();
+        var self = this;
+        $.ajax({
+            url: '/api/user/',
+            data: {
+            },
+            cache: false,
+            dataType: 'json',
+            traditional: true,
+            type: 'POST',
+            success: function(data){
+                self.$(".loading-icon").show();
+                Backbone.history.navigate('!equipment', {trigger: true});
+            },
+            error: function(data){
+                alert("error");
+            }
+        });
     },
     render: function(options){
         this.$el.html(this.template());
+        this.postRender(options);
+        var self = this;
+        setTimeout(function() {
+            new Powerange(self.$(".slider-fitness")[0], {
+                step: 1 ,
+                min: 1,
+                start: 2,
+                hideRange: true,
+                max: 5
+            });
+            new Powerange(self.$(".slider-experience")[0], {
+                step: 1 ,
+                min: 1,
+                start: 2,
+                hideRange: true,
+                max: 5
+            });
+        }, 0);
+    }
+});
+
+
+ScheduleView = AbstractView.extend({
+    events: {
+        "click .save": "save"
+    },
+    initialize: function(){
+        this.template = _.template($("#schedule-view").html());
+    },
+    save: function(){
+        this.$(".save").hide();
+        this.$(".loading-icon").show();
+        var self = this;
+        $.ajax({
+            url: '/api/user/',
+            data: {
+            },
+            cache: false,
+            dataType: 'json',
+            traditional: true,
+            type: 'POST',
+            success: function(data){
+                self.$(".loading-icon").show();
+                Backbone.history.navigate('!fitnesslevel', {trigger: true});
+            },
+            error: function(data){
+                alert("error");
+            }
+        });
+    },
+    render: function(options){
+        this.$el.html(this.template());
+        this.$("[name='toggle-switch']").bootstrapSwitch();
+        return this.postRender(options);
+    }
+});
+
+EquipmentView = AbstractView.extend({
+    initialize: function(){
+        this.template = _.template($("#equipment-view").html());
+        this.equipmentJSON = [];
+        this.getEquipmentData();
+    },
+    getEquipmentData: function(){
+        var self = this;
+        $.ajax({
+            url: '/api/equipment/',
+            cache: false,
+            dataType: 'json',
+            traditional: true,
+            type: 'GET',
+            success: function(response){
+                self.equipmentJSON = response;
+                self.render();
+            },
+            error: function(data){
+            }
+        });
+    },
+    render: function(options){
+        this.$el.html(this.template({
+            equipmentMatrix: listToColumnMatrix(this.equipmentJSON, 3)
+        }));
         this.$("[name='toggle-switch']").bootstrapSwitch();
         return this.postRender(options);
     }
@@ -388,22 +509,9 @@ GoalView = AbstractView.extend({
             }
         });
     },
-    listToThreeColumnMatrix: function(list){
-        var matrix = [];
-        var buffer = [];
-        for(var i=0; i < list.length; i++){
-            buffer.push(list[i]);
-            if (buffer.length === 3){
-                matrix.push(buffer);
-                buffer = [];
-            }
-        }
-        matrix.push(buffer);
-        return matrix;
-    },
     render: function(options){
         this.$el.html(this.template({
-            goalMatrix: this.listToThreeColumnMatrix(this.goalJSON)
+            goalMatrix: listToColumnMatrix(this.goalJSON, 3)
         }));
         this.postRender(options);
         return this.$el;
@@ -438,6 +546,8 @@ IndexRouter = Backbone.Router.extend({
         "!confirmation/:email": "confirmEmail",
         "!signup": "signup",
         "!goal": "goal",
+        "!equipment": "equipment",
+        "!fitnesslevel": "fitnessLevel",
         "!schedule": "schedule",
         "": "defaultRoute"
     },
@@ -453,6 +563,14 @@ IndexRouter = Backbone.Router.extend({
     goal: function(){
         this.goalView = new GoalView();
         this.globalView.goto(this.goalView);
+    },
+    equipment: function(){
+        this.equipmentView = new EquipmentView();
+        this.globalView.goto(this.equipmentView);
+    },
+    fitnessLevel: function(){
+        this.fitnessLevelView = new FitnessLevelView();
+        this.globalView.goto(this.fitnessLevelView);
     },
     schedule: function(){
         this.scheduleView = new ScheduleView();

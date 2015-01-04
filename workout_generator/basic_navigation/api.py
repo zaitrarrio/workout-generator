@@ -3,6 +3,7 @@ import json
 from django.http import Http404
 from django.http import HttpResponse
 
+from workout_generator.constants import Equipment
 from workout_generator.constants import Goal
 from workout_generator.mailgun.tasks import send_verify_email
 
@@ -35,6 +36,10 @@ def placeholder(*args, **kwargs):
 
 def goals(request):
     return render_to_json(Goal.as_json())
+
+
+def equipment(request):
+    return render_to_json(Equipment.as_json())
 
 
 def user(request):
