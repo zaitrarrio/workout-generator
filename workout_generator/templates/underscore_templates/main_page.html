@@ -510,6 +510,23 @@ You can rest assured that the details of your training have been finely tuned. Y
             <input type="text" class="slider-experience" />
         </div>
     </blockquote>
+    <blockquote class="no-quote" style="padding: 20px 10px">
+        <div class="slider-wrapper">
+<h3 style="display: inline-block; margin-right: 10px;">Age</h3>
+            <select style="height: 25px; width: 50px; display: inline-block;">
+            <% for (var age = 12; age <= 100; age++) { %>
+            <option value="<%= age %>"><%= age %></option>
+                        <% } %>
+                    </select>
+<br/>
+<h3 style="display: inline-block; margin-right: 10px;">Gender</h3>
+<input type="radio" name="gender" id="male" value="male" checked="checked"/>
+<label style="display: inline-block;" for="male">Male</label>
+<span style="width: 20px; height: 5px; display: inline-block;"></span>
+<input type="radio" name="gender" id="female" value="female"/>
+<label style="display: inline-block;" for="female">Female</label>
+        </div>
+    </blockquote>
     <div class="two columns" style="height: 20px; margin: 0;">
     </div>
     <div class="two columns" style="margin: 0;">
@@ -523,6 +540,8 @@ You can rest assured that the details of your training have been finely tuned. Y
 </script>
 
 <script type="text/html" id="equipment-view">
+<a href="javascript:void(0);" class="button large rounded save" style="margin-left: 40%; margin-bottom: 20px; padding: 10px 20px;">Save <i class="icon-save"></i></a>
+<img class="loading-icon" src="{% static 'img/loading-icon.gif' %}" alt="Loading" style="display: none; margin-left: 40%;">
 <% for (var row = 0; row < equipmentMatrix.length; row++) { %>
     <div class="row">
         <% for (var col = 0; col < equipmentMatrix[row].length; col++) { %>
@@ -547,4 +566,12 @@ You can rest assured that the details of your training have been finely tuned. Y
         <% } %>
     </div>
 <% } %>
+<a href="javascript:void(0);" class="button large rounded save" style="margin-left: 40%; margin-top: 0px; margin-bottom: 20px; padding: 10px 20px;">Save <i class="icon-save"></i></a>
+<img class="loading-icon" src="{% static 'img/loading-icon.gif' %}" alt="Loading" style="display: none; margin-left: 40%;">
+</script>
+
+<script type="text/html" id="payment-view">
+<div>
+sup
+</div>
 </script>

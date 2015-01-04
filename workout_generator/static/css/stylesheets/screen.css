@@ -50,6 +50,10 @@ html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockq
   vertical-align: baseline;
 }
 
+label{
+    cursor: pointer;
+}
+
 article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section {
   display: block;
 }
@@ -1075,6 +1079,10 @@ fieldset {
 }
 .input-box.area {
   float: none;
+}
+
+input[type="radio"]{
+    cursor: pointer;
 }
 
 input[type="text"],

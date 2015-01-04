@@ -358,16 +358,16 @@ FitnessLevelView = AbstractView.extend({
             new Powerange(self.$(".slider-fitness")[0], {
                 step: 1 ,
                 min: 1,
-                start: 2,
+                start: 20,
                 hideRange: true,
-                max: 5
+                max: 100
             });
             new Powerange(self.$(".slider-experience")[0], {
                 step: 1 ,
                 min: 1,
-                start: 2,
+                start: 20,
                 hideRange: true,
-                max: 5
+                max: 100
             });
         }, 0);
     }
@@ -410,10 +410,34 @@ ScheduleView = AbstractView.extend({
 });
 
 EquipmentView = AbstractView.extend({
+    events: {
+        "click .save": "save"
+    },
     initialize: function(){
         this.template = _.template($("#equipment-view").html());
-        this.equipmentJSON = [];
+        this.availableEquipmentJSON = [];
         this.getEquipmentData();
+    },
+    save: function(){
+        this.$(".save").hide();
+        this.$(".loading-icon").show();
+        var self = this;
+        $.ajax({
+            url: '/api/user/',
+            data: {
+            },
+            cache: false,
+            dataType: 'json',
+            traditional: true,
+            type: 'POST',
+            success: function(data){
+                self.$(".loading-icon").show();
+                Backbone.history.navigate('!payment', {trigger: true});
+            },
+            error: function(data){
+                alert("error");
+            }
+        });
     },
     getEquipmentData: function(){
         var self = this;
@@ -424,7 +448,7 @@ EquipmentView = AbstractView.extend({
             traditional: true,
             type: 'GET',
             success: function(response){
-                self.equipmentJSON = response;
+                self.availableEquipmentJSON = response;
                 self.render();
             },
             error: function(data){
@@ -433,9 +457,62 @@ EquipmentView = AbstractView.extend({
     },
     render: function(options){
         this.$el.html(this.template({
-            equipmentMatrix: listToColumnMatrix(this.equipmentJSON, 3)
+            equipmentMatrix: listToColumnMatrix(this.availableEquipmentJSON, 3)
         }));
         this.$("[name='toggle-switch']").bootstrapSwitch();
+        return this.postRender(options);
+    }
+});
+
+PaymentView = AbstractView.extend({
+    initialize: function(){
+        this.template = _.template($("#payment-view").html());
+    },
+    /*
+    clickAddFunds: function(e){
+        var self = this;
+        var handler = StripeCheckout.configure({
+            key: $("#stripe-publish-key").val(),
+            image: $("#square-icon").val(),
+            email: this.$("#settings-email").val(),
+            token: function(token) {
+            self.$("#accounts-spinner").show();
+            $.ajax({
+                url: '/api/add_credits/',
+                data: {
+                    tokenId: token.id,
+                    tokenEmail: token.email
+                },
+                cache: false,
+                dataType: 'json',
+                traditional: true,
+                type: 'POST',
+                contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                success: function(response){
+                    var userInfoResponse = response;
+                    window.purchaseFlow = false;
+                    self.creditsAdded = true;
+                    self.populatePage(userInfoResponse);
+                    self.$("#accounts-spinner").hide();
+                },
+                error: function(data){
+                    alert("error");
+                    self.$("#accounts-spinner").hide();
+                }
+            });
+            }
+        });
+
+        handler.open({
+            name: 'OneRepMaxCalculator.com',
+            description: 'Video Processing Credits ($5.00)',
+            amount: 500
+        });
+        e.preventDefault();
+    },
+    */
+    render: function(options){
+        this.$el.html(this.template());
         return this.postRender(options);
     }
 });
@@ -549,6 +626,7 @@ IndexRouter = Backbone.Router.extend({
         "!equipment": "equipment",
         "!fitnesslevel": "fitnessLevel",
         "!schedule": "schedule",
+        "!payment": "payment",
         "": "defaultRoute"
     },
     initialize: function(options){
@@ -559,6 +637,10 @@ IndexRouter = Backbone.Router.extend({
     confirmEmail: function(email){
         this.templateView = new TemplateView("#confirm-view", {email: email});
         this.globalView.goto(this.templateView);
+    },
+    payment: function(){
+        this.paymentView = new PaymentView();
+        this.globalView.goto(this.paymentView);
     },
     goal: function(){
         this.goalView = new GoalView();
