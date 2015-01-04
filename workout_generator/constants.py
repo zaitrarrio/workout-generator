@@ -1,4 +1,5 @@
 import os
+from workout_generator.utils import read_file_as_json
 from storages.backends.s3boto import S3BotoStorage
 
 
