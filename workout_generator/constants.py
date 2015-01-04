@@ -1,6 +1,67 @@
 import os
-from workout_generator.utils import read_file_as_json
+from collections import defaultdict
 from storages.backends.s3boto import S3BotoStorage
+
+
+from workout_generator.utils import read_file_as_json
+
+
+class Exercise(object):
+
+    class _Exercise(object):
+
+        def __init__(self, dict_obj):
+            for key, value in dict_obj.items():
+                setattr(self, key, value)
+
+        def __hash__(self):
+            return self.id
+        # INDEX by muscle_group_id, workout_component_id
+
+    _exercises = [_Exercise(dict_obj) for dict_obj in read_file_as_json("workout_generator/exercises.json")]
+
+    _exercises_by_workout_component = defaultdict(set)
+    _exercises_by_muscle_group = defaultdict(set)
+    _exercises_by_fitness_level = defaultdict(set)
+    _exercises_by_experience = defaultdict(set)
+    _exercises_by_id = {}
+    for e in _exercises:
+        _exercises_by_workout_component[e.workout_component_id].add(e)
+        _exercises_by_muscle_group[e.muscle_group_id].add(e)
+        _exercises_by_fitness_level[e.min_fitness_level_id].add(e)
+        _exercises_by_experience[e.min_experience_id].add(e)
+        _exercises_by_id[e.id] = e
+
+    def __init__(self):
+        self.query = set(self._exercises)
+
+    def for_workout_component(self, workout_component_id):
+        self.query = set.intersection(self.query, self._exercises_by_workout_component[workout_component_id])
+        return self
+
+    def for_muscle_group(self, muscle_group_id):
+        self.query = set.intersection(self.query, self._exercises_by_muscle_group[muscle_group_id])
+        return self
+
+    def for_fitness_level(self, fitness_level_id):
+        all_fitness_levels = self._exercises_by_fitness_level.keys()
+        valid_fitness_levels = [f for f in all_fitness_levels if f >= fitness_level_id]
+
+        possible_exercises = set()
+        for fitness_level in valid_fitness_levels:
+            possible_exercises = set.union(self._exercises_by_fitness_level[fitness_level], possible_exercises)
+        self.query = set.intersection(self.query, possible_exercises)
+        return self
+
+    def for_experience(self, experience_id):
+        all_experiences = self._exercises_by_experience.keys()
+        valid_experiences = [e for e in all_experiences if e >= experience_id]
+
+        possible_exercises = set()
+        for experience_level in valid_experiences:
+            possible_exercises = set.union(self._exercises_by_experience[experience_level], possible_exercises)
+        self.query = set.intersection(self.query, possible_exercises)
+        return self
 
 
 class MuscleGroup(object):
