@@ -24,7 +24,10 @@ class Exercise(object):
     _exercises_by_muscle_group = defaultdict(set)
     _exercises_by_fitness_level = defaultdict(set)
     _exercises_by_experience = defaultdict(set)
+    _exercises_by_required_equipment = defaultdict(set)
+    _exercises_by_type = defaultdict(set)
     _exercises_by_id = {}
+
     for e in _exercises:
         _exercises_by_workout_component[e.workout_component_id].add(e)
         _exercises_by_muscle_group[e.muscle_group_id].add(e)
@@ -32,8 +35,35 @@ class Exercise(object):
         _exercises_by_experience[e.min_experience_id].add(e)
         _exercises_by_id[e.id] = e
 
+        required_equipment_key = tuple(sorted(e.equipment_ids))
+        _exercises_by_required_equipment[required_equipment_key].add(e)
+
+        for exercise_type_id in e.exercise_type_ids:
+            _exercises_by_type[exercise_type_id].add(e)
+
     def __init__(self):
         self.query = set(self._exercises)
+
+    def for_exercise_type(self, exercise_type_id):
+        self.query = set.intersection(self.query, self._exercises_by_type[exercise_type_id])
+        return self
+
+    def for_equipment_list(self, equipment_id_list):
+        equipment_id_set = set(equipment_id_list)
+        possible_equipment_keys = []
+        for tuple_key in self._exercises_by_required_equipment.keys():
+            can_use = True
+            for equipment_id in tuple_key:
+                if equipment_id not in equipment_id_set:
+                    can_use = False
+            if can_use:
+                possible_equipment_keys.append(tuple_key)
+
+        possible_exercises = set()
+        for tuple_key in possible_equipment_keys:
+            possible_exercises = set.union(possible_exercises, self._exercises_by_required_equipment[tuple_key])
+        self.query = set.intersection(self.query, possible_exercises)
+        return self
 
     def for_workout_component(self, workout_component_id):
         self.query = set.intersection(self.query, self._exercises_by_workout_component[workout_component_id])
