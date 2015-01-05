@@ -248,10 +248,26 @@ TemplateView = AbstractView.extend({
 
 SignUpView = AbstractView.extend({
     events: {
-        "click .sign-up-continue": "clickSubmit"
+        "click .sign-up-continue": "clickSubmit",
+        "click .facebook-button": "clickFacebook"
     },
     initialize: function($el, model){
         this.template = _.template($("#sign-up-view").html());
+    },
+    clickFacebook: function(){
+        Parse.FacebookUtils.logIn(null, {
+            success: function(user) {
+                if (!user.existed()) {
+                    alert("User signed up and logged in through Facebook!");
+                } else {
+                    alert("User logged in through Facebook!");
+                }
+                console.log(Parse.User.current().email);
+            },
+            error: function(user, error) {
+                alert("User cancelled the Facebook login or did not fully authorize.");
+            }
+        });
     },
     clickSubmit: function(){
         var email = this.$(".email-input").val();
@@ -275,25 +291,39 @@ SignUpView = AbstractView.extend({
         }
     },
     signUp: function(email, password, callback){
-        $.ajax({
-            url: '/api/signup/',
-            data: {
-                email: email,
-                password: password
+        var user = new Parse.User();
+        user.set("username", email);
+        user.set("password", password);
+        user.set("email", email);
+        user.signUp(null, {
+            success: function(user) {
+                $.ajax({
+                    url: '/api/signup/',
+                    data: {
+                        email: email
+                    },
+                    cache: false,
+                    dataType: 'json',
+                    traditional: true,
+                    type: 'POST',
+                    contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                    success: function(response){
+                        if (_.isFunction(callback)) {
+                            callback();
+                        }
+                        Backbone.history.navigate('!confirmation/' + email, {trigger: true});
+                    },
+                    error: function(data){
+                        alert("error");
+                        if (_.isFunction(callback)) {
+                            callback();
+                        }
+                    }
+                });
             },
-            cache: false,
-            dataType: 'json',
-            traditional: true,
-            type: 'POST',
-            contentType: 'application/x-www-form-urlencoded;charset=utf-8',
-            success: function(response){
-                if (_.isFunction(callback)) {
-                    callback();
-                }
-                Backbone.history.navigate('!confirmation/' + email, {trigger: true});
-            },
-            error: function(data){
-                alert("error");
+            error: function(user, error) {
+                // Show the error message somewhere and let the user try again.
+                alert("Error: " + error.code + " " + error.message);
                 if (_.isFunction(callback)) {
                     callback();
                 }
@@ -468,52 +498,50 @@ PaymentView = AbstractView.extend({
     initialize: function(){
         this.template = _.template($("#payment-view").html());
     },
-    /*
-    clickAddFunds: function(e){
+    openStripeModal: function(){
         var self = this;
         var handler = StripeCheckout.configure({
             key: $("#stripe-publish-key").val(),
             image: $("#square-icon").val(),
-            email: this.$("#settings-email").val(),
             token: function(token) {
-            self.$("#accounts-spinner").show();
-            $.ajax({
-                url: '/api/add_credits/',
-                data: {
-                    tokenId: token.id,
-                    tokenEmail: token.email
-                },
-                cache: false,
-                dataType: 'json',
-                traditional: true,
-                type: 'POST',
-                contentType: 'application/x-www-form-urlencoded;charset=utf-8',
-                success: function(response){
-                    var userInfoResponse = response;
-                    window.purchaseFlow = false;
-                    self.creditsAdded = true;
-                    self.populatePage(userInfoResponse);
-                    self.$("#accounts-spinner").hide();
-                },
-                error: function(data){
-                    alert("error");
-                    self.$("#accounts-spinner").hide();
-                }
-            });
+                self.$("#accounts-spinner").show();
+                $.ajax({
+                    url: '/api/payment/',
+                    data: {
+                        tokenId: token.id,
+                        tokenEmail: token.email
+                    },
+                    cache: false,
+                    dataType: 'json',
+                    traditional: true,
+                    type: 'POST',
+                    contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                    success: function(response){
+                        var userInfoResponse = response;
+                        window.purchaseFlow = false;
+                        self.creditsAdded = true;
+                        self.populatePage(userInfoResponse);
+                        self.$("#accounts-spinner").hide();
+                    },
+                    error: function(data){
+                        alert("error");
+                        self.$("#accounts-spinner").hide();
+                    }
+                });
             }
         });
 
         handler.open({
-            name: 'OneRepMaxCalculator.com',
-            description: 'Video Processing Credits ($5.00)',
+            name: 'WorkoutGenerator.net',
+            description: 'Workout Generator monthly subscription',
             amount: 500
         });
-        e.preventDefault();
     },
-    */
     render: function(options){
         this.$el.html(this.template());
-        return this.postRender(options);
+        this.postRender(options);
+        this.openStripeModal();
+        return this.el;
     }
 });
 
