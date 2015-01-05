@@ -11,12 +11,19 @@ class Exercise(object):
     class _Exercise(object):
 
         def __init__(self, dict_obj):
+            self.json_fields = []
             for key, value in dict_obj.items():
+                self.json_fields.append(key)
                 setattr(self, key, value)
+
+        def to_json(self):
+            json_blob = {}
+            for field in self.json_fields:
+                json_blob[field] = getattr(self, field)
+            return json_blob
 
         def __hash__(self):
             return self.id
-        # INDEX by muscle_group_id, workout_component_id
 
     _exercises = [_Exercise(dict_obj) for dict_obj in read_file_as_json("workout_generator/exercises.json")]
 
@@ -26,6 +33,7 @@ class Exercise(object):
     _exercises_by_experience = defaultdict(set)
     _exercises_by_required_equipment = defaultdict(set)
     _exercises_by_type = defaultdict(set)
+    _exercises_by_phase = defaultdict(set)
     _exercises_by_id = {}
 
     for e in _exercises:
@@ -41,11 +49,18 @@ class Exercise(object):
         for exercise_type_id in e.exercise_type_ids:
             _exercises_by_type[exercise_type_id].add(e)
 
+        for phase_id in e.phase_ids:
+            _exercises_by_phase[phase_id].add(e)
+
     def __init__(self):
         self.query = set(self._exercises)
 
     def for_exercise_type(self, exercise_type_id):
         self.query = set.intersection(self.query, self._exercises_by_type[exercise_type_id])
+        return self
+
+    def for_phase(self, phase_id):
+        self.query = set.intersection(self.query, self._exercises_by_phase[phase_id])
         return self
 
     def for_equipment_list(self, equipment_id_list):
@@ -92,6 +107,12 @@ class Exercise(object):
             possible_exercises = set.union(self._exercises_by_experience[experience_level], possible_exercises)
         self.query = set.intersection(self.query, possible_exercises)
         return self
+
+    def as_json(self):
+        return [e.to_json() for e in self.query]
+
+    def count(self):
+        return len(self.query)
 
 
 class MuscleGroup(object):
