@@ -560,12 +560,16 @@ LoginStateView = Backbone.View.extend({
     },
     updateLoginState: function(){
         this.authenticated = (Parse.User.current() !== null);
+        if(this.authenticated && _.indexOf(Parse.User.current().get("username"), "@") === -1){
+            facebookGetMe();
+        }
         this.render();
     },
     toggleLogInState:function(){
         if(this.authenticated){
             Parse.User.logOut()
             this.authenticated = false;
+            $('.profile-circular').hide();
             this.render();
         } else {
             Backbone.history.navigate('!login', {trigger: true});
