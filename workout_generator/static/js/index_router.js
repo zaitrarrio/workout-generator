@@ -516,6 +516,7 @@ PaymentView = AbstractView.extend({
                 $.ajax({
                     url: '/api/payment/',
                     data: {
+                        username: Parse.User.current().get("username"),
                         tokenId: token.id,
                         tokenEmail: token.email
                     },
@@ -526,6 +527,7 @@ PaymentView = AbstractView.extend({
                     contentType: 'application/x-www-form-urlencoded;charset=utf-8',
                     success: function(response){
                         alert("stripe success");
+                        console.log(response);
                     },
                     error: function(data){
                         alert("stripe fail");
@@ -638,6 +640,7 @@ GoalView = AbstractView.extend({
         $.ajax({
             url: '/api/user/',
             data: {
+                username: Parse.User.current().get("username"),
                 goal_id: goalId
             },
             cache: false,

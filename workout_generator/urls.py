@@ -9,5 +9,5 @@ urlpatterns = patterns('',
     url(r'^api/goals/', api.goals, name="goals"),
     url(r'^api/equipment/', api.equipment, name="equipment"),
     url(r'^api/user/', api.user, name="user"),
-    url(r'^api/payment/', api.user, name="user"),
+    url(r'^api/payment/', api.payment, name="user"),
 )
