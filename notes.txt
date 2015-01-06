@@ -1,4 +1,4 @@
-foreman start web
+freman start web
 
 REBUILD ENTIRELY
     heroku repo:rebuild -a onerepmax
@@ -45,3 +45,6 @@ CELERY
 python -m one_rep_max.test
 
 python -m one_rep_max.scripts.restart_failed_orders
+
+reset heroku database
+heroku pg:reset DATABASE_URL

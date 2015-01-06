@@ -211,7 +211,6 @@
             FB.init(facebookOptions);
             // called when page loads
             var callback = function(response){
-                indexRouter.facebookStatusChangeCallback(response);
             };
             FB.getLoginStatus(callback);
             Parse.FacebookUtils.init(facebookOptions);
