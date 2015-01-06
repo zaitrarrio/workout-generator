@@ -2,6 +2,10 @@ function validateEmail(email) {
     var re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     return re.test(email);
 }
+function removeHash () {
+    history.pushState("", document.title, window.location.pathname
+        + window.location.search);
+}
 
 function listToColumnMatrix(list, columns){
     var matrix = [];
@@ -249,23 +253,25 @@ TemplateView = AbstractView.extend({
 SignUpView = AbstractView.extend({
     events: {
         "click .sign-up-continue": "clickSubmit",
-        "click .facebook-button": "clickFacebook"
+        "click .facebook-button": "facebookLogin"
     },
-    initialize: function($el, model){
+    initialize: function($el, model, callback){
         this.template = _.template($("#sign-up-view").html());
+        this.callback = callback;
     },
-    clickFacebook: function(){
+    facebookLogin: function(){
+        var self = this;
         Parse.FacebookUtils.logIn("email", {
             success: function(user) {
                 if (!user.existed()) {
-                    alert("User signed up and logged in through Facebook!");
+                    // user signed up and logged in  through facebook
                 } else {
-                    alert("User logged in through Facebook!");
+                    // user logged in with facebook
                 }
-                console.log(Parse.User.current().get("username"));
+                self.callback();
             },
             error: function(user, error) {
-                alert("User cancelled the Facebook login or did not fully authorize.");
+                // User cancelled the Facebook login or didn't fully authorize
             }
         });
     },
@@ -286,6 +292,7 @@ SignUpView = AbstractView.extend({
             this.signUp(email, password, function(){
                 self.$(".loading-icon").hide();
                 self.$(".sign-up-continue").show();
+                self.callback();
             });
 
         }
@@ -315,10 +322,9 @@ SignUpView = AbstractView.extend({
                         Backbone.history.navigate('!confirmation/' + email, {trigger: true});
                     },
                     error: function(data){
+                        self.$(".loading-icon").hide();
+                        self.$(".sign-up-continue").show();
                         alert("error");
-                        if (_.isFunction(callback)) {
-                            callback();
-                        }
                     }
                 });
             },
@@ -555,14 +561,20 @@ LoginView = AbstractView.extend({
     login: function(){
         var email = this.$(".email-input").val();
         var password = this.$(".password-input").val();
+        this.$(".loading-icon").show();
+        this.$(".log-in-continue").hide();
 
         var self = this;
         Parse.User.logIn(email, password, {
             success: function(){
                 Backbone.history.navigate('', {trigger: true});
                 self.callback();
+                self.$(".loading-icon").hide();
+                self.$(".log-in-continue").show();
             },
             error: function(){
+                self.$(".loading-icon").hide();
+                self.$(".log-in-continue").show();
                 self.$(".error-area").html("That username and password combination does not exist.");
             }
         });
@@ -770,10 +782,14 @@ IndexRouter = Backbone.Router.extend({
         this.globalView.goto(this.scheduleView);
     },
     signup: function(){
-        this.signUpView = new SignUpView();
+        var self = this;
+        this.signUpView = new SignUpView(function(){
+            self.loginStateView.updateLoginState();
+        });
         this.globalView.goto(this.signUpView);
     },
     defaultRoute: function(path){
+        removeHash();
         this.landingView = new LandingView();
         this.globalView.goto(this.landingView);
         if (this.loggedIn){
