@@ -4,6 +4,8 @@ import uuid
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 
+from workout_generator.constants import Goal
+from workout_generator.constants import Phase
 from workout_generator.user.constants import StatusState
 
 
@@ -37,9 +39,39 @@ class _User__Equipment(models.Model):
 
 
 class User(object):
+    isoweekday_to_prop = {
+        0: 'sunday',
+        1: 'monday',
+        2: 'tuesday',
+        3: 'wednesday',
+        4: 'thursday',
+        5: 'friday',
+        6: 'saturday'
+    }
 
     def __init__(self, _user):
         self._user = _user
+
+    def _get_enabled_isoweekdays(self):
+        enabled_days = []
+        prop_to_isoweekday = {v: k for k, v in self.isoweekday_to_prop.items()}
+        for attr_name, isoweekday in prop_to_isoweekday.items():
+            if getattr(self._user, attr_name):
+                enabled_days.append(isoweekday)
+        return enabled_days
+
+    def to_json(self):
+        return {
+            'username': self._user.username,
+            'email': self._user.email,
+            'enabled_days': self._get_enabled_isoweekdays(),
+            'minutes_per_day': self._user.minutes_per_day,
+            'fitness_level': self._user.fitness_level,
+            'experience': self._user.experience,
+            'status': StatusState.from_index(self._user.status_state_id).canonical_name,
+            'goal': Goal.get_by_id_as_json(self._user.goal_id),
+            'phase': Phase.get_by_id(self._user.current_phase_id) if self._user.current_phase_id else None
+        }
 
     def update_email(self, email):
         self._user.email = email
@@ -68,21 +100,12 @@ class User(object):
         self._user.save()
 
     def update_available_days(self, js_isoweekday_list):
-        isoweekday_to_prop = {
-            0: 'sunday',
-            1: 'monday',
-            2: 'tuesday',
-            3: 'wednesday',
-            4: 'thursday',
-            5: 'friday',
-            6: 'saturday'
-        }
 
-        for weekday_attr in isoweekday_to_prop.values():
+        for weekday_attr in self.isoweekday_to_prop.values():
             setattr(self._user, weekday_attr, False)
 
         for isoweekday in js_isoweekday_list:
-            weekday_attr = isoweekday_to_prop[isoweekday]
+            weekday_attr = self.isoweekday_to_prop[isoweekday]
             setattr(self._user, weekday_attr, True)
 
         self._user.save()
@@ -113,4 +136,12 @@ class User(object):
             _user = _User.objects.get(username=username)
         except ObjectDoesNotExist:
             return cls.create_from_username(username)
+        return User(_user)
+
+    @classmethod
+    def get_by_username(cls, username):
+        try:
+            _user = _User.objects.get(username=username)
+        except ObjectDoesNotExist:
+            return None
         return User(_user)

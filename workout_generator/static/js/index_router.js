@@ -555,13 +555,17 @@ LoginStateView = Backbone.View.extend({
     events: {
         "click a": "toggleLogInState"
     },
-    initialize: function(){
+    initialize: function(model){
+        this.model = model;
         this.updateLoginState();
     },
     updateLoginState: function(){
         this.authenticated = (Parse.User.current() !== null);
         if(this.authenticated && _.indexOf(Parse.User.current().get("username"), "@") === -1){
             facebookGetMe();
+        }
+        if(this.authenticated){
+            this.model.fetch();
         }
         this.render();
     },
@@ -584,6 +588,17 @@ LoginStateView = Backbone.View.extend({
     }
 });
 
+
+User = Backbone.Model.extend({
+    url: function(){
+         return '/api/user/?username=' + Parse.User.current().get('username');
+    },
+    initialize: function(){
+        this.listenTo(this, 'sync', function(){
+        });
+    }
+});
+
 IndexRouter = Backbone.Router.extend({
     routes: {
         "!confirmation/:email": "confirmEmail",
@@ -597,10 +612,11 @@ IndexRouter = Backbone.Router.extend({
         "": "defaultRoute"
     },
     initialize: function(options){
+        var user = new User();
         this.devMode = options.devMode;
         this.loggedIn = false;
         this.globalView = new GlobalView();
-        this.loginStateView = new LoginStateView();
+        this.loginStateView = new LoginStateView(user);
     },
     login: function(){
         var self = this;

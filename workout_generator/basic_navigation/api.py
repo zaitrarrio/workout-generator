@@ -83,7 +83,11 @@ def _update_user(request, user=None):
 
 
 def _get_user(request):
-    return render_to_json({})
+    username = request.GET["username"]
+    user = User.get_by_username(username)
+    if not user:
+        return render_to_json({}, status=400)
+    return render_to_json(user.to_json())
 
 
 def _update_goal(user, goal_id):

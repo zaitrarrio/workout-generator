@@ -3025,6 +3025,14 @@ class Goal(object):
             })
         return json_data
 
+    @classmethod
+    def get_by_id_as_json(cls, goal_id):
+        all_goals = cls.as_json()
+        for goal_dict in all_goals:
+            if goal_dict['id'] == goal_id:
+                return goal_dict
+        return None
+
 
 class PhaseLengthByGoal(object):
     # id, goal_id, phase_id, minLength, maxLength
