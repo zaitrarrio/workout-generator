@@ -12,32 +12,18 @@ function facebookGetMe(){
     FB.api('/v2.1/me?fields=id,email', function(response) {
         var facebook_id = response.id;
         var facebookEmail = response.email || '';
-        alert(facebook_id);
-        alert(facebookEmail);
-        return;
-        window.facebook_id = facebook_id;
-        $.ajax({
-            url: '/api/login/',
-            data: {
-                facebook_email: facebookEmail,
-                facebook_service_id: facebook_id
-            },
-            cache: false,
-            dataType: 'json',
-            traditional: true,
-            type: 'POST',
-            success: function(data){
-                self.loggedIn = true;
-                $("#account-link").show();
-                var currentRoute = self.routes[Backbone.history.fragment];
-                if (currentRoute === "defaultRoute"){
-                    self.uploadVideoButtonView.render();
-                }
-            },
-            error: function(data){
-                alert("error");
-            }
-        });
+        var parseUser = Parse.User.current();
+        parseUser.set("facebook_id", facebook_id);
+        parseUser.set("facebook_email", facebookEmail);
+    });
+    updateProfilePicture();
+}
+
+function updateProfilePicture() {
+    FB.api('/v2.1/me/picture?redirect=false', function(response){
+        var profilePictureUrl = response.data.url;
+        $('.profile-circular').css({'background-image':'url(' + profilePictureUrl +')'});
+        $('.profile-circular').show();
     });
 }
 
@@ -426,10 +412,11 @@ LoginView = AbstractView.extend({
         var self = this;
         Parse.User.logIn(email, password, {
             success: function(){
-                Backbone.history.navigate('', {trigger: true});
+                facebookGetMe()
                 self.callback();
                 self.$(".loading-icon").hide();
                 self.$(".log-in-continue").show();
+                Backbone.history.navigate('', {trigger: true});
             },
             error: function(){
                 self.$(".loading-icon").hide();
@@ -653,11 +640,5 @@ IndexRouter = Backbone.Router.extend({
         removeHash();
         this.landingView = new LandingView();
         this.globalView.goto(this.landingView);
-    },
-    updateProfilePicture: function(){
-        FB.api('/v2.1/me/picture?redirect=false', function(response){
-            var profilePictureUrl = response.data.url;
-            $('.profile-circular').css({'background-image':'url(' + profilePictureUrl +')'});
-        });
     }
 });

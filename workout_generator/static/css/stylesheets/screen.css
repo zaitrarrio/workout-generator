@@ -2583,3 +2583,15 @@ or wrap each row of columns in a <div class="row"> */
 .bootstrap-switch .bootstrap-switch-handle-off.bootstrap-switch-default {
     font-size: 0;
 }
+
+.profile-circular {
+    display: inline-block;
+    width: 50px;
+    height: 50px;
+    border-radius: 25px;
+    -webkit-border-radius: 25px;
+    -moz-border-radius: 25px;
+    box-shadow: 0 0 8px rgba(0, 0, 0, .8);
+    -webkit-box-shadow: 0 0 8px rgba(0, 0, 0, .8);
+    -moz-box-shadow: 0 0 8px rgba(0, 0, 0, .8);
+}
