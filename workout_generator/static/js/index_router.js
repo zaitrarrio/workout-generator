@@ -507,7 +507,6 @@ PaymentView = AbstractView.extend({
             key: $("#stripe-publish-key").val(),
             image: $("#square-icon").val(),
             token: function(token) {
-                self.$("#accounts-spinner").show();
                 $.ajax({
                     url: '/api/payment/',
                     data: {
@@ -520,25 +519,21 @@ PaymentView = AbstractView.extend({
                     type: 'POST',
                     contentType: 'application/x-www-form-urlencoded;charset=utf-8',
                     success: function(response){
-                        var userInfoResponse = response;
-                        window.purchaseFlow = false;
-                        self.creditsAdded = true;
-                        self.populatePage(userInfoResponse);
-                        self.$("#accounts-spinner").hide();
+                        alert("stripe success");
                     },
                     error: function(data){
-                        alert("error");
-                        self.$("#accounts-spinner").hide();
+                        alert("stripe fail");
                     }
                 });
             }
         });
 
-        handler.open({
+        var options = {
             name: 'WorkoutGenerator.net',
-            description: 'Workout Generator monthly subscription',
-            amount: 500
-        });
+            description: 'Monthly Subscription'
+        };
+        options["panel-label"] = "Subscribe";
+        handler.open(options);
     },
     render: function(options){
         this.$el.html(this.template());

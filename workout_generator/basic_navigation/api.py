@@ -6,6 +6,7 @@ from django.http import HttpResponse
 from workout_generator.constants import Equipment
 from workout_generator.constants import Goal
 from workout_generator.mailgun.tasks import send_verify_email
+from workout_generator.stripe.utils import create_subscription
 
 
 def render_to_json(response_obj, context={}, content_type="application/json", status=200):
@@ -68,18 +69,11 @@ def _update_goal(user_id, goal_id):
 
 @requires_post
 def payment(request):
-    return
-    '''
-    AMOUNT_TO_CHARGE = 5.00
-    user_id = request.session['user_id']
-    user = User.get_by_id(request.session['user_id'])
     stripe_token = request.POST['tokenId']
     stripe_email = request.POST['tokenEmail']
-    success, error_message = charge_card(stripe_token, int(AMOUNT_TO_CHARGE * 100), user_id, stripe_email)
+    success, customer_id_or_message = create_subscription(stripe_token, stripe_email)
     if not success:
         return render_to_json({
-            "error": error_message
+            "error": customer_id_or_message
         }, status=400)
-    user.add_credits(AMOUNT_TO_CHARGE)
-    return render_to_json(user.to_json())
-    '''
+    return render_to_json({})
