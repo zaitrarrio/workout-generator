@@ -568,17 +568,18 @@ LoginView = AbstractView.extend({
         });
     },
     facebookLogin: function(){
+        var self = this;
         Parse.FacebookUtils.logIn("email", {
             success: function(user) {
                 if (!user.existed()) {
-                    alert("User signed up and logged in through Facebook!");
+                    // user signed up and logged in  through facebook
                 } else {
-                    alert("User logged in through Facebook!");
+                    // user logged in with facebook
                 }
-                console.log(Parse.User.current().get("username"));
+                self.callback();
             },
             error: function(user, error) {
-                alert("User cancelled the Facebook login or did not fully authorize.");
+                // User cancelled the Facebook login or didn't fully authorize
             }
         });
     },
