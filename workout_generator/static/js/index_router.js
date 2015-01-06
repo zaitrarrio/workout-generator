@@ -255,14 +255,14 @@ SignUpView = AbstractView.extend({
         this.template = _.template($("#sign-up-view").html());
     },
     clickFacebook: function(){
-        Parse.FacebookUtils.logIn(null, {
+        Parse.FacebookUtils.logIn("email", {
             success: function(user) {
                 if (!user.existed()) {
                     alert("User signed up and logged in through Facebook!");
                 } else {
                     alert("User logged in through Facebook!");
                 }
-                console.log(Parse.User.current().email);
+                console.log(Parse.User.current().get("username"));
             },
             error: function(user, error) {
                 alert("User cancelled the Facebook login or did not fully authorize.");
@@ -300,7 +300,8 @@ SignUpView = AbstractView.extend({
                 $.ajax({
                     url: '/api/signup/',
                     data: {
-                        email: email
+                        email: email,
+                        username: email
                     },
                     cache: false,
                     dataType: 'json',
@@ -499,6 +500,8 @@ PaymentView = AbstractView.extend({
         this.template = _.template($("#payment-view").html());
     },
     openStripeModal: function(){
+        // READ
+        // https://www.petekeen.net/using-stripe-checkout-for-subscriptions
         var self = this;
         var handler = StripeCheckout.configure({
             key: $("#stripe-publish-key").val(),
@@ -542,6 +545,51 @@ PaymentView = AbstractView.extend({
         this.postRender(options);
         this.openStripeModal();
         return this.el;
+    }
+});
+
+LoginView = AbstractView.extend({
+    events: {
+        "click .facebook-button": "facebookLogin",
+        "click .log-in-continue": "login"
+    },
+    initialize: function(callback){
+        this.callback = callback;
+        this.template = _.template($("#login-view").html());
+    },
+    login: function(){
+        var email = this.$(".email-input").val();
+        var password = this.$(".password-input").val();
+
+        var self = this;
+        Parse.User.logIn(email, password, {
+            success: function(){
+                Backbone.history.navigate('', {trigger: true});
+                self.callback();
+            },
+            error: function(){
+                self.$(".error-area").html("That username and password combination does not exist.");
+            }
+        });
+    },
+    facebookLogin: function(){
+        Parse.FacebookUtils.logIn("email", {
+            success: function(user) {
+                if (!user.existed()) {
+                    alert("User signed up and logged in through Facebook!");
+                } else {
+                    alert("User logged in through Facebook!");
+                }
+                console.log(Parse.User.current().get("username"));
+            },
+            error: function(user, error) {
+                alert("User cancelled the Facebook login or did not fully authorize.");
+            }
+        });
+    },
+    render: function(options){
+        this.$el.html(this.template(this.renderData));
+        return this.postRender(options);
     }
 });
 
@@ -646,6 +694,36 @@ GlobalView = Backbone.View.extend({
     }
 });
 
+LoginStateView = Backbone.View.extend({
+    el: $("#login-state"),
+    events: {
+        "click a": "toggleLogInState"
+    },
+    initialize: function(){
+        this.updateLoginState();
+    },
+    updateLoginState: function(){
+        this.authenticated = (Parse.User.current() !== null);
+        this.render();
+    },
+    toggleLogInState:function(){
+        if(this.authenticated){
+            Parse.User.logOut()
+            this.authenticated = false;
+            this.render();
+        } else {
+            Backbone.history.navigate('!login', {trigger: true});
+        }
+    },
+    render: function(){
+        if(this.authenticated){
+            this.$el.html("<a href='javascript:void(0);'>Log Out <i class='icon-signout'></i></a></li>");
+        } else {
+            this.$el.html("<a href='javascript:void(0);'>Log In <i class='icon-signin'></i></a></li>");
+        }
+    }
+});
+
 IndexRouter = Backbone.Router.extend({
     routes: {
         "!confirmation/:email": "confirmEmail",
@@ -654,6 +732,7 @@ IndexRouter = Backbone.Router.extend({
         "!equipment": "equipment",
         "!fitnesslevel": "fitnessLevel",
         "!schedule": "schedule",
+        "!login": "login",
         "!payment": "payment",
         "": "defaultRoute"
     },
@@ -661,6 +740,14 @@ IndexRouter = Backbone.Router.extend({
         this.devMode = options.devMode;
         this.loggedIn = false;
         this.globalView = new GlobalView();
+        this.loginStateView = new LoginStateView();
+    },
+    login: function(){
+        var self = this;
+        this.loginView = new LoginView(function(){
+            self.loginStateView.updateLoginState();
+        });
+        this.globalView.goto(this.loginView);
     },
     confirmEmail: function(email){
         this.templateView = new TemplateView("#confirm-view", {email: email});
@@ -710,6 +797,7 @@ IndexRouter = Backbone.Router.extend({
         });
     },
     facebookGetMe: function(){
+        return;
         var self = this;
         FB.api('/v2.1/me?fields=id,email', function(response) {
             var facebook_id = response.id;

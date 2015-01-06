@@ -574,3 +574,31 @@ You can rest assured that the details of your training have been finely tuned. Y
 <div>
 </div>
 </script>
+
+<script type="text/html" id="login-view">
+<div class="four columns" style="height: 10px;"></div>
+
+<div class="six columns">
+    <div>
+        <p style="width: 30%; display: inline-block;">E-Mail Address:</p>
+        <input  style="width: 60%; display: inline-block;" type="text" class="email-input" />
+        <br/>
+        <p style="width: 30%; display: inline-block;">Password:</p>
+        <input style="width: 60%; display: inline-block;" type="password" class="password-input" />
+        <p class="error-area" style="margin-left: 30%; color: #8f0000;"></p>
+        <a href="javascript:void(0);" class="button large rounded log-in-continue" style="padding: 10px 20px; margin-left: 40%; margin-bottom: 20px;">Log In <i class="icon-signin"></i></a>
+        <img class="loading-icon" src="{% static 'img/loading-icon.gif' %}" alt="Loading" style="display: none; margin-left: 40%;">
+    </div>
+</div>
+
+<div class="four columns" style="height: 10px;"></div>
+<div class="divider"></div>
+<div class="five columns" style="height: 10px;"></div>
+<div class="four columns">
+    <center><h3>-OR-</h3></center>
+    <a href="javascript: void(0);">
+        <img class="facebook-button" style="width: 100%;" src="{% static 'img/facebook_login.png' %}" alt="login with facebook">
+    </a>
+</div>
+<div class="five columns" style="height: 10px;"></div>
+</script>
