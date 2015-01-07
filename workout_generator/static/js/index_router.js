@@ -279,31 +279,66 @@ ScheduleView = AbstractView.extend({
     initialize: function(model){
         this.model = model;
         this.template = _.template($("#schedule-view").html());
+        var self = this;
+        this.listenTo(this.model, "sync", function(){
+            self.render();
+        });
+    },
+    _getCheckedWeekdays: function(){
+        var selectedDays = [];
+        for(var isoweekday=0; isoweekday<7; isoweekday++){
+            var selector = "#isoweekday_" + isoweekday;
+            if(this.$(selector).is(":checked")){
+                selectedDays.push(isoweekday);
+            }
+        }
+        return selectedDays;
     },
     save: function(){
         this.$(".save").hide();
         this.$(".loading-icon").show();
+
+        this.model.set("enabled_days", this._getCheckedWeekdays());
+
+        var minutesPerDay = parseInt(this.$(".minutes-per-day-select").val(), 10);
+        this.model.set("minutes_per_day", minutesPerDay);
         var self = this;
-        $.ajax({
-            url: '/api/user/',
-            data: {
-            },
-            cache: false,
-            dataType: 'json',
-            traditional: true,
-            type: 'POST',
-            success: function(data){
-                self.$(".loading-icon").show();
-                Backbone.history.navigate('!fitnesslevel', {trigger: true});
-            },
-            error: function(data){
-                alert("error");
-            }
+        this.model.once('sync', function(){
+            self.$(".loading-icon").hide();
+            Backbone.history.navigate('!fitnesslevel', {trigger: true});
         });
+        this.model.save();
+    },
+    _turnDayOn: function(isoweekday){
+        var selector = "#isoweekday_" + isoweekday;
+        if(!this.$(selector).is(":checked")){
+            this.$(selector).click();
+        }
+    },
+    _turnDayOff: function(isoweekday){
+        var selector = "#isoweekday_" + isoweekday;
+        if(this.$(selector).is(":checked")){
+            this.$(selector).click();
+        }
+    },
+    updateCheckedDaysWithModel: function(){
+        for(var isoweekday=0; isoweekday<7; isoweekday++){
+            if(this.model.hasDayEnabled(isoweekday)){
+                this._turnDayOn(isoweekday);
+            } else {
+                this._turnDayOff(isoweekday);
+            }
+        }
     },
     render: function(options){
         this.$el.html(this.template());
         this.$("[name='toggle-switch']").bootstrapSwitch();
+
+        var self = this;
+        setTimeout(function(){
+            self.updateCheckedDaysWithModel();
+        }, 0);
+        this.$(".minutes-per-day-select").val(this.model.get("minutes_per_day") || 60);
         return this.postRender(options);
     }
 });
@@ -353,7 +388,7 @@ EquipmentView = AbstractView.extend({
     save: function(){
         this.$(".save").hide();
         this.$(".loading-icon").show();
-        this.model.set("available_equipment", this._getCheckedEquipmentIds());
+        this.model.set("equipment_ids", this._getCheckedEquipmentIds());
 
         var self = this;
         this.model.once('sync', function(){
@@ -655,7 +690,10 @@ User = Backbone.Model.extend({
         });
     },
     hasEquipmentId: function(equipmentId){
-        return _.indexOf(this.get('available_equipment'), equipmentId) > -1;
+        return _.indexOf(this.get('equipment_ids') || [], equipmentId) > -1;
+    },
+    hasDayEnabled: function(isoweekday){
+        return _.indexOf(this.get('enabled_days') || [], isoweekday) > -1;
     }
 });
 

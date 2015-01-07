@@ -461,13 +461,13 @@ You can rest assured that the details of your training have been finely tuned. Y
     <h2>Adjust Schedule</h2>
 </center>
     <blockquote class="no-quote">
-<% var weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] %>
+<% var weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] %>
 <% for (var i = 0; i < weekdays.length; i++) { %>
         <div class="weekday-row">
             <span class="weekday-container">
                 <%= weekdays[i] %>
             </span>
-            <input type="checkbox" name="toggle-switch" checked="">
+<input type="checkbox" name="toggle-switch" checked="" id="isoweekday_<%= i %>">
         </div>
         <% } %>
     </blockquote>
@@ -475,7 +475,7 @@ You can rest assured that the details of your training have been finely tuned. Y
         <span class="weekday-container">
         Minutes Per Day:
         </span>
-<select style="height: 25px; width: 50px; display: inline-block;">
+<select style="height: 25px; width: 50px; display: inline-block;" class="minutes-per-day-select">
 <% for (var minutes = 15; minutes <= 90; minutes += 5) { %>
 <option value="<%= minutes %>"><%= minutes %></option>
             <% } %>

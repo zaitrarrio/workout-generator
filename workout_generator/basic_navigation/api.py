@@ -69,7 +69,7 @@ def _update_user(request, user=None):
         'age': _update_age,
         'gender': _update_gender,
         'equipment_ids': _update_equipment_ids,
-        'available_days': _update_available_days,
+        'enabled_days': _update_available_days,
         'minutes_per_day': _update_minutes_per_day,
         'fitness_level': _update_fitness_level,
         'experience': _update_experience
