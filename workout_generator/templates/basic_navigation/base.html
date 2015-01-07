@@ -192,7 +192,7 @@
 
     <script>
     $(document).ready(function(){
-var indexRouter = new IndexRouter();
+        var indexRouter = new IndexRouter();
         Backbone.history.start();
 
         var facebookOptions = {
@@ -208,6 +208,7 @@ var indexRouter = new IndexRouter();
             };
             FB.getLoginStatus(callback);
             Parse.FacebookUtils.init(facebookOptions);
+            indexRouter.updateLoginState();
         };
 
         (function(d, s, id){

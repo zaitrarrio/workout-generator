@@ -648,7 +648,6 @@ LoginStateView = Backbone.View.extend({
     },
     initialize: function(model){
         this.model = model;
-        this.updateLoginState();
     },
     updateLoginState: function(){
         this.authenticated = (Parse.User.current() !== null);
