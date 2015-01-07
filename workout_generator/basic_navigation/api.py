@@ -20,22 +20,24 @@ def requires_post(fn):
         if request.method != "POST":
             return Http404
 
-        if 'username' not in request.POST:
+        post_data = request.POST or json.loads(request.body)
+        if 'username' not in post_data:
             return render_to_json({
                 "message": "POST requests require a Parse 'username'",
             }, status=400)
 
-        username = request.POST['username']
+        username = post_data['username']
         user = User.get_or_create_by_username(username)
-        kwargs.update["user"] = user
+        kwargs["user"] = user
         return fn(request, *args, **kwargs)
     return inner
 
 
 @requires_post
 def signup(request, user=None):
-    email = request.POST['email']
-    password = request.POST['password']
+    post_data = request.POST or json.loads(request.body)
+    email = post_data['email']
+    password = post_data['password']
     placeholder(email, password)
     send_verify_email(email)
     return render_to_json({}, status=204)
@@ -71,13 +73,14 @@ def _update_user(request, user=None):
         'experience': _update_experience
     }
 
+    post_data = request.POST or json.loads(request.body)
     for field, function in field_to_function.items():
 
         if function is None:
             continue
 
-        if field in request.POST:
-            function(user, request.POST[field])
+        if field in post_data:
+            function(user, post_data[field])
 
     return render_to_json({}, status=204)
 
@@ -107,7 +110,7 @@ def _update_minutes_per_day(user, minutes_per_day):
 
 
 def _update_fitness_level(user, fitness_level_id):
-    user.update_fitess_level(fitness_level_id)
+    user.update_fitness_level(fitness_level_id)
 
 
 def _update_experience(user, experience_id):
@@ -116,8 +119,9 @@ def _update_experience(user, experience_id):
 
 @requires_post
 def payment(request, user=None):
-    stripe_token = request.POST['tokenId']
-    stripe_email = request.POST['tokenEmail']
+    post_data = request.POST or json.loads(request.body)
+    stripe_token = post_data['tokenId']
+    stripe_email = post_data['tokenEmail']
     success, customer_id_or_message = create_subscription(stripe_token, stripe_email)
     if not success:
         return render_to_json({
