@@ -190,15 +190,9 @@
         });
     </script>
 
-    <script type="text/javascript" src="{% static 'js/index_router.js' %}"></script>
     <script>
     $(document).ready(function(){
-        {% if dev %}
-            var devMode = true;
-        {% else %}
-            var devMode = false;
-        {% endif %}
-        var indexRouter = new IndexRouter({devMode: devMode});
+var indexRouter = new IndexRouter();
         Backbone.history.start();
 
         var facebookOptions = {
@@ -225,6 +219,7 @@
         }(document, 'script', 'facebook-jssdk'));
     });
     </script>
+    <script type="text/javascript" src="{% static 'js/index_router.js' %}"></script>
     {% include "google_analytics.html" %}
 <!-- End Document
 ================================================== -->

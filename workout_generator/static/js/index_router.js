@@ -8,7 +8,6 @@ function removeHash () {
 }
 
 function facebookGetMe(){
-    var self = this;
     FB.api('/v2.1/me?fields=id,email', function(response) {
         var facebook_id = response.id;
         var facebookEmail = response.email || '';
@@ -709,9 +708,8 @@ IndexRouter = Backbone.Router.extend({
         "!payment": "payment",
         "": "defaultRoute"
     },
-    initialize: function(options){
+    initialize: function(){
         this.model = new User();
-        this.devMode = options.devMode;
         this.loggedIn = false;
         this.globalView = new GlobalView();
         this.loginStateView = new LoginStateView(this.model);
