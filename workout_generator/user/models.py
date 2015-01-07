@@ -6,7 +6,9 @@ from django.db import models
 
 from workout_generator.constants import Goal
 from workout_generator.constants import Phase
+from workout_generator.constants import Equipment
 from workout_generator.user.constants import StatusState
+from workout_generator.user.constants import GenderType
 
 
 class _User(models.Model):
@@ -31,6 +33,8 @@ class _User(models.Model):
     minutes_per_day = models.IntegerField(default=60)
     fitness_level = models.IntegerField(default=2)
     experience = models.IntegerField(default=2)
+    age = models.IntegerField(default=30)
+    gender_id = models.IntegerField(default=GenderType.MALE.index, null=False)
 
 
 class _User__Equipment(models.Model):
@@ -70,8 +74,25 @@ class User(object):
             'experience': self._user.experience,
             'status': StatusState.from_index(self._user.status_state_id).canonical_name,
             'goal': Goal.get_by_id_as_json(self._user.goal_id),
+            'gender': GenderType.from_index(self._user.gender_id).canonical_name,
+            'age': self._user.age,
+            'equipment_ids': self.get_available_equipment(),
             'phase': Phase.get_by_id(self._user.current_phase_id) if self._user.current_phase_id else None
         }
+
+    def get_available_equipment(self):
+        existing_user_equipment = list(_User__Equipment.objects.filter(user_id=self._user.id).
+                values_list('equipment_id', flat=True))
+        return existing_user_equipment
+
+    def update_gender(self, canonical_name):
+        gender_type = GenderType.from_canonical(canonical_name)
+        self._user.gender_id = gender_type.index
+        self._user.save()
+
+    def update_age(self, age):
+        self._user.age = age
+        self._user.save()
 
     def update_email(self, email):
         self._user.email = email
@@ -128,7 +149,9 @@ class User(object):
             username=username,
             confirmation_code=str(uuid.uuid4())
         )
-        return _User(_user)
+        user = User(_user)
+        user.update_equipment_ids(Equipment.DEFAULT_IDS)
+        return user
 
     @classmethod
     def get_or_create_by_username(cls, username):

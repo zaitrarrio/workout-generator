@@ -66,6 +66,8 @@ def user(request):
 def _update_user(request, user=None):
     field_to_function = {
         'goal_id': _update_goal,
+        'age': _update_age,
+        'gender': _update_gender,
         'equipment_ids': _update_equipment_ids,
         'available_days': _update_available_days,
         'minutes_per_day': _update_minutes_per_day,
@@ -106,15 +108,27 @@ def _update_available_days(user, js_isoweekday_list):
 
 
 def _update_minutes_per_day(user, minutes_per_day):
+    minutes_per_day = int(minutes_per_day)
     user.update_minutes_per_day(minutes_per_day)
 
 
 def _update_fitness_level(user, fitness_level_id):
+    fitness_level_id = int(fitness_level_id)
     user.update_fitness_level(fitness_level_id)
 
 
 def _update_experience(user, experience_id):
+    experience_id = int(experience_id)
     user.update_experience(experience_id)
+
+
+def _update_gender(user, canonical_gender_name):
+    user.update_gender(canonical_gender_name)
+
+
+def _update_age(user, age):
+    age = int(age)
+    user.update_age(age)
 
 
 @requires_post

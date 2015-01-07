@@ -48,3 +48,4 @@ python -m one_rep_max.scripts.restart_failed_orders
 
 reset heroku database
 heroku pg:reset DATABASE_URL
+python manage.py sqlclear user | python manage.py dbshell

@@ -97,7 +97,8 @@ SignUpView = AbstractView.extend({
         "click .sign-up-continue": "clickSubmit",
         "click .facebook-button": "facebookLogin"
     },
-    initialize: function($el, model, callback){
+    initialize: function(model, callback){
+        this.model = model;
         this.template = _.template($("#sign-up-view").html());
         this.callback = callback;
     },
@@ -190,7 +191,8 @@ LandingView = AbstractView.extend({
     events: {
         "click .sign-up": "goSignUp"
     },
-    initialize: function(){
+    initialize: function(model){
+        this.model = model;
         this.template = _.template($("#landing-view").html());
     },
     goSignUp: function(){
@@ -206,50 +208,66 @@ FitnessLevelView = AbstractView.extend({
     events: {
         "click .save": "save"
     },
-    initialize: function(){
+    initialize: function(model){
+        this.model = model;
         this.template = _.template($("#fitness-level-view").html());
+
+        var self = this;
+        this.listenTo(this.model, "sync", function(){
+            self.render();
+        });
     },
     save: function(){
+        var fitness_level = this.$(".slider-fitness").val();
+        fitness_level = parseInt(parseInt(fitness_level, 10) / 20, 10);
+
+        var experience = this.$(".slider-experience").val();
+        experience = parseInt(parseInt(experience, 10) / 20, 10);
+
+        var age = this.$(".age-select").val();
+        var gender = this.$("input[name='gender']:checked").val();
+
+        this.model.set("experience", experience);
+        this.model.set("fitness_level", fitness_level);
+        this.model.set("gender", gender);
+        this.model.set("age", age);
+
         this.$(".save").hide();
         this.$(".loading-icon").show();
         var self = this;
-        $.ajax({
-            url: '/api/user/',
-            data: {
-            },
-            cache: false,
-            dataType: 'json',
-            traditional: true,
-            type: 'POST',
-            success: function(data){
-                self.$(".loading-icon").show();
-                Backbone.history.navigate('!equipment', {trigger: true});
-            },
-            error: function(data){
-                alert("error");
-            }
+        this.model.once('sync', function(){
+            self.$(".loading-icon").hide();
+            Backbone.history.navigate('!equipment', {trigger: true});
         });
+        this.model.save();
     },
     render: function(options){
         this.$el.html(this.template());
         this.postRender(options);
         var self = this;
+
         setTimeout(function() {
             new Powerange(self.$(".slider-fitness")[0], {
                 step: 1 ,
                 min: 1,
-                start: 20,
+                start: self.model.get('fitness_level') * 20,
                 hideRange: true,
                 max: 100
             });
             new Powerange(self.$(".slider-experience")[0], {
                 step: 1 ,
                 min: 1,
-                start: 20,
+                start: self.model.get('experience') * 20,
                 hideRange: true,
                 max: 100
             });
         }, 0);
+        if(this.model.get("age")){
+            this.$(".age-select").val(this.model.get("age"));
+
+            var selector = "#" + this.model.get("gender");
+            this.$(selector).click();
+        }
     }
 });
 
@@ -258,7 +276,8 @@ ScheduleView = AbstractView.extend({
     events: {
         "click .save": "save"
     },
-    initialize: function(){
+    initialize: function(model){
+        this.model = model;
         this.template = _.template($("#schedule-view").html());
     },
     save: function(){
@@ -293,31 +312,55 @@ EquipmentView = AbstractView.extend({
     events: {
         "click .save": "save"
     },
-    initialize: function(){
+    initialize: function(model){
+        this.model = model;
         this.template = _.template($("#equipment-view").html());
         this.availableEquipmentJSON = [];
         this.getEquipmentData();
+        var self = this;
+        this.listenTo(this.model, "sync", function(){
+            self.render();
+        });
+    },
+    _getEquipmentInputEl: function(equipmentId){
+        var selector = "#equipment_" + equipmentId;
+        var el = this.$(selector).find("input");
+        return el;
+    },
+    _turnEquipmentIdOn: function(equipmentId){
+        var el = this._getEquipmentInputEl(equipmentId);
+        if(!el.is(":checked")){
+            el.click();
+        }
+    },
+    _turnEquipmentIdOff: function(equipmentId){
+        var el = this._getEquipmentInputEl(equipmentId);
+        if(el.is(":checked")){
+            el.click();
+        }
+    },
+    _getCheckedEquipmentIds: function(){
+        var checkedEquipment = [];
+        for(var i=0; i<this.availableEquipmentJSON.length; i++){
+            var equipmentObject = this.availableEquipmentJSON[i];
+            var el = this._getEquipmentInputEl(equipmentObject.id);
+            if(el.is(":checked")){
+                checkedEquipment.push(equipmentObject.id);
+            }
+        }
+        return checkedEquipment;
     },
     save: function(){
         this.$(".save").hide();
         this.$(".loading-icon").show();
+        this.model.set("available_equipment", this._getCheckedEquipmentIds());
+
         var self = this;
-        $.ajax({
-            url: '/api/user/',
-            data: {
-            },
-            cache: false,
-            dataType: 'json',
-            traditional: true,
-            type: 'POST',
-            success: function(data){
-                self.$(".loading-icon").show();
-                Backbone.history.navigate('!payment', {trigger: true});
-            },
-            error: function(data){
-                alert("error");
-            }
+        this.model.once('sync', function(){
+            self.$(".loading-icon").show();
+            Backbone.history.navigate('!payment', {trigger: true});
         });
+        this.model.save();
     },
     getEquipmentData: function(){
         var self = this;
@@ -335,17 +378,29 @@ EquipmentView = AbstractView.extend({
             }
         });
     },
+    updateTogglesWithModel: function(){
+        for(var i=0; i<this.availableEquipmentJSON.length; i++){
+            var equipmentObject = this.availableEquipmentJSON[i];
+            if(this.model.hasEquipmentId(equipmentObject.id)){
+                this._turnEquipmentIdOn(equipmentObject.id);
+            } else {
+                this._turnEquipmentIdOff(equipmentObject.id);
+            }
+        }
+    },
     render: function(options){
         this.$el.html(this.template({
             equipmentMatrix: listToColumnMatrix(this.availableEquipmentJSON, 3)
         }));
         this.$("[name='toggle-switch']").bootstrapSwitch();
+        this.updateTogglesWithModel();
         return this.postRender(options);
     }
 });
 
 PaymentView = AbstractView.extend({
-    initialize: function(){
+    initialize: function(model){
+        this.model = model;
         this.template = _.template($("#payment-view").html());
     },
     openStripeModal: function(){
@@ -399,7 +454,8 @@ LoginView = AbstractView.extend({
         "click .facebook-button": "facebookLogin",
         "click .log-in-continue": "login"
     },
-    initialize: function(callback){
+    initialize: function(model, callback){
+        this.model = model;
         this.callback = callback;
         this.template = _.template($("#login-view").html());
     },
@@ -454,7 +510,8 @@ GoalView = AbstractView.extend({
         "mouseenter .member-container": "addSelected",
         "mouseleave .member-container": "removeSelected"
     },
-    initialize: function(){
+    initialize: function(model){
+        this.model = model;
         this.template = _.template($("#goal-view").html());
         this.goalJSON = [];
         this.getGoalData();
@@ -596,6 +653,9 @@ User = Backbone.Model.extend({
     initialize: function(){
         this.listenTo(this, 'sync', function(){
         });
+    },
+    hasEquipmentId: function(equipmentId){
+        return _.indexOf(this.get('available_equipment'), equipmentId) > -1;
     }
 });
 
@@ -612,15 +672,15 @@ IndexRouter = Backbone.Router.extend({
         "": "defaultRoute"
     },
     initialize: function(options){
-        var user = new User();
+        this.model = new User();
         this.devMode = options.devMode;
         this.loggedIn = false;
         this.globalView = new GlobalView();
-        this.loginStateView = new LoginStateView(user);
+        this.loginStateView = new LoginStateView(this.model);
     },
     login: function(){
         var self = this;
-        this.loginView = new LoginView(function(){
+        this.loginView = new LoginView(this.model, function(){
             self.loginStateView.updateLoginState();
         });
         this.globalView.goto(this.loginView);
@@ -630,35 +690,35 @@ IndexRouter = Backbone.Router.extend({
         this.globalView.goto(this.templateView);
     },
     payment: function(){
-        this.paymentView = new PaymentView();
+        this.paymentView = new PaymentView(this.model);
         this.globalView.goto(this.paymentView);
     },
     goal: function(){
-        this.goalView = new GoalView();
+        this.goalView = new GoalView(this.model);
         this.globalView.goto(this.goalView);
     },
     equipment: function(){
-        this.equipmentView = new EquipmentView();
+        this.equipmentView = new EquipmentView(this.model);
         this.globalView.goto(this.equipmentView);
     },
     fitnessLevel: function(){
-        this.fitnessLevelView = new FitnessLevelView();
+        this.fitnessLevelView = new FitnessLevelView(this.model);
         this.globalView.goto(this.fitnessLevelView);
     },
     schedule: function(){
-        this.scheduleView = new ScheduleView();
+        this.scheduleView = new ScheduleView(this.model);
         this.globalView.goto(this.scheduleView);
     },
     signup: function(){
         var self = this;
-        this.signUpView = new SignUpView(function(){
+        this.signUpView = new SignUpView(this.model, function(){
             self.loginStateView.updateLoginState();
         });
         this.globalView.goto(this.signUpView);
     },
     defaultRoute: function(path){
         removeHash();
-        this.landingView = new LandingView();
+        this.landingView = new LandingView(this.model);
         this.globalView.goto(this.landingView);
     }
 });

@@ -246,6 +246,10 @@ class Equipment(object):
         (24, "Rings", IMG_PATH % "rings"),
     )
 
+    DEFAULT_IDS = (
+        1, 2, 5, 10, 20, 21
+    )
+
     @classmethod
     def as_json(cls):
         json_data = []
