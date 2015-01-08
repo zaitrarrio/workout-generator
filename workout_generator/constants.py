@@ -52,6 +52,10 @@ class Exercise(object):
         for phase_id in e.phase_ids:
             _exercises_by_phase[phase_id].add(e)
 
+    @classmethod
+    def get_by_id(cls, id):
+        return cls._exercises_by_id[id]
+
     def __init__(self):
         self.query = set(self._exercises)
 
@@ -188,7 +192,12 @@ class MuscleGroup(object):
 
 
 class MuscleFrequency(object):
-    ''' applies generically to all muscle group allegedly '''
+    '''
+    This is ONLY referenced by MuscleGroup object Forearms for the frequency exception stuff
+
+    Otherwise this generically applies to everything.  But holy shit, this sucks
+
+    applies generically to all muscle group allegedly '''
     # id, name, minimum, maximum, minSets, maxSets, minReps, maxReps, weekLength, exception
     VALUES = (
         (1, "Low", 2, 4, 1, 2, 15, 20, 7, 0),
@@ -213,6 +222,12 @@ class WorkoutComponent(object):
         (4, "Reactive"),
         (5, "Resistance"),
     )
+    FLEXIBILITY = 1
+    RESISTANCE = 5
+
+    @classmethod
+    def get_all_ids(cls):
+        return [t[0] for t in cls.VALUES]
 
 
 class ExerciseType(object):
@@ -262,14 +277,28 @@ class Equipment(object):
         return json_data
 
 
-class Phase(object):
-    # id, name, tempo, rest, description_id
+class Tempo(object):
     VALUES = (
-        (1, "Stabilization", "4-2-1", 30, 13),
-        (2, "Muscle Endurance", "2-2-0", 45, 13),
-        (3, "Hypertrophy", "2-2-0", 60, 14),
-        (4, "Maximal Strength", "0-0-0", 240, 15),
-        (5, "Power", "0-0-0", 120, 16),
+        (1, "4-2-1"),
+        (2, "2-2-0"),
+        (3, "0-0-0"),
+    )
+
+    MAP = {t[0]: t for t in VALUES}
+
+    @classmethod
+    def get_by_id(cls, id):
+        return cls.MAP[id][1]
+
+
+class Phase(object):
+    # id, name, tempo_id, rest, description_id
+    VALUES = (
+        (1, "Stabilization", 1, 30, 13),
+        (2, "Muscle Endurance", 2, 45, 13),
+        (3, "Hypertrophy", 2, 60, 14),
+        (4, "Maximal Strength", 3, 240, 15),
+        (5, "Power", 3, 120, 16),
     )
 
     MAP = {t[0]: t for t in VALUES}
@@ -277,7 +306,7 @@ class Phase(object):
     def __init__(self, tuple_obj):
         self.id = tuple_obj[0]
         self.title = tuple_obj[1]
-        self.tempo = tuple_obj[2]
+        self.tempo = Tempo.get_by_id(tuple_obj[2])
         self.rest = tuple_obj[3]
         self.description = tuple_obj[4]
 
@@ -1198,34 +1227,26 @@ class WorkoutComponentFrequency(object):
         (750, 4, 4, 5, 5, 5, 6),
     )
 
-    MAP = {(t[3], t[4], t[5], t[6]): (t[1], t[2]) for t in VALUES}
+    MAP = defaultdict(list)
+    for t in VALUES:
+        key = (t[3], t[4], t[6])
+        values = (t[5], t[1], t[2])
+        MAP[key].append(values)
+
+    def __init__(self, workout_component_id, minimum, maximum):
+        self.workout_component_id = workout_component_id
+        self.minimum = minimum
+        self.maximum = maximum
 
     @classmethod
-    def get_by_args(cls, phase_id, fitness_level_id, workout_component_id, week_num):
-        key = (phase_id, fitness_level_id, workout_component_id, week_num)
-        return cls.MAP[key]
-
-
-class MuscleFrequency(object):
-    '''
-    This is ONLY referenced by MuscleGroup object Forearms for the frequency exception stuff
-
-    Otherwise this generically applies to everything.  But holy shit, this sucks
-    '''
-    # id, name, minimum, maximum, minSets, maxSets, minReps, maxReps, weekLength, exception
-    VALUES = (
-        (1, "Low", 2, 4, 1, 2, 15, 20, 7, 0),
-        (2, "Low-Mid", 2, 3, 2, 3, 12, 20, 7, 0),
-        (3, "Mid", 2, 2, 3, 4, 6, 15, 7, 0),
-        (4, "Mid-High", 1, 1, 3, 5, 4, 12, 4, 0),
-        (5, "High", 1, 1, 1, 6, 1, 6, 5, 0),
-
-        (6, "Low", 1, 1, 1, 2, 15, 20, 7, 1),
-        (7, "Low-Mid", 1, 1, 2, 3, 12, 20, 7, 1),
-        (8, "Mid", 1, 1, 3, 4, 6, 15, 7, 1),
-        (9, "Mid-High", 1, 1, 3, 5, 4, 12, 7, 1),
-        (10, "High", 1, 1, 1, 6, 1, 6, 7, 1),
-    )
+    def get_by_week_phase_fitness_level(cls, week, phase_id, fitness_level_id):
+        key = (phase_id, fitness_level_id, week)
+        workout_component_frequencies = cls.MAP[key]
+        frequencies = []
+        for tuple_obj in workout_component_frequencies:
+            workout_component_id, minimum, maximum = tuple_obj
+            frequencies.append(cls(workout_component_id, minimum, maximum))
+        return frequencies
 
 
 class Exhaustion(object):
@@ -2208,6 +2229,12 @@ class CardioVolume(object):
         lifting_row = LiftingVolume.get(id, workout_component_id)
         return cls.VolumeInfo(cardio_row, lifting_row)
 
+    @classmethod
+    def get_min_max_cardio(cls, phase_id, fitness_level_id, week):
+        key = (fitness_level_id, phase_id, week)
+        cardio_row = cls.MAP[key]
+        return cardio_row[4], cardio_row[5]
+
 
 class LiftingVolume(object):
     # this is originally Volume
@@ -3015,6 +3042,22 @@ class Goal(object):
         (21, "I want to cross-train for running, cycling, and long distance sports", 1, "Facilitates efficiency over long distance by combining only specific resistance exercises with your cardio program to enhance performance.", 1, "img/goals/ofdistance.jpg"),
     )
 
+    MAP = {t[0]: t for t in VALUES}
+
+    def __init__(self, goal_tuple):
+        self.title = goal_tuple[1]
+        self.cardio_type_id = goal_tuple[2]
+        self.description = goal_tuple[3]
+        self.start_phase_id = goal_tuple[4]
+
+    @property
+    def cardio_type(self):
+        return CardioType.get_by_id(self.cardio_type_id)
+
+    @classmethod
+    def get_by_id(cls, id):
+        return Goal(cls.MAP[id])
+
     @classmethod
     def as_json(cls):
         json_data = []
@@ -3089,6 +3132,37 @@ class PhaseLengthByGoal(object):
         (81, 21, 3, 1, 2),
         (82, 21, 5, 1, 2),
     )
+
+    MAP = defaultdict(list)
+    for t in VALUES:
+        goal_id = t[1]
+        MAP[goal_id].append((t[2], t[3], t[4]))
+
+    class _PhaseInfo(object):
+        def __init__(self, phase_id, min_length, max_length):
+            self.min_length = min_length
+            self.max_length = max_length
+            self.phase = Phase.get_by_id(phase_id)
+
+    @classmethod
+    def get_phases_for_goal_id(cls, goal_id):
+        phase_infos = []
+        phase_list = cls.MAP[goal_id]
+        for tuple_obj in phase_list:
+            phase_id, min_length, max_length = tuple_obj
+            phase_infos.append(cls._PhaseInfo(phase_id, min_length, max_length))
+        return phase_infos
+
+    @classmethod
+    def get_min_max_phase_length_for_goal_phase(cls, goal_id, phase_id):
+        phase_list = cls.MAP[goal_id]
+        for tuple_obj in phase_list:
+            phase_id = tuple_obj[0]
+            if phase_id == phase_id:
+                min_length = tuple_obj[1]
+                max_length = tuple_obj[2]
+                return min_length, max_length
+        return None, None
 
 
 class CardioIntensity__FitnessLevel(object):

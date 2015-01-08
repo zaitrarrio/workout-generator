@@ -10,4 +10,5 @@ urlpatterns = patterns('',
     url(r'^api/equipment/', api.equipment, name="equipment"),
     url(r'^api/user/', api.user, name="user"),
     url(r'^api/payment/', api.payment, name="user"),
+    url(r'^api/workout/', api.workout, name="workout"),
 )

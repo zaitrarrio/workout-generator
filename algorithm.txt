@@ -13,22 +13,21 @@ query Frequency by week and fitness level.frequency_for_component = {f.workout_c
 for workout_component in workout_components:
     times_per_week = random from min and max of frequency
     randomly distribute over the course of the week
-Days that are completely empty get cardio
 Given the week # we're on in phase, get the Cardio volume by fitness level, phase, week
 Get the amount of cardio days to create between min and max volume info
 Bump up to goal.cardio_type.min_cardio_days
-
-sort the week layout by the number of workout components
-fill in cardio by lowest week number.  Account for cardio already added on empty days
 randomize cardio by alternate days...see line 4837 (1,3,2,3,1,2, etc)
 for each cardio day, the intensity's max of 3 can only be the CardioMax associated with fitness level and goal
 if the max # isn't reached, then the maxes get carried over to the medium level
 now move down all levels 2's to level 1's if there are too many of those based on the medium level
 repeat process again but now just turn cardio off on that day
-fill in any unaccounted for days in the week with an off day
-Move the off days to match the user's schedule with a series of swapping
-Apply HardCodedRules to cardio...holy fuck I don't know what's going on there, see block in line 4990
+(did not do)fill in any unaccounted for days in the week with an off day
+(did not do)Move the off days to match the user's schedule with a series of swapping
+(did not do)Apply HardCodedRules to cardio...holy fuck I don't know what's going on there, see block in line 4990
+----SBL CURRENTLY RIGHT HERE----
+
 Iterate over the week.  Every day either needs resistance component or cardio.  Swap out components as necessary
+
 -so if not cardio and not resistance_component, go through cardio days and swap out a resistance with something else it doesnt have.  If no swap exists just add the resistance component
 -If a day (ThisWeek) objects consists of nothing but flexibility, remove it
 -Spread out cardio days across the week by swapping
@@ -74,6 +73,3 @@ Generating an exercise choice:
     -after all is done, trim to time, (a whole new deal, based on algorithm see if I can avoid the clipping entirely)
     -group exercises by muscle group if they're not already
     -add flexibility component
-
-
-

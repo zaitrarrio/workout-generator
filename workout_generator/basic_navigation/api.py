@@ -8,6 +8,9 @@ from workout_generator.constants import Goal
 from workout_generator.mailgun.tasks import send_verify_email
 from workout_generator.stripe.utils import create_subscription
 from workout_generator.user.models import User
+from workout_generator.workout.exceptions import NeedsNewWorkoutsException
+from workout_generator.workout.models import WorkoutCollection
+from workout_generator.workout.generator import generate_new_workouts
 
 
 def render_to_json(response_obj, context={}, content_type="application/json", status=200):
@@ -145,3 +148,19 @@ def payment(request, user=None):
     user.update_stripe_customer_id(customer_id_or_message)
 
     return render_to_json({}, status=204)
+
+
+def workout(request):
+    '''
+    return a week's worth of data for the user
+    '''
+    username = request.GET["username"]
+    # TODO add some better authentication here
+    user = User.get_by_username(username)
+    if not user:
+        return render_to_json({}, status=400)
+    try:
+        workout_collection = WorkoutCollection.for_user(user)
+    except NeedsNewWorkoutsException:
+        workout_collection = generate_new_workouts(user)
+    return workout_collection.to_json()

@@ -1,12 +1,16 @@
 # import datetime
+import random
 import uuid
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 
+from workout_generator.constants import CardioVolume
 from workout_generator.constants import Goal
 from workout_generator.constants import Phase
+from workout_generator.constants import PhaseLengthByGoal
 from workout_generator.constants import Equipment
+from workout_generator.constants import WorkoutComponentFrequency
 from workout_generator.user.constants import StatusState
 from workout_generator.user.constants import GenderType
 
@@ -36,10 +40,25 @@ class _User(models.Model):
     age = models.IntegerField(default=30)
     gender_id = models.IntegerField(default=GenderType.MALE.index, null=False)
 
+    current_week_in_phase = models.IntegerField(default=0)
+    total_weeks_in_phase = models.IntegerField(default=0)
+
 
 class _User__Equipment(models.Model):
     user_id = models.IntegerField()
     equipment_id = models.IntegerField()
+
+
+class _User__VisitedPhase(models.Model):
+    user_id = models.IntegerField()
+    phase_id = models.IntegerField()
+
+    @classmethod
+    def get_or_create(cls, user_id, phase_id):
+        try:
+            _User__VisitedPhase.objects.get(user_id=user_id, phase_id=phase_id)
+        except ObjectDoesNotExist:
+            _User__VisitedPhase.objects.create(user_id=user_id, phase_id=phase_id)
 
 
 class User(object):
@@ -56,7 +75,75 @@ class User(object):
     def __init__(self, _user):
         self._user = _user
 
-    def _get_enabled_isoweekdays(self):
+    def _start_first_phase(self):
+        self._user.current_phase_id = Goal.get_by_id(self.goal_id).start_phase_id
+        self._user.current_week_in_phase = 1
+        min_length, max_length = PhaseLengthByGoal.get_min_max_phase_length_for_goal_phase(self.goal_id, self._user.current_phase_id)
+        self._user.total_weeks_in_phase = random.randint(min_length, max_length)
+        self._user.save()
+
+    def _start_next_phase(self):
+        _User__VisitedPhase.get_or_create(self._user.id, self._user.current_phase_id)
+
+        possible_user_phase_infos = PhaseLengthByGoal.get_phases_for_goal_id(self.goal_id)
+        possible_user_phase_infos = [phase_info for phase_info in possible_user_phase_infos if phase_info.phase.id != self._user.current_phase_id]
+
+        user_phase_infos_not_visited = [phase_info for phase_info in possible_user_phase_infos if not self.has_visited_phase(phase_info.phase.id)]
+        use_max_length = False
+        if len(user_phase_infos_not_visited) > 0:
+            use_max_length = True
+            possible_user_phase_infos = user_phase_infos_not_visited
+
+        new_phase_info = random.choice(possible_user_phase_infos)
+        self._user.current_phase_id = new_phase_info.phase.id
+        self._user.current_week_in_phase = 1
+        if use_max_length:
+            self._user.total_weeks_in_phase = new_phase_info.max_length
+        else:
+            self._user.total_weeks_in_phase = random.randint(new_phase_info.min_length, new_phase_info.max_length)
+        self._user.save()
+
+    def get_workout_component_frequencies(self):
+        args = (
+            self.current_week_in_phase,
+            self.current_phase_id,
+            self.fitness_level,
+        )
+        return WorkoutComponentFrequency.get_by_week_phase_fitness_level(*args)
+
+    def get_min_max_cardio(self):
+        args = (
+            self.current_phase_id,
+            self.fitness_level,
+            self.current_week_in_phase,
+        )
+        return CardioVolume.get_min_max_cardio(*args)
+
+    def get_volume_for_workout_component(self, workout_component_id):
+        phase_id = self.current_phase_id
+        fitness_level = self.fitness_level
+        week = self.current_week_in_phase
+        return CardioVolume.get_all_volume_info(phase_id, fitness_level, week, workout_component_id)
+
+    def has_visited_phase(self, phase_id):
+        return _User__VisitedPhase.objects.filter(user_id=self._user.id, phase_id=phase_id).exists()
+
+    def move_to_next_week(self):
+        if self._user.current_phase_id is None:
+            self._start_first_phase()
+            return
+
+        self._user.current_week_in_phase += 1
+        if self._user.current_week_in_phase <= self._user.total_weeks_in_phase:
+            self._user.save()
+            return
+        self._start_next_phase()
+
+    @property
+    def id(self):
+        return self._user.id
+
+    def get_enabled_isoweekdays(self):
         enabled_days = []
         prop_to_isoweekday = {v: k for k, v in self.isoweekday_to_prop.items()}
         for attr_name, isoweekday in prop_to_isoweekday.items():
@@ -68,7 +155,7 @@ class User(object):
         return {
             'username': self._user.username,
             'email': self._user.email,
-            'enabled_days': self._get_enabled_isoweekdays(),
+            'enabled_days': self.get_enabled_isoweekdays(),
             'minutes_per_day': self._user.minutes_per_day,
             'fitness_level': self._user.fitness_level,
             'experience': self._user.experience,
@@ -76,11 +163,33 @@ class User(object):
             'goal': Goal.get_by_id_as_json(self._user.goal_id),
             'gender': GenderType.from_index(self._user.gender_id).canonical_name,
             'age': self._user.age,
-            'equipment_ids': self.get_available_equipment(),
+            'equipment_ids': self.get_available_equipment_ids(),
+            'current_week_in_phase': self._user.current_week_in_phase,
+            'total_weeks_in_phase': self._user.total_weeks_in_phase,
             'phase': Phase.get_by_id(self._user.current_phase_id) if self._user.current_phase_id else None
         }
 
-    def get_available_equipment(self):
+    @property
+    def goal_id(self):
+        return self._user.goal_id
+
+    @property
+    def goal(self):
+        return Goal.get_by_id(self.goal_id)
+
+    @property
+    def current_phase_id(self):
+        return self._user.current_phase_id
+
+    @property
+    def fitness_level(self):
+        return self._user.fitness_level
+
+    @property
+    def current_week_in_phase(self):
+        return self._user.current_week_in_phase
+
+    def get_available_equipment_ids(self):
         existing_user_equipment = list(_User__Equipment.objects.filter(user_id=self._user.id).
                 values_list('equipment_id', flat=True))
         return existing_user_equipment
