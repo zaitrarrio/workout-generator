@@ -1,6 +1,7 @@
 import random
 
 from workout_generator.constants import CardioMax
+from workout_generator.constants import WorkoutComponent
 from workout_generator.workout.models import WorkoutCollection
 
 
@@ -14,10 +15,32 @@ def generate_new_workouts(user):
 def _generate_day_frameworks(user):
     isoweekday_to_components = _fill_isoweekdays_with_workout_components(user)
     isoweekday_to_cardio_intensity = _fill_isoweekdays_with_cardio_intensity(user, isoweekday_to_components)
-    # SBL CURRENTLY RIGHT HERE, every day either needs resistance or cardio
+    _mandate_cardio_or_resistance(isoweekday_to_components, isoweekday_to_cardio_intensity)
 
     isoweekday_to_components
     isoweekday_to_cardio_intensity
+
+
+def _mandate_cardio_or_resistance(isoweekday_to_components, isoweekday_to_cardio_intensity):
+    days_with_cardio_and_resistance = []
+    days_with_no_cardio_no_resistance = []
+    for isoweekday in (set(isoweekday_to_components.keys()) | set(isoweekday_to_cardio_intensity.keys())):
+        if (isoweekday not in isoweekday_to_cardio_intensity and
+                WorkoutComponent.RESISTANCE not in isoweekday_to_components[isoweekday]):
+            days_with_no_cardio_no_resistance.append(isoweekday)
+        elif (isoweekday in isoweekday_to_cardio_intensity and
+                WorkoutComponent.RESISTANCE in isoweekday_to_components[isoweekday]):
+            days_with_cardio_and_resistance.append(isoweekday)
+
+    random.shuffle(days_with_cardio_and_resistance)
+    for isoweekday in days_with_no_cardio_no_resistance:
+        if len(days_with_cardio_and_resistance) == 0:
+            isoweekday_to_components[isoweekday].append(WorkoutComponent.RESISTANCE)
+            continue
+        isoweekday_to_pull_from = days_with_cardio_and_resistance[0]
+        days_with_cardio_and_resistance.remove(isoweekday_to_pull_from)
+        isoweekday_to_cardio_intensity[isoweekday] = isoweekday_to_cardio_intensity[isoweekday_to_pull_from]
+        del isoweekday_to_cardio_intensity[isoweekday_to_pull_from]
 
 
 def _fill_isoweekdays_with_cardio_intensity(user, isoweekday_to_components):
