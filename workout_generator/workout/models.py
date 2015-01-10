@@ -18,11 +18,10 @@ class _Workout__Exercise(models.Model):
     sets = models.IntegerField()
     tempo_id = models.IntegerField()
     rest = models.IntegerField()
-    super_set_workout__exercise_id = models.IntegerField(null=True)
+    super_set_workout_exercise_id = models.IntegerField(null=True)
 
 
 class _Workout(models.Model):
-    user_id = models.IntegerField()
     cardio_string = models.CharField(max_length=2014, null=True)
     off_day = models.BooleanField(default=False)
     visited = models.BooleanField(default=False)
@@ -37,14 +36,66 @@ class _DayFramework__WorkoutComponent(models.Model):
 class _DayFramework(models.Model):
     js_isoweekday = models.IntegerField()
     user_id = models.IntegerField()
-    cardio = models.BooleanField()
-    timed = models.NullBooleanField(null=True)
-    level = models.IntegerField()
+    cardio = models.BooleanField(default=False)
+    level = models.IntegerField(null=True)
     date = models.DateField()
 
 
-class DayFramework(object):
-    pass
+class DayFrameworkCollection(object):
+
+    def __init__(self):
+        pass
+
+    def delete(self):
+        # delete corresponding workouts as well
+        pass
+
+    @classmethod
+    def get_for_user(cls, user):
+        return DayFrameworkCollection()
+
+    @classmethod
+    def _get_start_isoweekdays(cls):
+        # TODO add a test method for this
+        js_isoweekdays = range(7)
+        start_isoweekday = datetime.datetime.utcnow().date().isoweekday()
+        if start_isoweekday == 7:
+            start_isoweekday = 0
+        while js_isoweekdays[0] != start_isoweekday:
+            js_isoweekdays.append(js_isoweekdays.pop(0))
+        return js_isoweekdays
+
+    @classmethod
+    def _create_day_framework_rows(cls, user, isoweekday_to_cardio_intensity):
+        js_isoweekdays = cls._get_start_isoweekdays()
+        start_date = datetime.datetime.utcnow().date()
+
+        isoweekday_to_day_framework = {}
+        for offset, js_isoweekday in enumerate(js_isoweekdays):
+            kwargs = dict(
+                js_isoweekday=js_isoweekday,
+                user_id=user.id,
+                cardio=True if js_isoweekday in isoweekday_to_cardio_intensity else False,
+                level=isoweekday_to_cardio_intensity.get(js_isoweekday),
+                date=start_date + datetime.timedelta(days=offset)
+            )
+            isoweekday_to_day_framework[js_isoweekday] = _DayFramework.objects.create(**kwargs)
+        return isoweekday_to_day_framework
+
+    @classmethod
+    def _create_m2m_workout_component_ids(cls, isoweekday_to_day_framework, isoweekday_to_components):
+        for isoweekday, component_list in isoweekday_to_components.items():
+            for workout_component_id in component_list:
+                kwargs = dict(
+                    day_framework_id=isoweekday_to_day_framework[isoweekday].id,
+                    workout_component_id=workout_component_id
+                )
+                _DayFramework__WorkoutComponent.objects.create(**kwargs)
+
+    @classmethod
+    def create(cls, user, isoweekday_to_components, isoweekday_to_cardio_intensity):
+        isoweekday_to_day_framework = cls._create_day_framework_rows(user, isoweekday_to_cardio_intensity)
+        cls._create_m2m_workout_component_ids(isoweekday_to_day_framework, isoweekday_to_components)
 
 
 class WorkoutCollection(object):

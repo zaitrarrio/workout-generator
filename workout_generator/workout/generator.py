@@ -1,13 +1,20 @@
 import random
+from collections import defaultdict
 
 from workout_generator.constants import CardioMax
 from workout_generator.constants import WorkoutComponent
 from workout_generator.workout.models import WorkoutCollection
+from workout_generator.workout.models import DayFrameworkCollection
 
 
 def generate_new_workouts(user):
+    old_framework = DayFrameworkCollection.get_for_user(user)
+
     user.move_to_next_week()
     _generate_day_frameworks(user)
+    _generate_workouts(user)
+
+    old_framework.delete()
 
     return WorkoutCollection(None, None)
 
@@ -16,9 +23,7 @@ def _generate_day_frameworks(user):
     isoweekday_to_components = _fill_isoweekdays_with_workout_components(user)
     isoweekday_to_cardio_intensity = _fill_isoweekdays_with_cardio_intensity(user, isoweekday_to_components)
     _mandate_cardio_or_resistance(isoweekday_to_components, isoweekday_to_cardio_intensity)
-
-    isoweekday_to_components
-    isoweekday_to_cardio_intensity
+    DayFrameworkCollection.create(user, isoweekday_to_components, isoweekday_to_cardio_intensity)
 
 
 def _mandate_cardio_or_resistance(isoweekday_to_components, isoweekday_to_cardio_intensity):
@@ -46,6 +51,8 @@ def _mandate_cardio_or_resistance(isoweekday_to_components, isoweekday_to_cardio
 def _fill_isoweekdays_with_cardio_intensity(user, isoweekday_to_components):
     cardio_days = _get_num_cardio_days(user)
     isoweekdays_ordered_by_volume = sorted(isoweekday_to_components.keys(), key=lambda k: len(isoweekday_to_components[k]))
+    # TODO it would be good right here to now re-order the volume so that it's
+    # evenly spread using that spread out by intensity func
     isoweekdays_with_cardio = isoweekdays_ordered_by_volume[:cardio_days]
     max_lo, max_med, max_hi = CardioMax.get_values_from_fitness_level_cardio_type(user.fitness_level, user.goal.cardio_type.id)
     cardio_intensities = [random.randint(1, 3) for _ in isoweekdays_with_cardio]
@@ -119,7 +126,35 @@ def _fill_isoweekdays_with_workout_components(user):
             isoweekday = enabled_isoweekdays[index]
             if workout_component_id is not None:
                 isoweekday_to_components[isoweekday].append(workout_component_id)
+    isoweekday_to_components = _evenly_distribute_volume_across_week(isoweekday_to_components)
     return isoweekday_to_components
+
+
+def _evenly_distribute_volume_across_week(isoweekday_to_components):
+    enabled_isoweekdays = isoweekday_to_components.keys()
+    volume_list = [len(isoweekday_to_components[k]) for k in enabled_isoweekdays]
+
+    volume_list = _scramble_list_by_alternating_intensities(volume_list)
+
+    volume_to_indexes = defaultdict(list)
+    for index, volume in enumerate(volume_list):
+        volume_to_indexes[volume].append(index)
+
+    new_distributed_components = [None] * len(volume_list)
+
+    initial_component_list = [isoweekday_to_components[k] for k in enabled_isoweekdays]
+    for component_list in initial_component_list:
+        volume = len(component_list)
+        index = volume_to_indexes[volume][0]
+        volume_to_indexes[volume].remove(index)
+        new_distributed_components[index] = component_list
+
+    ordered_isoweekdays = sorted(enabled_isoweekdays)
+    distributed_isoweekday_to_components = {}
+    for index, isoweekday in enumerate(ordered_isoweekdays):
+        corresponding_components = new_distributed_components[index]
+        distributed_isoweekday_to_components[isoweekday] = corresponding_components
+    return distributed_isoweekday_to_components
 
 
 def _get_workout_component_list_for_week(workout_component_info, num_enabled_days):
@@ -138,4 +173,8 @@ def _generate_workouts(user):
     # equipment_ids = user.get_available_equipment_ids()
     workout_component_id = 1
     user.get_volume_for_workout_component(workout_component_id)
+    pass
+
+
+def _delete_old_data(user):
     pass

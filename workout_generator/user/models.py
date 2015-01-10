@@ -13,6 +13,7 @@ from workout_generator.constants import Equipment
 from workout_generator.constants import WorkoutComponentFrequency
 from workout_generator.user.constants import StatusState
 from workout_generator.user.constants import GenderType
+from workout_generator.user.exceptions import NoGoalSetException
 
 
 class _User(models.Model):
@@ -104,6 +105,8 @@ class User(object):
         self._user.save()
 
     def get_workout_component_frequencies(self):
+        if self.current_phase_id is None:
+            raise NoGoalSetException("User hasn't started a phase yet")
         args = (
             self.current_week_in_phase,
             self.current_phase_id,
@@ -112,6 +115,8 @@ class User(object):
         return WorkoutComponentFrequency.get_by_week_phase_fitness_level(*args)
 
     def get_min_max_cardio(self):
+        if self.current_phase_id is None:
+            raise NoGoalSetException("User hasn't started a phase yet")
         args = (
             self.current_phase_id,
             self.fitness_level,
@@ -120,6 +125,8 @@ class User(object):
         return CardioVolume.get_min_max_cardio(*args)
 
     def get_volume_for_workout_component(self, workout_component_id):
+        if self.current_phase_id is None:
+            raise NoGoalSetException("User hasn't started a phase yet")
         phase_id = self.current_phase_id
         fitness_level = self.fitness_level
         week = self.current_week_in_phase
@@ -129,6 +136,8 @@ class User(object):
         return _User__VisitedPhase.objects.filter(user_id=self._user.id, phase_id=phase_id).exists()
 
     def move_to_next_week(self):
+        if self.goal_id is None:
+            raise NoGoalSetException("User hasn't selected a goal")
         if self._user.current_phase_id is None:
             self._start_first_phase()
             return

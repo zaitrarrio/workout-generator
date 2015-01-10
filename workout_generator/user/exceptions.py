@@ -1,0 +1,2 @@
+class NoGoalSetException(Exception):
+    pass

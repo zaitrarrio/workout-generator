@@ -24,13 +24,12 @@ repeat process again but now just turn cardio off on that day
 (did not do)fill in any unaccounted for days in the week with an off day
 (did not do)Move the off days to match the user's schedule with a series of swapping
 (did not do)Apply HardCodedRules to cardio...holy fuck I don't know what's going on there, see block in line 4990
+Iterate over the week.  Every day either needs resistance component or cardio.  Swap out components as necessary
+-so if not cardio and not resistance_component, go through cardio days and swap out a resistance with something else it doesnt have.  If no swap exists just add the resistance component
+-Spread out cardio days across the week by swapping
 ----SBL CURRENTLY RIGHT HERE----
 
-Iterate over the week.  Every day either needs resistance component or cardio.  Swap out components as necessary
 
--so if not cardio and not resistance_component, go through cardio days and swap out a resistance with something else it doesnt have.  If no swap exists just add the resistance component
--If a day (ThisWeek) objects consists of nothing but flexibility, remove it
--Spread out cardio days across the week by swapping
 -Generate workout for each day, delete previous workouts
 
 
