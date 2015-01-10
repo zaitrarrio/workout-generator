@@ -11,8 +11,8 @@ def generate_new_workouts(user):
     old_framework = DayFrameworkCollection.get_for_user(user)
 
     user.move_to_next_week()
-    _generate_day_frameworks(user)
-    _generate_workouts(user)
+    day_framework_collection = _generate_day_frameworks(user)
+    _generate_workouts(user, day_framework_collection)
 
     old_framework.delete()
 
@@ -23,7 +23,7 @@ def _generate_day_frameworks(user):
     isoweekday_to_components = _fill_isoweekdays_with_workout_components(user)
     isoweekday_to_cardio_intensity = _fill_isoweekdays_with_cardio_intensity(user, isoweekday_to_components)
     _mandate_cardio_or_resistance(isoweekday_to_components, isoweekday_to_cardio_intensity)
-    DayFrameworkCollection.create(user, isoweekday_to_components, isoweekday_to_cardio_intensity)
+    return DayFrameworkCollection.create(user, isoweekday_to_components, isoweekday_to_cardio_intensity)
 
 
 def _mandate_cardio_or_resistance(isoweekday_to_components, isoweekday_to_cardio_intensity):
@@ -169,10 +169,11 @@ def _get_workout_component_list_for_week(workout_component_info, num_enabled_day
     return workout_components_as_list
 
 
-def _generate_workouts(user):
+def _generate_workouts(user, day_framework_collection):
     # equipment_ids = user.get_available_equipment_ids()
     workout_component_id = 1
     user.get_volume_for_workout_component(workout_component_id)
+    # SBL LEFT OFF HERE
     pass
 
 

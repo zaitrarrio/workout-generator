@@ -52,8 +52,19 @@ class WorkoutTestCase(unittest.TestCase):
         user.update_goal_id(1)
         user.move_to_next_week()
         initial_workout_component_count = _DayFramework__WorkoutComponent.objects.count()
-        _generate_day_frameworks(user)
+        day_framework_collection = _generate_day_frameworks(user)
         final_workout_component_count = _DayFramework__WorkoutComponent.objects.count()
         self.assertEqual(final_workout_component_count - initial_workout_component_count, 14)
         isoweekdays = _DayFramework.objects.filter(user_id=user.id).values_list('js_isoweekday', flat=True)
         self.assertEqual(set(isoweekdays), set(range(7)))
+
+        total_cardio = 0
+        for day in xrange(7):
+            total_cardio += day_framework_collection.get_cardio_for_day_index(day) or 0
+        self.assertGreater(total_cardio, 0)
+
+        total_components = []
+        for day in xrange(7):
+            workout_component_list = day_framework_collection.get_workout_components_for_day_index(day)
+            total_components += workout_component_list
+        self.assertEqual(len(total_components), 14)
