@@ -6,6 +6,8 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 
 from workout_generator.constants import CardioVolume
+from workout_generator.constants import ExercisesPerMuscleGroup
+from workout_generator.constants import Exhaustion
 from workout_generator.constants import Goal
 from workout_generator.constants import Phase
 from workout_generator.constants import PhaseLengthByGoal
@@ -195,6 +197,10 @@ class User(object):
         return self._user.fitness_level
 
     @property
+    def experience(self):
+        return self._user.experience
+
+    @property
     def current_week_in_phase(self):
         return self._user.current_week_in_phase
 
@@ -202,6 +208,13 @@ class User(object):
         existing_user_equipment = list(_User__Equipment.objects.filter(user_id=self._user.id).
                 values_list('equipment_id', flat=True))
         return existing_user_equipment
+
+    def get_exhaustion_percent(self):
+        days_per_week = len(self.get_enabled_isoweekdays())
+        return Exhaustion.get_percent(days_per_week, self.current_phase_id)
+
+    def get_min_max_exercises_for_muscle_group_per_day(self, muscle_group_id):
+        return ExercisesPerMuscleGroup.get_min_max(muscle_group_id, self.current_phase_id, self.fitness_level)
 
     def update_gender(self, canonical_name):
         gender_type = GenderType.from_canonical(canonical_name)

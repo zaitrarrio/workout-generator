@@ -27,48 +27,40 @@ repeat process again but now just turn cardio off on that day
 Iterate over the week.  Every day either needs resistance component or cardio.  Swap out components as necessary
 -so if not cardio and not resistance_component, go through cardio days and swap out a resistance with something else it doesnt have.  If no swap exists just add the resistance component
 -Spread out cardio days across the week by swapping
-----SBL CURRENTLY RIGHT HERE----
-
-
 -Generate workout for each day, delete previous workouts
-
-
-Individual workout creation:
 -If there's nothing in the framework it's an off day
--Special case muscle endurance
-    -mix of hypertrophy and stabilization
--specaise case for power
-    -mix of maximal strength and power
 -Get the muscle groups used yesterday.  This inscludes an exercise's muscle group and all its helpers
 -Get the base queryset of what exercises are available to the user to begin with
 -Filter out yesterday muscles
--Filter out by muscle groups in general using MuscleFrequency
 -Evenly distribute all of the potential exercises so that every muscle group is just as likely to get hit
-
-for every workout component on that day:
+-Filter out by muscle groups in general using MuscleFrequency
+    -randomly select an exercise
+        -you need at least one compound exercise per muscle group
     -Get the appropriate volume for the user, CardioVolume.get_all_volume_info()
-    -Ignore flexibility
     -Get the potential exercises for the given workout component
-    CURRENTLY ON LINE 120
-    for a random number in allowed volume range:
-        *Generate an Exercise choice
-
-Generating an exercise choice:
-    -*(Use an abstract class with subclasses per phase to account for power and all that)
     -Filter mutually exclusive exercises with currently selected exercises
     -If it's not the first exercise, you select from muscle groups that are related to previous.  Do this until you've reached exhaustion_percent (exhaustion = f(daysPerWeek, phase))
     -potential exercises get filtered by muscle group
     -Series (a group of sets).reps  and sets is randomized by volume info, so is tempo and rest
-    -this all gets you to line 187
-    -Take today's muscle groups and all of their related muscle groups
-    -randomly select an exercise
-        -you need at least one compound exercise per muscle group
         -ExercisesPerMuscleGroup table must be honored
+        -for resistance and core workout components, the following exercise shoudl be related to current exercise's muscle group if it hasn't met the minimum (ExercisesPerMuscleGroup)
+    -Ignore flexibility
+for every workout component on that day:
+    for a random number in allowed volume range:
+        *Generate an Exercise choice
+    add flexibility component
+    -group exercises by muscle group if they're not already
+----SBL CURRENTLY RIGHT HERE----
+Individual workout creation:
+-Special case muscle endurance
+    -mix of hypertrophy and stabilization
+-specaise case for power
+    -mix of maximal strength and power
+
+
+Generating an exercise choice:
         -For power and muscle endurance phase:
             -for first exercise in superset, need a strength type exercise, there's a whole func supersetPossibles to find good ones
             -if phase was muscle endurance or power and workout component was resistance (and exercise was strength_type, whatever the fuck that is), I just alternated the superset flat
-        -for resistance and core workout components, the following exercise shoudl be related to current exercise's muscle group if it hasn't met the minimum (ExercisesPerMuscleGroup)
 
     -after all is done, trim to time, (a whole new deal, based on algorithm see if I can avoid the clipping entirely)
-    -group exercises by muscle group if they're not already
-    -add flexibility component

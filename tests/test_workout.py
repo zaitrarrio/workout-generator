@@ -1,6 +1,12 @@
+from collections import defaultdict
+
 from django.utils import unittest
+
+from workout_generator.constants import Exercise
 from workout_generator.workout.generator import _mandate_cardio_or_resistance
 from workout_generator.workout.generator import _generate_day_frameworks
+from workout_generator.workout.generator import generate_new_workouts
+from workout_generator.workout.generator import _evenly_distribute_exercises_by_muscle_group
 from workout_generator.workout.models import _DayFramework__WorkoutComponent
 from workout_generator.workout.models import _DayFramework
 from workout_generator.user.models import User
@@ -68,3 +74,18 @@ class WorkoutTestCase(unittest.TestCase):
             workout_component_list = day_framework_collection.get_workout_components_for_day_index(day)
             total_components += workout_component_list
         self.assertEqual(len(total_components), 14)
+
+    def test_generate_workouts(self):
+        user = User.get_or_create_by_username("workoutdude")
+        user.update_goal_id(1)
+        user.move_to_next_week()
+        generate_new_workouts(user)
+
+    def test_evenly_distribute_exercises_by_muscle_group(self):
+        exercise_list = Exercise().query
+        distributed_exercise_list = _evenly_distribute_exercises_by_muscle_group(exercise_list)
+        muscle_group_counts = defaultdict(int)
+        for exercise in distributed_exercise_list:
+            muscle_group_counts[exercise.muscle_group_id] += 1
+        for count in muscle_group_counts.values():
+            self.assertEqual(count, 100)

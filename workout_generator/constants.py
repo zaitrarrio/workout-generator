@@ -56,8 +56,30 @@ class Exercise(object):
     def get_by_id(cls, id):
         return cls._exercises_by_id[id]
 
-    def __init__(self):
-        self.query = set(self._exercises)
+    def __init__(self, existing_query=None):
+        self.query = existing_query or set(self._exercises)
+
+    def copy(self):
+        return Exercise(existing_query=self.query.copy())
+
+    def discard_exercise_id(self, exercise_id):
+        self.query.discard(exercise_id)
+        return self
+
+    def discard_muscle_group_id(self, muscle_group_id):
+        self.query -= self._exercises_by_muscle_group[muscle_group_id]
+        return self
+
+    def restrict_to_muscle_group_ids(self, muscle_group_ids):
+        exercises_for_muscle_groups = set()
+        for muscle_group_id in muscle_group_ids:
+            exercises_for_muscle_groups |= self._exercises_by_muscle_group[muscle_group_id]
+        self.query &= exercises_for_muscle_groups
+        return self
+
+    def compound_only(self):
+        self.query = {e for e in self.query if e.compound}
+        return self
 
     def for_exercise_type(self, exercise_type_id):
         self.query = set.intersection(self.query, self._exercises_by_type[exercise_type_id])
@@ -92,9 +114,14 @@ class Exercise(object):
         self.query = set.intersection(self.query, self._exercises_by_muscle_group[muscle_group_id])
         return self
 
+    def exclude_muscle_groups(self, muscle_group_id_list):
+        for muscle_group_id in muscle_group_id_list:
+            self.query = self.query - self._exercises_by_muscle_group[muscle_group_id]
+        return self
+
     def for_fitness_level(self, fitness_level_id):
         all_fitness_levels = self._exercises_by_fitness_level.keys()
-        valid_fitness_levels = [f for f in all_fitness_levels if f >= fitness_level_id]
+        valid_fitness_levels = [f for f in all_fitness_levels if f <= fitness_level_id]
 
         possible_exercises = set()
         for fitness_level in valid_fitness_levels:
@@ -104,7 +131,7 @@ class Exercise(object):
 
     def for_experience(self, experience_id):
         all_experiences = self._exercises_by_experience.keys()
-        valid_experiences = [e for e in all_experiences if e >= experience_id]
+        valid_experiences = [e for e in all_experiences if e <= experience_id]
 
         possible_exercises = set()
         for experience_level in valid_experiences:
@@ -163,6 +190,14 @@ class MuscleGroup(object):
     )
 
     @classmethod
+    def get_related_muscle_group_ids(cls, muscle_group_id):
+        list_of_sets = cls.get_rings()
+        for muscle_group_id_set in list_of_sets:
+            if muscle_group_id in muscle_group_id_set:
+                return [id for id in muscle_group_id_set]
+        return []
+
+    @classmethod
     def get_rings(cls):
         accounted_for_muscle_tuples = set()
         id_to_muscle_tuple = {t[0]: t for t in cls.VALUES}
@@ -188,29 +223,94 @@ class MuscleGroup(object):
                 accounted_for_muscle_tuples.add(muscle_tuple)
                 related_id = muscle_tuple[-1]
                 muscle_tuple = id_to_muscle_tuple[related_id]
-        return [set(muscle_list) for muscle_list in muscle_rings]
+
+        rings = []
+        for muscle_list in muscle_rings:
+            muscle_ids = [tuple_obj[0] for tuple_obj in muscle_list]
+            rings.append(set(muscle_ids))
+        return rings
 
 
 class MuscleFrequency(object):
     '''
-    This is ONLY referenced by MuscleGroup object Forearms for the frequency exception stuff
-
     Otherwise this generically applies to everything.  But holy shit, this sucks
 
     applies generically to all muscle group allegedly '''
-    # id, name, minimum, maximum, minSets, maxSets, minReps, maxReps, weekLength, exception
+    # id, name, minimum, maximum, minSets, maxSets, minReps, maxReps, weekLength
     VALUES = (
-        (1, "Low", 2, 4, 1, 2, 15, 20, 7, 0),
-        (2, "Low-Mid", 2, 3, 2, 3, 12, 20, 7, 0),
-        (3, "Mid", 2, 2, 3, 4, 6, 15, 7, 0),
-        (4, "Mid-High", 1, 1, 3, 5, 4, 12, 4, 0),
-        (5, "High", 1, 1, 1, 6, 1, 6, 5, 0),
-        (6, "Low", 1, 1, 1, 2, 15, 20, 7, 1),
-        (7, "Low-Mid", 1, 1, 2, 3, 12, 20, 7, 1),
-        (8, "Mid", 1, 1, 3, 4, 6, 15, 7, 1),
-        (9, "Mid-High", 1, 1, 3, 5, 4, 12, 7, 1),
-        (10, "High", 1, 1, 1, 6, 1, 6, 7, 1),
+        (1, "Low", 2, 4, 1, 2, 15, 20, 7),
+        (2, "Low-Mid", 2, 3, 2, 3, 12, 20, 7),
+        (3, "Mid", 2, 2, 3, 4, 6, 15, 7),
+        (4, "Mid-High", 1, 1, 3, 5, 4, 12, 4),
+        (5, "High", 1, 1, 1, 6, 1, 6, 5),
     )
+    '''
+    FOREARMS apparently
+    (6, "Low", 1, 1, 1, 2, 15, 20, 7, 1),
+    (7, "Low-Mid", 1, 1, 2, 3, 12, 20, 7, 1),
+    (8, "Mid", 1, 1, 3, 4, 6, 15, 7, 1),
+    (9, "Mid-High", 1, 1, 3, 5, 4, 12, 7, 1),
+    (10, "High", 1, 1, 1, 6, 1, 6, 7, 1),
+    '''
+
+    @classmethod
+    def get_max_period(cls):
+        max_period = 0
+        for f_tuple in cls.VALUES:
+            period = f_tuple[8]
+            if period > max_period:
+                max_period = period
+        return max_period
+
+    @classmethod
+    def get_min_period(cls):
+        min_period = cls.get_max_period() + 1
+        for f_tuple in cls.VALUES:
+            period = f_tuple[8]
+            if period < min_period:
+                min_period = period
+        return min_period
+
+    @classmethod
+    def pass_fail(cls, rep_prescriptions, times_worked_this_period, period):
+        for f_tuple in cls.VALUES:
+            min_reps = f_tuple[6]
+            max_reps = f_tuple[7]
+            period_length = f_tuple[8]
+            if period > period_length:
+                continue
+            for reps in rep_prescriptions:
+                if min_reps <= reps <= max_reps:
+                    max_times_per_period = f_tuple[3]
+                    if times_worked_this_period >= max_times_per_period:
+                        return False
+        return True
+
+    @classmethod
+    def get_max_times_per_period(cls, average_sets, average_reps):
+        possible_times_per_period = []
+        for f_tuple in cls.VALUES:
+            # min_sets = f_tuple[4]
+            max_sets = f_tuple[5]
+
+            # min_reps = f_tuple[6]
+            max_reps = f_tuple[7]
+            if average_sets <= max_sets and average_reps <= max_reps:
+                # minimum = f_tuple[2]
+                maximum = f_tuple[3]
+                period = f_tuple[8]
+                possible_times_per_period.append((maximum, period))
+
+        if len(possible_times_per_period) == 0:
+            default = (1, 7)
+            return default
+        best_maximum = 0
+        best_index = 0
+        for index, (maximum, period) in enumerate(possible_times_per_period):
+            if maximum > best_maximum:
+                best_maximum = maximum
+                best_index = index
+        return possible_times_per_period[best_index]
 
 
 class WorkoutComponent(object):
@@ -223,7 +323,18 @@ class WorkoutComponent(object):
         (5, "Resistance"),
     )
     FLEXIBILITY = 1
+    CORE = 2
+    BALANCE = 3
+    REACTIVE = 4
     RESISTANCE = 5
+
+    WORKOUT_ORDER = (
+        CORE,
+        BALANCE,
+        REACTIVE,
+        RESISTANCE,
+        FLEXIBILITY
+    )
 
     @classmethod
     def get_all_ids(cls):
@@ -1289,6 +1400,13 @@ class Exhaustion(object):
         (35, 7, 5, 100),
     )
 
+    MAP = {(t[1], t[2]): t[3] for t in VALUES}
+
+    @classmethod
+    def get_percent(cls, days_per_week, phase_id):
+        key = (days_per_week, phase_id)
+        return float(cls.MAP[key]) / 100.0
+
 
 class ExercisesPerMuscleGroup(object):
     # id, muscleGroup_id, phase_id, minimum, maximum, fitnessLevel_id
@@ -2044,6 +2162,12 @@ class ExercisesPerMuscleGroup(object):
         (749, 30, 5, 0, 1, 4),
         (750, 30, 5, 0, 1, 5),
     )
+    MAP = {(t[1], t[2], t[5]): (t[3], t[4]) for t in VALUES}
+
+    @classmethod
+    def get_min_max(cls, muscle_group_id, phase_id, fitness_level_id):
+        key = (muscle_group_id, phase_id, fitness_level_id)
+        return cls.MAP[key]
 
 
 class CardioVolume(object):

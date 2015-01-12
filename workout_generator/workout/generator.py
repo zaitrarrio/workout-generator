@@ -1,10 +1,17 @@
 import random
+
 from collections import defaultdict
 
 from workout_generator.constants import CardioMax
+from workout_generator.constants import Exercise
+from workout_generator.constants import MuscleGroup
+from workout_generator.constants import MuscleFrequency
 from workout_generator.constants import WorkoutComponent
+from workout_generator.workout.exceptions import NoExercisesAvailableException
 from workout_generator.workout.models import WorkoutCollection
 from workout_generator.workout.models import DayFrameworkCollection
+from workout_generator.workout.models import EmptyWorkout
+from workout_generator.workout.models import Workout
 
 
 def generate_new_workouts(user):
@@ -51,8 +58,6 @@ def _mandate_cardio_or_resistance(isoweekday_to_components, isoweekday_to_cardio
 def _fill_isoweekdays_with_cardio_intensity(user, isoweekday_to_components):
     cardio_days = _get_num_cardio_days(user)
     isoweekdays_ordered_by_volume = sorted(isoweekday_to_components.keys(), key=lambda k: len(isoweekday_to_components[k]))
-    # TODO it would be good right here to now re-order the volume so that it's
-    # evenly spread using that spread out by intensity func
     isoweekdays_with_cardio = isoweekdays_ordered_by_volume[:cardio_days]
     max_lo, max_med, max_hi = CardioMax.get_values_from_fitness_level_cardio_type(user.fitness_level, user.goal.cardio_type.id)
     cardio_intensities = [random.randint(1, 3) for _ in isoweekdays_with_cardio]
@@ -170,12 +175,178 @@ def _get_workout_component_list_for_week(workout_component_info, num_enabled_day
 
 
 def _generate_workouts(user, day_framework_collection):
-    # equipment_ids = user.get_available_equipment_ids()
-    workout_component_id = 1
-    user.get_volume_for_workout_component(workout_component_id)
-    # SBL LEFT OFF HERE
+    previous_workouts = WorkoutCollection.get_existing_workouts_for_user(user)
+    for day_index in xrange(7):
+        workout_components = day_framework_collection.get_workout_components_for_day_index(day_index)
+        day_framework_id = day_framework_collection.get_id_for_day_index(day_index)
+        cardio_level = day_framework_collection.get_cardio_for_day_index(day_index)
+        workout = _generate_workout(day_framework_id, user, workout_components, cardio_level, list(reversed(previous_workouts)))
+        previous_workouts.append(workout)
+
+
+def _discard_recuperating_muscles(user_exercise_filter, previous_workouts_by_distance):
+    for period in reversed(range(MuscleFrequency.get_min_period(), MuscleFrequency.get_max_period())):
+        muscle_to_days_worked = defaultdict(int)
+        muscle_to_reps = defaultdict(list)
+        for workout in previous_workouts_by_distance:
+            for muscle_id in set(workout.get_muscle_ids_used()):
+                muscle_to_days_worked[muscle_id] += 1
+                muscle_to_reps[muscle_id].extend(workout.get_rep_prescriptions_for_muscle(muscle_id))
+        for muscle_id, times_worked_this_period in muscle_to_days_worked.items():
+            rep_prescriptions = muscle_to_reps[muscle_id]
+            if not MuscleFrequency.pass_fail(rep_prescriptions, times_worked_this_period, period):
+                user_exercise_filter.discard_muscle_group_id(muscle_id)
+
+
+def _generate_workout(day_framework_id, user, workout_component_list, cardio_level, previous_workouts_by_distance):
+    if not workout_component_list and cardio_level is None:
+        return EmptyWorkout()
+
+    user_exercise_filter = (Exercise().
+                            for_fitness_level(user.fitness_level).
+                            for_experience(user.experience).
+                            for_phase(user.current_phase_id).
+                            for_equipment_list(user.get_available_equipment_ids()))
+
+    _discard_recuperating_muscles(user_exercise_filter, previous_workouts_by_distance)
+
+    yesterday_muscle_ids = []
+    if len(previous_workouts_by_distance) > 0:
+        yesterday_muscle_ids = previous_workouts_by_distance[0].get_muscle_ids_used()
+
+    today_exercise_filter = (user_exercise_filter.
+                             copy().
+                             exclude_muscle_groups(yesterday_muscle_ids))
+
+    workout = Workout(day_framework_id=day_framework_id)
+
+    workout_component_list = [w for w in workout_component_list if w != WorkoutComponent.FLEXIBILITY]
+    for workout_component_id in workout_component_list:
+        _add_exercises_for_component(workout_component_id, today_exercise_filter, user, workout)
+    _add_flexibility_to_workout(workout, user_exercise_filter.copy())
+
+    _add_more_time(workout)
+    _trim_to_time(workout)
+
+    return workout
+
+
+def _add_more_time(workout):
     pass
 
 
-def _delete_old_data(user):
+def _trim_to_time(workout):
     pass
+
+
+def _add_flexibility_to_workout(workout, exercise_filter):
+    exercise_filter = exercise_filter.for_workout_component(WorkoutComponent.FLEXIBILITY)
+    for muscle_group_id in workout.get_muscle_ids_used():
+        possible_exercises = exercise_filter.copy().for_muscle_group(muscle_group_id).query
+        possible_exercises = [e for e in possible_exercises]
+        try:
+            flexibility_exercise = random.choice(possible_exercises)
+        except IndexError:
+            continue
+        workout.add_exercise_set_collection(flexibility_exercise, 1, 30)
+
+
+def _add_exercises_for_component(workout_component_id, exercise_filter, user, workout):
+    component_filter = exercise_filter.copy().for_workout_component(workout_component_id)
+    volume_info = user.get_volume_for_workout_component(workout_component_id)
+    num_exercises = random.randint(volume_info.min_exercises, volume_info.max_exercises)
+
+    previous_exercise = None
+    count_for_current_muscle_group = 0
+    exercises_this_component = []
+
+    for _ in xrange(num_exercises):
+        if float(count_for_current_muscle_group) / num_exercises >= user.get_exhaustion_percent():
+            # TODO there are special cases for supersets
+            previous_exercise = None
+            count_for_current_muscle_group = 0
+
+        reps = random.randint(volume_info.min_sets, volume_info.max_sets)
+        reps = _make_reps_human_acceptable(reps)
+        sets = random.randint(volume_info.min_reps, volume_info.max_reps)
+        try:
+            exercise = _select_exercise(component_filter.copy(), previous_exercise=previous_exercise)
+        except NoExercisesAvailableException:
+            previous_exercise = None
+            count_for_current_muscle_group = 0
+            try:
+                exercise = _select_exercise(component_filter.copy(), retry_mode=True)
+            except NoExercisesAvailableException:
+                continue
+
+        workout.add_exercise_set_collection(exercise, sets, reps)
+
+        component_filter.discard_exercise_id(exercise.id)
+        if exercise.mutually_exclusive:
+            component_filter.discard_exercise_id(exercise.mutually_exclusive)
+
+        if workout_component_id == WorkoutComponent.RESISTANCE:
+            previous_exercise = exercise
+            count_for_current_muscle_group += 1
+
+        exercises_this_component.append(exercise)
+        if _max_exercises_reached_for_muscle_group_id(user, exercises_this_component, exercise.muscle_group_id):
+            component_filter.discard_muscle_group_id(exercise.muscle_group_id)
+
+
+def _max_exercises_reached_for_muscle_group_id(user, exercises, muscle_group_id):
+    minimum, maximum = user.get_min_max_exercises_for_muscle_group_per_day(muscle_group_id)
+    relevant_exercises = [e for e in exercises if e.muscle_group_id == muscle_group_id]
+    if len(relevant_exercises) > maximum:
+        return True
+    return False
+
+
+def _make_reps_human_acceptable(reps):
+    if reps > 6 and reps % 2 == 1:
+        reps += 1
+    if reps == 14:
+        reps = 15
+    return reps
+
+
+def _select_exercise(exercise_filter, previous_exercise=None, retry_mode=False):
+
+    if previous_exercise is not None:
+        for related_muscle_group_set in MuscleGroup.get_rings():
+            if previous_exercise.muscle_group_id in related_muscle_group_set:
+                exercise_filter.restrict_to_muscle_group_ids(related_muscle_group_set)
+                break
+    elif not retry_mode:
+        exercise_filter = exercise_filter.compound_only()
+    else:
+        rollback_filter = exercise_filter.copy()
+        exercise_filter = exercise_filter.compound_only()
+        if exercise_filter.count() == 0:
+            exercise_filter = rollback_filter
+
+    exercise_list = [exercise for exercise in exercise_filter.query]
+    exercise_list = _evenly_distribute_exercises_by_muscle_group(exercise_list)
+    try:
+        exercise = random.choice(exercise_list)
+    except IndexError:
+        raise NoExercisesAvailableException("No exercises left")
+
+    # (exercise_filter.
+    # exercise type is only used for supersets
+    # for_exercise_type(1))
+    return exercise
+
+
+def _evenly_distribute_exercises_by_muscle_group(exercise_list):
+    times_to_represent_muscle = 100
+    exercise_list_with_duplicates = []
+    exercises_by_muscle_group_id = defaultdict(list)
+    for exercise in exercise_list:
+        exercises_by_muscle_group_id[exercise.muscle_group_id].append(exercise)
+
+    for muscle_group_id, exercise_list in exercises_by_muscle_group_id.items():
+        random.shuffle(exercise_list)
+        repeated_list = [exercise_list[i % len(exercise_list)] for i in xrange(times_to_represent_muscle)]
+        exercise_list_with_duplicates.extend(repeated_list)
+    return exercise_list_with_duplicates

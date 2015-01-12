@@ -4,6 +4,7 @@ from collections import defaultdict
 # from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 
+from workout_generator.constants import Exercise
 from workout_generator.workout.exceptions import NeedsNewWorkoutsException
 # from workout_generator.constants import Exercise
 # from workout_generator.constants import Phase
@@ -59,6 +60,12 @@ class DayFrameworkCollection(object):
             workout_component_id = m2m_row.workout_component_id
             day_framework_id_to_workout_component_list[day_framework_id].append(workout_component_id)
         return dict(day_framework_id_to_workout_component_list)
+
+    def get_id_for_day_index(self, day_index):
+        if day_index >= 7:
+            raise Exception("day index must be in 0..6")
+        day_framework = self._sorted_day_frameworks[day_index]
+        return day_framework.id
 
     def get_cardio_for_day_index(self, day_index):
         if day_index >= 7:
@@ -167,3 +174,102 @@ class WorkoutCollection(object):
         if max(workout_dates) > datetime.datetime.utcnow().date():
             raise NeedsNewWorkoutsException("Workouts are outdated")
         return WorkoutCollection(existing_workouts, existing_day_frameworks)
+
+    @classmethod
+    def get_existing_workouts_for_user(cls, user):
+        day_framework_ids = list(_DayFramework.
+                                objects.
+                                filter(user_id=user.id).
+                                order_by("date").
+                                values_list("id", flat=True))
+
+        corresponding_workouts = list(_Workout.objects.filter(day_framework_id__in=day_framework_ids))
+        workout_ids = [w.id for w in corresponding_workouts]
+
+        corresponding_exercises = _Workout__Exercise.objects.filter(workout_id__in=workout_ids)
+        workout_id_to_exercises = defaultdict(list)
+        for exercise in corresponding_exercises:
+            workout_id_to_exercises[exercise.workout_id].append(exercise)
+
+        workout_objects = []
+        for workout in corresponding_workouts:
+            workout_objects.append(Workout(_workout=workout, _workout__exercise_list=workout_id_to_exercises.get(workout.id, [])))
+        workout_objects = cls._sort_workout_objects_by_day_framework(workout_objects, day_framework_ids)
+        return workout_objects
+
+    @classmethod
+    def _sort_workout_objects_by_day_framework(cls, workout_list, day_framework_id_list):
+        id_to_obj_dict = {w.day_framework_id: w for w in workout_list}
+        sorted_objs = []
+        for id in day_framework_id_list:
+            obj = id_to_obj_dict.get(id)
+            if obj:
+                sorted_objs.append(obj)
+        return sorted_objs
+
+
+class Workout(object):
+
+    def __init__(self, _workout=None, _workout__exercise_list=None, day_framework_id=None):
+        self._workout = _workout or self._create_new(day_framework_id)
+        self._workout__exercise_list = _workout__exercise_list or []
+
+    def _create_new(self, day_framework_id):
+        return _Workout.objects.create(
+            cardio_string="",
+            off_day=False,
+            visited=False,
+            day_framework_id=day_framework_id
+        )
+
+    @property
+    def day_framework_id(self):
+        return self._workout.day_framework_id
+
+    def get_muscle_ids_used(self):
+        muscle_ids = []
+        for _workout__exercise in self._workout__exercise_list:
+            exercise = Exercise.get_by_id(_workout__exercise.exercise_id)
+            muscle_ids.append(exercise.muscle_group_id)
+        return muscle_ids
+
+    def add_exercise_set_collection(self, exercise, sets, reps):
+        kwargs = dict(
+            workout_id=self._workout.id,
+            exercise_id=exercise.id,
+            reps=reps,
+            sets=sets,
+            tempo_id=0,
+            rest=0,
+            super_set_workout_exercise_id=None
+        )
+        workout_exercise = _Workout__Exercise.objects.create(**kwargs)
+        self._workout__exercise_list.append(workout_exercise)
+
+    def get_rep_prescriptions_for_muscle(self, muscle_id):
+        rep_list = []
+        for _workout__exercise in self._workout__exercise_list:
+            exercise = Exercise.get_by_id(_workout__exercise.exercise_id)
+            if exercise.muscle_group_id == muscle_id:
+                rep_list.append(_workout__exercise.reps)
+        return rep_list
+
+    def get_ordered_exercises(self):
+        # first return everything in the proper component order
+        # then return everything grouped by muscle group
+        pass
+
+
+class EmptyWorkout(object):
+
+    def __init__(self):
+        pass
+
+    def get_muscle_ids_used(self):
+        return []
+
+    def get_rep_prescriptions_for_muscle(self, muscle_id):
+        return []
+
+    def add_exercise_set_collection(self, *args, **kwargs):
+        raise Exception("This case should not be reached")
