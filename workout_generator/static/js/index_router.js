@@ -573,6 +573,7 @@ GoalView = AbstractView.extend({
         this.$(".row").hide();
         this.$(".loading-icon").show();
         var self = this;
+        // TODO replace this with this.model.save()
         $.ajax({
             url: '/api/user/',
             data: {
@@ -692,6 +693,10 @@ User = Backbone.Model.extend({
     },
     hasDayEnabled: function(isoweekday){
         return _.indexOf(this.get('enabled_days') || [], isoweekday) > -1;
+    },
+    save: function(attrs, options) {
+        this.set("username", Parse.User.current().get("username"));
+        Backbone.Model.prototype.save.call(this, attrs, options);
     }
 });
 
@@ -712,6 +717,7 @@ IndexRouter = Backbone.Router.extend({
         this.loggedIn = false;
         this.globalView = new GlobalView();
         this.loginStateView = new LoginStateView(this.model);
+        this.loginStateView.updateLoginState();
     },
     login: function(){
         var self = this;

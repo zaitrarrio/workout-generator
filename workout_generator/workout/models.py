@@ -65,6 +65,9 @@ class DayFrameworkCollection(object):
             day_framework_id_to_workout_component_list[day_framework_id].append(workout_component_id)
         return dict(day_framework_id_to_workout_component_list)
 
+    def get_ids(self):
+        return self.day_framework_id_to_obj.keys()
+
     def get_json_for_day_framework_id(self, day_framework_id):
         if day_framework_id is None:
             return {}
@@ -186,22 +189,29 @@ class WorkoutCollection(object):
         return day_framework_id_to_json.values()
 
     @classmethod
-    def for_user(cls, user):
-        existing_workouts = list(_Workout.objects.filter(user_id=user.id))
-        if len(existing_workouts) == 0:
+    def _check_needs_new_workouts(cls, existing_day_frameworks):
+        if len(existing_day_frameworks) == 0:
             raise NeedsNewWorkoutsException("No Workouts Exist")
-        day_framework_ids = [w.day_framework_id for w in existing_workouts]
-        existing_day_frameworks = list(_DayFramework.objects.filter(id__in=day_framework_ids, user_id=user.id))
         workout_dates = [d.date for d in existing_day_frameworks]
-        if max(workout_dates) > datetime.datetime.utcnow().date():
+        if max(workout_dates) < datetime.datetime.utcnow().date():
             raise NeedsNewWorkoutsException("Workouts are outdated")
+
+    @classmethod
+    def for_user(cls, user):
+        existing_day_frameworks = list(_DayFramework.objects.filter(user_id=user.id))
+        cls._check_needs_new_workouts(existing_day_frameworks)
+        day_framework_collection = DayFrameworkCollection(user, day_frameworks=existing_day_frameworks)
+        return cls.from_day_framework_collection(day_framework_collection)
+
+    @classmethod
+    def from_day_framework_collection(cls, day_framework_collection):
+        day_framework_ids = day_framework_collection.get_ids()
+        existing_workouts = list(_Workout.objects.filter(day_framework_id__in=day_framework_ids))
         workout_id_to_exercises = cls._get_exercises_for_workout_list(existing_workouts)
 
         proxied_workout_objects = []
         for _workout in existing_workouts:
             proxied_workout_objects.append(Workout.from_query_objects(_workout, workout_id_to_exercises.get(_workout.id, [])))
-
-        day_framework_collection = DayFrameworkCollection(user, day_frameworks=existing_day_frameworks)
 
         return WorkoutCollection(proxied_workout_objects, day_framework_collection)
 

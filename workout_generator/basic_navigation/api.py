@@ -163,4 +163,4 @@ def workout(request):
         workout_collection = WorkoutCollection.for_user(user)
     except NeedsNewWorkoutsException:
         workout_collection = generate_new_workouts(user)
-    return workout_collection.to_json()
+    return render_to_json(workout_collection.to_json())
