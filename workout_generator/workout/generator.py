@@ -19,11 +19,11 @@ def generate_new_workouts(user):
 
     user.move_to_next_week()
     day_framework_collection = _generate_day_frameworks(user)
-    _generate_workouts(user, day_framework_collection)
+    new_workouts = _generate_workouts(user, day_framework_collection)
 
     old_framework.delete()
 
-    return WorkoutCollection(None, None)
+    return WorkoutCollection(new_workouts, day_framework_collection)
 
 
 def _generate_day_frameworks(user):
@@ -176,12 +176,15 @@ def _get_workout_component_list_for_week(workout_component_info, num_enabled_day
 
 def _generate_workouts(user, day_framework_collection):
     previous_workouts = WorkoutCollection.get_existing_workouts_for_user(user)
+    new_workouts = []
     for day_index in xrange(7):
         workout_components = day_framework_collection.get_workout_components_for_day_index(day_index)
         day_framework_id = day_framework_collection.get_id_for_day_index(day_index)
         cardio_level = day_framework_collection.get_cardio_for_day_index(day_index)
         workout = _generate_workout(day_framework_id, user, workout_components, cardio_level, list(reversed(previous_workouts)))
         previous_workouts.append(workout)
+        new_workouts.append(workout)
+    return new_workouts
 
 
 def _discard_recuperating_muscles(user_exercise_filter, previous_workouts_by_distance):
@@ -218,7 +221,7 @@ def _generate_workout(day_framework_id, user, workout_component_list, cardio_lev
                              copy().
                              exclude_muscle_groups(yesterday_muscle_ids))
 
-    workout = Workout(day_framework_id=day_framework_id)
+    workout = Workout.create_new(day_framework_id)
 
     workout_component_list = [w for w in workout_component_list if w != WorkoutComponent.FLEXIBILITY]
     for workout_component_id in workout_component_list:
@@ -266,9 +269,9 @@ def _add_exercises_for_component(workout_component_id, exercise_filter, user, wo
             previous_exercise = None
             count_for_current_muscle_group = 0
 
-        reps = random.randint(volume_info.min_sets, volume_info.max_sets)
+        reps = random.randint(volume_info.min_reps, volume_info.max_reps)
         reps = _make_reps_human_acceptable(reps)
-        sets = random.randint(volume_info.min_reps, volume_info.max_reps)
+        sets = random.randint(volume_info.min_sets, volume_info.max_sets)
         try:
             exercise = _select_exercise(component_filter.copy(), previous_exercise=previous_exercise)
         except NoExercisesAvailableException:

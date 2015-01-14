@@ -79,7 +79,9 @@ class WorkoutTestCase(unittest.TestCase):
         user = User.get_or_create_by_username("workoutdude")
         user.update_goal_id(1)
         user.move_to_next_week()
-        generate_new_workouts(user)
+        workout_collection = generate_new_workouts(user)
+        import json
+        print json.dumps(workout_collection.to_json(), indent=4)
 
     def test_evenly_distribute_exercises_by_muscle_group(self):
         exercise_list = Exercise().query

@@ -336,9 +336,25 @@ class WorkoutComponent(object):
         FLEXIBILITY
     )
 
+    def __init__(self, value_tuple):
+        self.id = value_tuple[0]
+        self.title = value_tuple[1]
+
+    def to_json(self):
+        return {
+            "id": self.id,
+            "title": self.title
+        }
+
     @classmethod
     def get_all_ids(cls):
         return [t[0] for t in cls.VALUES]
+
+    @classmethod
+    def get_by_id(cls, id):
+        for tuple_obj in cls.VALUES:
+            if tuple_obj[0] == id:
+                return WorkoutComponent(tuple_obj)
 
 
 class ExerciseType(object):
