@@ -3238,6 +3238,8 @@ class Goal(object):
         (21, "I want to cross-train for running, cycling, and long distance sports", 1, "Facilitates efficiency over long distance by combining only specific resistance exercises with your cardio program to enhance performance.", 1, "img/goals/ofdistance.jpg"),
     )
 
+    IDS = [t[0] for t in VALUES]
+
     MAP = {t[0]: t for t in VALUES}
 
     def __init__(self, goal_tuple):

@@ -3,13 +3,14 @@ from collections import defaultdict
 from django.utils import unittest
 
 from workout_generator.constants import Exercise
+from workout_generator.constants import Goal
 from workout_generator.workout.generator import _mandate_cardio_or_resistance
 from workout_generator.workout.generator import _generate_day_frameworks
 from workout_generator.workout.generator import generate_new_workouts
-from workout_generator.workout.generator import _evenly_distribute_exercises_by_muscle_group
 from workout_generator.workout.models import _DayFramework__WorkoutComponent
 from workout_generator.workout.models import _DayFramework
 from workout_generator.user.models import User
+from workout_generator.workout.utils import evenly_distribute_exercises_by_muscle_group
 
 
 class WorkoutTestCase(unittest.TestCase):
@@ -80,12 +81,19 @@ class WorkoutTestCase(unittest.TestCase):
         user.update_goal_id(1)
         user.move_to_next_week()
         workout_collection = generate_new_workouts(user)
-        import json
-        print json.dumps(workout_collection.to_json(), indent=4)
+
+    def test_all_goals_no_exceptions(self):
+        for goal_id in Goal.IDS:
+            user = User.get_or_create_by_username("workoutdude%s" % goal_id)
+            user.update_goal_id(goal_id)
+            user.move_to_next_week()
+            workout_collection = generate_new_workouts(user)
+        # import json
+        # print json.dumps(workout_collection.to_json(), indent=4)
 
     def test_evenly_distribute_exercises_by_muscle_group(self):
         exercise_list = Exercise().query
-        distributed_exercise_list = _evenly_distribute_exercises_by_muscle_group(exercise_list)
+        distributed_exercise_list = evenly_distribute_exercises_by_muscle_group(exercise_list)
         muscle_group_counts = defaultdict(int)
         for exercise in distributed_exercise_list:
             muscle_group_counts[exercise.muscle_group_id] += 1
