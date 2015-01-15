@@ -4606,7 +4606,6 @@ def getCardioZone(cardioType, phase, fitnessLevel, level):
   if existingHardCode:
     existingHardCode=existingHardCode[0]
     groupedCardioZone=existingHardCode.cardioZone
-    toMatch=-1
     if groupedCardioZone.id%12==0:
       toMatch=(groupedCardioZone.id/12)-1
     else:

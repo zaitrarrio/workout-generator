@@ -83,13 +83,14 @@ class WorkoutTestCase(unittest.TestCase):
         workout_collection = generate_new_workouts(user)
 
     def test_all_goals_no_exceptions(self):
+        # with open("output.json", "w+") as f:
         for goal_id in Goal.IDS:
             user = User.get_or_create_by_username("workoutdude%s" % goal_id)
             user.update_goal_id(goal_id)
             user.move_to_next_week()
             workout_collection = generate_new_workouts(user)
-        # import json
-        # print json.dumps(workout_collection.to_json(), indent=4)
+            # import json
+            # f.write(json.dumps(workout_collection.to_json(), indent=4))
 
     def test_evenly_distribute_exercises_by_muscle_group(self):
         exercise_list = Exercise().query

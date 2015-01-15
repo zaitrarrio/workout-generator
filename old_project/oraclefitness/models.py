@@ -74,8 +74,10 @@ class CardioZone(models.Model):
     minHeartRate=models.IntegerField(null=True)
     heartRate=models.IntegerField()
     totalTime=models.IntegerField()
+
     fitnessLevel=models.ManyToManyField(FitnessLevel)
     cardioType=models.ManyToManyField(CardioType)
+
     maxOverall=models.IntegerField(null=True)
 
 # convert to enum

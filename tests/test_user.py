@@ -81,11 +81,9 @@ class UserTestCase(unittest.TestCase):
             'max_exercises',
             'max_reps',
             'max_sets',
-            'max_timed_cardio',
             'min_exercises',
             'min_reps',
             'min_sets',
-            'min_timed_cardio'
         )
         for attr in attrs:
             self.assertTrue(hasattr(volume_info, attr))

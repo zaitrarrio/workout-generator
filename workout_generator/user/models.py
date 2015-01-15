@@ -117,6 +117,7 @@ class User(object):
         return WorkoutComponentFrequency.get_by_week_phase_fitness_level(*args)
 
     def get_min_max_cardio(self):
+        # per week
         if self.current_phase_id is None:
             raise NoGoalSetException("User hasn't started a phase yet")
         args = (
@@ -133,6 +134,9 @@ class User(object):
         fitness_level = self.fitness_level
         week = self.current_week_in_phase
         return CardioVolume.get_all_volume_info(phase_id, fitness_level, week, workout_component_id)
+
+    def get_cardio_type_id(self):
+        return Goal.get_by_id(self.goal_id).cardio_type_id
 
     def has_visited_phase(self, phase_id):
         return _User__VisitedPhase.objects.filter(user_id=self._user.id, phase_id=phase_id).exists()

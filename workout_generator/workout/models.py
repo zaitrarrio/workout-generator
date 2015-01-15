@@ -21,7 +21,11 @@ class _Workout__Exercise(models.Model):
     exercise_id = models.IntegerField()
     reps = models.IntegerField()
     sets = models.IntegerField()
-    super_set_workout_exercise_id = models.IntegerField(null=True)
+    first_super_set_workout_exercise_id = models.IntegerField(null=True)
+
+    def __init__(self, *args, **kwargs):
+        super(_Workout__Exercise, self).__init__(*args, **kwargs)
+        self.second_exercise = None
 
 
 class _Workout(models.Model):
@@ -285,9 +289,18 @@ class Workout(object):
 
     def _get_workout_component_to_exercises(self):
         workout_component_to_exercises = defaultdict(list)
-        for _workout__exercise in self._workout__exercise_list:
+        first_exercise_superset = [_we for _we in self._workout__exercise_list if _we.first_super_set_workout_exercise_id is None]
+        second_exercise_superset = [_we for _we in self._workout__exercise_list if _we.first_super_set_workout_exercise_id is not None]
+        for _workout__exercise in first_exercise_superset:
             exercise = Exercise.get_by_id(_workout__exercise.exercise_id)
             workout_component_to_exercises[exercise.workout_component_id].append(_workout__exercise)
+        for _workout__exercise in second_exercise_superset:
+            exercise = Exercise.get_by_id(_workout__exercise.exercise_id)
+            for _workout__exercise_initial in workout_component_to_exercises[exercise.workout_component_id]:
+                if _workout__exercise_initial.id == _workout__exercise.first_super_set_workout_exercise_id:
+                    _workout__exercise_initial.second_exercise = _workout__exercise
+                    break
+
         return workout_component_to_exercises
 
     def _workout__exercise_to_json(self, _workout__exercise):
@@ -297,7 +310,7 @@ class Workout(object):
             "exercise": Exercise.get_by_id(_workout__exercise.exercise_id).to_json(),
             "reps": _workout__exercise.reps,
             "sets": _workout__exercise.sets,
-            # "superset": self._workout__exercise_to_json(_workout__exercise)
+            "superset": self._workout__exercise_to_json(_workout__exercise.second_exercise)
         }
 
     @classmethod
@@ -328,13 +341,13 @@ class Workout(object):
             muscle_ids.append(exercise.muscle_group_id)
         return muscle_ids
 
-    def add_exercise_set_collection(self, exercise, sets, reps, super_set_workout_exercise_id=None):
+    def add_exercise_set_collection(self, exercise, sets, reps, first_super_set_workout_exercise_id=None):
         kwargs = dict(
             workout_id=self._workout.id,
             exercise_id=exercise.id,
             reps=reps,
             sets=sets,
-            super_set_workout_exercise_id=None
+            first_super_set_workout_exercise_id=first_super_set_workout_exercise_id
         )
         workout_exercise = _Workout__Exercise.objects.create(**kwargs)
         self._workout__exercise_list.append(workout_exercise)
@@ -344,7 +357,7 @@ class Workout(object):
         for _workout__exercise in self._workout__exercise_list:
             if _workout__exercise.exercise_id == first_exercise.id:
                 first_workout_exercise_id = _workout__exercise.id
-        self.add_exercise_set_collection(second_exercise, sets, reps, super_set_workout_exercise_id=first_workout_exercise_id)
+        self.add_exercise_set_collection(second_exercise, sets, reps, first_super_set_workout_exercise_id=first_workout_exercise_id)
 
     def get_rep_prescriptions_for_muscle(self, muscle_id):
         rep_list = []

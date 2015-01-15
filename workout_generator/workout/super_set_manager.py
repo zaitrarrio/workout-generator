@@ -42,13 +42,21 @@ class SuperSetManager(object):
     def get_volume_info_first_exercise(self):
         return self.first_volume_info
 
-    def add_superset_exercise_to_workout(self, workout, first_exercise):
+    def add_superset_exercise_to_workout(self, workout, first_exercise, first_exercise_filter):
         if not self.supersetting:
             return
-        sets, reps = get_reps_sets_from_volume_info(self.second_volume_info)
+        _, reps = get_reps_sets_from_volume_info(self.second_volume_info)
         second_exercise = self._select_superset_exercise(first_exercise)
         if second_exercise:
-            workout.add_superset_to_exercise(first_exercise, second_exercise, sets, reps)
+            workout.add_superset_to_exercise(first_exercise, second_exercise, 0, reps)
+            self._discard_exercise_from_filters(second_exercise, first_exercise_filter)
+
+    def _discard_exercise_from_filters(self, exercise, first_exercise_filter):
+        first_exercise_filter.discard_exercise_id(exercise.id)
+        self.superset_filter.discard_exercise_id(exercise.id)
+        if exercise.mutually_exclusive:
+            self.superset_filter.discard_exercise_id(exercise.mutually_exclusive)
+            first_exercise_filter.discard_exercise_id(exercise.mutually_exclusive)
 
     def _select_superset_exercise(self, first_exercise):
         self.superset_filter.discard_exercise_id(first_exercise.id)

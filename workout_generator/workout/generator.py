@@ -291,7 +291,7 @@ def _add_exercises_for_component(workout_component_id, exercise_filter, user, wo
         component_filter.discard_exercise_id(exercise.id)
         if exercise.mutually_exclusive:
             component_filter.discard_exercise_id(exercise.mutually_exclusive)
-        super_set_manager.add_superset_exercise_to_workout(workout, exercise)
+        super_set_manager.add_superset_exercise_to_workout(workout, exercise, component_filter)
 
         if workout_component_id == WorkoutComponent.RESISTANCE:
             previous_exercise = exercise

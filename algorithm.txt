@@ -50,17 +50,6 @@ for every workout component on that day:
         *Generate an Exercise choice
     add flexibility component
     -group exercises by muscle group if they're not already
-Individual workout creation:
-
----SBL EASY PARTS REMAINING
-    -after all is done, trim to time, (a whole new deal, based on algorithm see if I can avoid the clipping entirely)
-
-----SBL CURRENTLY RIGHT HERE----
--rest for 45 seconds with every single component except resistance
--Muscle endurance
-    -volume 1 is going to be from hypertrophy
-    -volume 2 is going to be from stabilization
-
 -Power
     -volume 1 is going to be from maximal strength
     -volume 2 is going to be from power
@@ -70,3 +59,36 @@ For resistance component:
     -First exercise is strength type
     -second exercise is power type (and power phase) for power phase
     -second exercise is stabailization type (and Stabilization Phase) for muscle endurance phase
+Individual workout creation:
+-rest for 45 seconds with every single component except resistance
+
+    -CardioVolume
+        -Used for dayframework generation and already done
+    -CardioType
+        -User settings for how we generate cardio
+    -CardioMax
+        -has the maximums for setting up the week, already taken care of
+    -CardioIntensity__FitnessLevel
+        -this is not even in use at all
+
+---SBL EASY PARTS REMAINING
+    -after all is done, trim to time, (a whole new deal, based on algorithm see if I can avoid the clipping entirely)
+
+----SBL CURRENTLY RIGHT HERE----
+-Muscle endurance
+    -volume 1 is going to be from hypertrophy
+    -volume 2 is going to be from stabilization
+    (need to account for special tempo)
+    ^^^^ THATS IT!!!!!
+
+-Need to add cardio
+
+FOR CARDIO
+-I have
+    -CardioZone
+        -min and max heart rates are output to user, adjusted for max heart rate
+
+When reducing cardio time, if it's less than 20 minutes, keep it at 20
+If it's greater than user's available time, trim it to time available
+
+max_heart_rate = 220 - user.age
