@@ -189,6 +189,21 @@ class MuscleGroup(object):
         (30, "Total Body", 30),
     )
 
+    ALLOWABLE_RELATED_FOR_SUPERSETS = {
+        # certain leg muscle can superset to triple extension
+        17: [27],
+        18: [27],
+        21: [27],
+
+        # chest can be upper or lower
+        25: [26],
+        26: [25],
+
+        # front and rear delts
+        11: [12],
+        12: [11],
+    }
+
     @classmethod
     def get_related_muscle_group_ids(cls, muscle_group_id):
         list_of_sets = cls.get_rings()
@@ -329,10 +344,10 @@ class WorkoutComponent(object):
     RESISTANCE = 5
 
     WORKOUT_ORDER = (
-        CORE,
         BALANCE,
         REACTIVE,
         RESISTANCE,
+        CORE,
         FLEXIBILITY
     )
 
@@ -345,6 +360,14 @@ class WorkoutComponent(object):
             "id": self.id,
             "title": self.title
         }
+
+    def get_rest(self, phase):
+        if self.id == self.FLEXIBILITY:
+            return 0
+        if self.id in (self.CORE, self.BALANCE, self.REACTIVE):
+            return 45
+        if self.id == self.RESISTANCE:
+            return phase.rest
 
     @classmethod
     def get_all_ids(cls):
@@ -365,6 +388,10 @@ class ExerciseType(object):
         (3, "Stabilization"),
         (4, "Stretch"),
     )
+    STRENGTH = 1
+    POWER = 2
+    STABILIZATION = 3
+    STRETCH = 4
 
 
 class Equipment(object):
@@ -410,6 +437,21 @@ class Tempo(object):
         (2, "2-2-0"),
         (3, "0-0-0"),
     )
+    DESCRIPTION = "This is the speed at which the exercise is performed.  There are 3 basic portions of a lift, the lowering of the weight, the lifting of the weight, and the moment in-between.  " + \
+        "You'll see a tempo displayed as 4-2-1, 2-2-0, or 0-0-0.  The first number is the lowering of the weight, the second is the lifting of the weight, and the last is that moment in-between. " + \
+        "It is very important that you do not rush your lifts and that you execute to the tempo prescribed as it aids in the adaptation we're trying to elicit from your body.  When you see a '0 in " + \
+        "the last position, that means there is no pause in the lift.  When you see 0-0-0, that means you are executing the lift as quickly as you can control the weight.  Uncontrolled speed leads to " + \
+        "injuries - so never attempt to lift at a speed faster than you can safely control the weight.\n\n\nExamples:\n\nWhen doing a bench press to a 4-2-1 tempo, that means you'll lower " + \
+        "it your chest to a full 4 seconds, pause just off your chest for a full second, and then lift the weight to a full 2 seconds.  Whereas a 2-2-0 means that you'll lower the weight to a full 2 " + \
+        "seconds and then lift the weight to a full 2 seconds with no pause in-between.  \n\n\nWhen doing a squat to a 4-2-1 tempo, you'll be lowering for a full 4 seconds, pause for a full second " + \
+        "at the bottom, and return to a stand for a full 2 seconds.  For a 2-2-0 tempo, you'll be lowering yourself for a full two seconds and then return to a stand over a full 2 seconds.\n\n\nWhen " + \
+        "doing a bicep curl to a 4-2-1 tempo, you'll start with your arms extended and lift the weight over a 2 second period, pause for a full second at the top, and then lower the weight over a " + \
+        "4 second period.  For a 2-2-0 tempo, you'll lift over a full 2 seconds and then lower over a full 2 seconds - no pause in the lift.\n\n\nNotes:\n\n\nWe keep saying a 'full' number of " + \
+        "seconds because people have a tendency to short change themselves and count quicker than they should - especially towards the end of a set and they are fatiguing.  Be sure to count in " + \
+        "a fashion that helps you keep it long such as '1 Mississippi' or '1 one thousand.' \n\n\nWhen you pause in a lift, its just that, a pause not a rest.  Don't rest the weight on your chest, " + \
+        "shoulders, rack, whatever.  You want to still be contracting your muscles to hold the weight during that portion of the lift.  To be even a little more intense, you can attempt to squeeze " + \
+        "your muscles as hard as you can for that second as you hold the weight.\n\n\nIf you want to know the technical terms for them, the three portions of the lift are the eccentric (lowering) " + \
+        ", concentric (lifting), and isometric (the pause)."
 
     MAP = {t[0]: t for t in VALUES}
 
@@ -421,12 +463,27 @@ class Tempo(object):
 class Phase(object):
     # id, name, tempo_id, rest, description_id
     VALUES = (
-        (1, "Stabilization", 1, 30, 13),
-        (2, "Muscle Endurance", 2, 45, 13),
-        (3, "Hypertrophy", 2, 60, 14),
-        (4, "Maximal Strength", 3, 240, 15),
-        (5, "Power", 3, 120, 16),
+        (1, "Stabilization", 1, 30, "Using a combination of supported and unsupported exercises this phase keeps your muscles under constant, but varied tension.  This results in the adaptation of muscle endurance and also furthers your postural stability and control."),
+        (2, "Muscle Endurance", 2, 45, "Need to write a description for muscle endurance"),
+        (3, "Hypertrophy", 2, 60, "The purpose here is to grow the size of the muscle itself, thus increasing its potential for strength gains and also increasing its caloric consumption for those keenly interested in fat loss.  This is the style of lifting most people are familiar with and associate the easiest with \"traditional\" weight lifting."),
+        (4, "Maximal Strength", 3, 240, "Through heavy loads and low reps, the body adapts to recruit more motor units and results in being able to lift more weight."),
+        (5, "Power", 3, 120, "By combining high loads and high velocity in order to increase your overall power.  Power training allows for you to get faster, stronger, and depending on your diet - either bigger or leaner.  This is due to the large amount of neural and muscle fiber recruitment needed to complete these movements in succession."),
     )
+    '''
+    There's also a first time description for each Phase
+    stab: 21
+    muscle endurance: 22
+    power: 25
+    maximal strength: 24
+    hypertrophy: 23
+    '''
+    STABILIZATION = 1
+    MUSCLE_ENDURANCE = 2
+    HYPERTROPHY = 3
+    MAXIMAL_STRENGTH = 4
+    POWER = 5
+
+    SUPERSET_PHASES = {MUSCLE_ENDURANCE, POWER}
 
     MAP = {t[0]: t for t in VALUES}
 
@@ -441,7 +498,6 @@ class Phase(object):
         return {
             "title": self.title,
             "tempo": self.tempo,
-            "rest": self.rest,
             "description": self.description
         }
 

@@ -126,10 +126,10 @@ class User(object):
         )
         return CardioVolume.get_min_max_cardio(*args)
 
-    def get_volume_for_workout_component(self, workout_component_id):
+    def get_volume_for_workout_component(self, workout_component_id, force_different_phase=None):
         if self.current_phase_id is None:
             raise NoGoalSetException("User hasn't started a phase yet")
-        phase_id = self.current_phase_id
+        phase_id = force_different_phase or self.current_phase_id
         fitness_level = self.fitness_level
         week = self.current_week_in_phase
         return CardioVolume.get_all_volume_info(phase_id, fitness_level, week, workout_component_id)

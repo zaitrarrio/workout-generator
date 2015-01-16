@@ -5,12 +5,12 @@ from collections import defaultdict
 from django.db import models
 
 from workout_generator.constants import Exercise
+from workout_generator.constants import Phase
 from workout_generator.constants import WorkoutComponent
 from workout_generator.datetime_tools import date_to_datetime
 from workout_generator.datetime_tools import datetime_to_timestamp_ms
 from workout_generator.workout.exceptions import NeedsNewWorkoutsException
 # from workout_generator.constants import Exercise
-# from workout_generator.constants import Phase
 # from workout_generator.constants import Equipment
 # from workout_generator.user.constants import StatusState
 # from workout_generator.user.constants import GenderType
@@ -21,9 +21,6 @@ class _Workout__Exercise(models.Model):
     exercise_id = models.IntegerField()
     reps = models.IntegerField()
     sets = models.IntegerField()
-    # TODO tempo_id and rest should be handled by the phase
-    tempo_id = models.IntegerField()
-    rest = models.IntegerField()
     super_set_workout_exercise_id = models.IntegerField(null=True)
 
 
@@ -32,6 +29,7 @@ class _Workout(models.Model):
     off_day = models.BooleanField(default=False)
     visited = models.BooleanField(default=False)
     day_framework_id = models.IntegerField()
+    phase_id = models.IntegerField()
 
 
 class _DayFramework__WorkoutComponent(models.Model):
@@ -116,7 +114,7 @@ class DayFrameworkCollection(object):
         workouts_qs = _Workout.objects.filter(day_framework_id__in=day_framework_ids)
         workout_ids = [w.id for w in workouts_qs]
 
-        _Workout__Exercise.objects.filter(workout_id__in=workout_ids)
+        _Workout__Exercise.objects.filter(workout_id__in=workout_ids).delete()
         workouts_qs.delete()
 
         workout_component_m2m_ids = [m2m.id for m2m in self._get_m2m_workout_components()]
@@ -255,9 +253,14 @@ class WorkoutCollection(object):
 
 class Workout(object):
 
-    def __init__(self, _workout=None, _workout__exercise_list=None, day_framework_id=None):
-        self._workout = _workout or self._create_new(day_framework_id)
+    def __init__(self, _workout=None, _workout__exercise_list=None, day_framework_id=None, phase_id=None):
+        self._workout = _workout or self._create_new(day_framework_id, phase_id)
         self._workout__exercise_list = _workout__exercise_list or []
+        self.phase_id = phase_id or _workout.phase_id
+
+    @property
+    def phase(self):
+        return Phase.get_by_id(self.phase_id)
 
     def to_json(self):
         json_dict = {
@@ -265,14 +268,17 @@ class Workout(object):
             "off_day": False,
             "visited": False,
             "workout_components": [],
+            "phase": self.phase.to_json(),
             # "day_framework_id": None,  # not in use yet
         }
         workout_component_to_exercises = self._get_workout_component_to_exercises()
         for workout_component_id in WorkoutComponent.WORKOUT_ORDER:
             exercise_list = workout_component_to_exercises.get(workout_component_id)
             if exercise_list:
+                workout_component = WorkoutComponent.get_by_id(workout_component_id)
                 json_dict["workout_components"].append({
-                    "workout_component": WorkoutComponent.get_by_id(workout_component_id).to_json(),
+                    "workout_component": workout_component.to_json(),
+                    "rest": workout_component.get_rest(self.phase),
                     "exercises": [self._workout__exercise_to_json(_w_e) for _w_e in exercise_list]
                 })
         return json_dict
@@ -291,8 +297,6 @@ class Workout(object):
             "exercise": Exercise.get_by_id(_workout__exercise.exercise_id).to_json(),
             "reps": _workout__exercise.reps,
             "sets": _workout__exercise.sets,
-            "tempo_id": _workout__exercise.tempo_id,  # TODO: make this return the tempo json blob
-            "rest": _workout__exercise.rest,
             # "superset": self._workout__exercise_to_json(_workout__exercise)
         }
 
@@ -301,15 +305,16 @@ class Workout(object):
         return Workout(_workout=_workout, _workout__exercise_list=_workout__exercise_list)
 
     @classmethod
-    def create_new(cls, day_framework_id):
-        return Workout(day_framework_id=day_framework_id)
+    def create_new(cls, day_framework_id, phase_id):
+        return Workout(day_framework_id=day_framework_id, phase_id=phase_id)
 
-    def _create_new(self, day_framework_id):
+    def _create_new(self, day_framework_id, phase_id):
         return _Workout.objects.create(
             cardio_string="",
             off_day=False,
             visited=False,
-            day_framework_id=day_framework_id
+            day_framework_id=day_framework_id,
+            phase_id=phase_id
         )
 
     @property
@@ -323,18 +328,23 @@ class Workout(object):
             muscle_ids.append(exercise.muscle_group_id)
         return muscle_ids
 
-    def add_exercise_set_collection(self, exercise, sets, reps):
+    def add_exercise_set_collection(self, exercise, sets, reps, super_set_workout_exercise_id=None):
         kwargs = dict(
             workout_id=self._workout.id,
             exercise_id=exercise.id,
             reps=reps,
             sets=sets,
-            tempo_id=0,
-            rest=0,
             super_set_workout_exercise_id=None
         )
         workout_exercise = _Workout__Exercise.objects.create(**kwargs)
         self._workout__exercise_list.append(workout_exercise)
+
+    def add_superset_to_exercise(self, first_exercise, second_exercise, sets, reps):
+        first_workout_exercise_id = None
+        for _workout__exercise in self._workout__exercise_list:
+            if _workout__exercise.exercise_id == first_exercise.id:
+                first_workout_exercise_id = _workout__exercise.id
+        self.add_exercise_set_collection(second_exercise, sets, reps, super_set_workout_exercise_id=first_workout_exercise_id)
 
     def get_rep_prescriptions_for_muscle(self, muscle_id):
         rep_list = []

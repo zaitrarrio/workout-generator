@@ -5762,7 +5762,7 @@ def generateWorkout(currentUser, currentDateTime, debug, debugMessage, dayOfWeek
 #      return render_to_response('todaysworkout.html', locals())
     time6=datetime.datetime.now()
     volume1=0
-    volume2=0
+    wlume2=0
     resistanceComponent=WorkoutComponent.objects.filter(name='Resistance')[0]
     if myPhase.name=='muscle endurance':
       #hypertrophy and stabilization
@@ -5778,8 +5778,10 @@ def generateWorkout(currentUser, currentDateTime, debug, debugMessage, dayOfWeek
       #max strength and power
       maxPhase=Phase.objects.filter(name='maximal strength')[0]
       powPhase=Phase.objects.filter(name='power')[0]
+
       volumeTable2=VolumeTable.objects.filter(fitnessLevel=myFitnessLevel, phase=maxPhase, week=currentWeekToUse)[0]
       volume1=Volume.objects.filter(workoutComponent=resistanceComponent, parentTable=volumeTable2)[0]
+
       volumeTable2=VolumeTable.objects.filter(fitnessLevel=myFitnessLevel, phase=powPhase, week=currentWeekToUse)[0]
       volume2=Volume.objects.filter(workoutComponent=resistanceComponent, parentTable=volumeTable2)[0]
     time7=datetime.datetime.now()

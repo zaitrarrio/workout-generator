@@ -4,8 +4,10 @@ from collections import defaultdict
 
 from workout_generator.constants import CardioMax
 from workout_generator.constants import Exercise
+from workout_generator.constants import ExerciseType
 from workout_generator.constants import MuscleGroup
 from workout_generator.constants import MuscleFrequency
+from workout_generator.constants import Phase
 from workout_generator.constants import WorkoutComponent
 from workout_generator.workout.exceptions import NoExercisesAvailableException
 from workout_generator.workout.models import WorkoutCollection
@@ -221,7 +223,7 @@ def _generate_workout(day_framework_id, user, workout_component_list, cardio_lev
                              copy().
                              exclude_muscle_groups(yesterday_muscle_ids))
 
-    workout = Workout.create_new(day_framework_id)
+    workout = Workout.create_new(day_framework_id, user.current_phase_id)
 
     workout_component_list = [w for w in workout_component_list if w != WorkoutComponent.FLEXIBILITY]
     for workout_component_id in workout_component_list:
@@ -254,9 +256,80 @@ def _add_flexibility_to_workout(workout, exercise_filter):
         workout.add_exercise_set_collection(flexibility_exercise, 1, 30)
 
 
+class SuperSetManager(object):
+
+    def __init__(self, workout_component_id, user, exercise_filter):
+        self.supersetting = workout_component_id == WorkoutComponent.RESISTANCE and user.current_phase_id in Phase.SUPERSET_PHASES
+        self.first_exercise_filter = exercise_filter
+        self.first_volume_info = user.get_volume_for_workout_component(workout_component_id)
+        self.workout_component_id = workout_component_id
+        if self.supersetting:
+            self._update_exercise_filters(user)
+            self._update_volumes(user)
+
+    def _update_exercise_filters(self, user):
+        self.superset_filter = self.first_exercise_filter.copy()
+        self.first_exercise_filter = self.first_exercise_filter.for_exercise_type(ExerciseType.STRENGTH)
+        if user.current_phase_id == Phase.MUSCLE_ENDURANCE:
+            self.superset_filter = self.superset_filter.for_exercise_type(ExerciseType.STABILIZATION)
+        elif user.current_phase_id == Phase.POWER:
+            self.superset_filter = self.superset_filter.for_exercise_type(ExerciseType.POWER)
+
+    def _update_volumes(self, user):
+        if user.current_phase_id == Phase.MUSCLE_ENDURANCE:
+            self.first_volume_info = user.get_volume_for_workout_component(self.workout_component_id, force_different_phase=Phase.HYPERTROPHY)
+            self.second_volume_info = user.get_volume_for_workout_component(self.workout_component_id, force_different_phase=Phase.STABILIZATION)
+
+        elif user.current_phase_id == Phase.POWER:
+            self.first_volume_info = user.get_volume_for_workout_component(self.workout_component_id, force_different_phase=Phase.MAXIMAL_STRENGTH)
+            self.second_volume_info = user.get_volume_for_workout_component(self.workout_component_id, force_different_phase=Phase.POWER)
+
+    def get_updated_exercise_filter(self):
+        return self.first_exercise_filter
+
+    def get_volume_info_first_exercise(self):
+        return self.first_volume_info
+
+    def add_superset_exercise_to_workout(self, workout, first_exercise):
+        if not self.supersetting:
+            return
+        sets, reps = get_reps_sets_from_volume_info(self.second_volume_info)
+        second_exercise = self._select_superset_exercise(first_exercise)
+        if second_exercise:
+            workout.add_superset_to_exercise(first_exercise, second_exercise, sets, reps)
+
+    def _select_superset_exercise(self, first_exercise):
+        self.superset_filter.discard_exercise_id(first_exercise.id)
+        if first_exercise.mutually_exclusive:
+            self.superset_filter.discard_exercise_id(first_exercise.mutually_exclusive)
+
+        possible_muscle_ids = [first_exercise.muscle_group_id]
+        possible_muscle_ids += MuscleGroup.ALLOWABLE_RELATED_FOR_SUPERSETS.get(first_exercise.muscle_group_id, [])
+
+        exercise_filter = self.superset_filter.copy().restrict_to_muscle_group_ids(possible_muscle_ids)
+        exercise_list = [exercise for exercise in exercise_filter.query]
+        exercise_list = _evenly_distribute_exercises_by_muscle_group(exercise_list)
+        try:
+            exercise = random.choice(exercise_list)
+        except IndexError:
+            exercise = None
+        return exercise
+
+
+def get_reps_sets_from_volume_info(volume_info):
+    reps = random.randint(volume_info.min_reps, volume_info.max_reps)
+    reps = _make_reps_human_acceptable(reps)
+    sets = random.randint(volume_info.min_sets, volume_info.max_sets)
+    return sets, reps
+
+
 def _add_exercises_for_component(workout_component_id, exercise_filter, user, workout):
     component_filter = exercise_filter.copy().for_workout_component(workout_component_id)
-    volume_info = user.get_volume_for_workout_component(workout_component_id)
+
+    super_set_manager = SuperSetManager(workout_component_id, user.current_phase_id, component_filter)
+    component_filter = super_set_manager.get_updated_exercise_filter()
+    volume_info = super_set_manager.get_volume_info_first_exercise()
+
     num_exercises = random.randint(volume_info.min_exercises, volume_info.max_exercises)
 
     previous_exercise = None
@@ -265,13 +338,10 @@ def _add_exercises_for_component(workout_component_id, exercise_filter, user, wo
 
     for _ in xrange(num_exercises):
         if float(count_for_current_muscle_group) / num_exercises >= user.get_exhaustion_percent():
-            # TODO there are special cases for supersets
             previous_exercise = None
             count_for_current_muscle_group = 0
 
-        reps = random.randint(volume_info.min_reps, volume_info.max_reps)
-        reps = _make_reps_human_acceptable(reps)
-        sets = random.randint(volume_info.min_sets, volume_info.max_sets)
+        sets, reps = get_reps_sets_from_volume_info(volume_info)
         try:
             exercise = _select_exercise(component_filter.copy(), previous_exercise=previous_exercise)
         except NoExercisesAvailableException:
@@ -287,6 +357,7 @@ def _add_exercises_for_component(workout_component_id, exercise_filter, user, wo
         component_filter.discard_exercise_id(exercise.id)
         if exercise.mutually_exclusive:
             component_filter.discard_exercise_id(exercise.mutually_exclusive)
+        super_set_manager.add_superset_exercise_to_workout(workout, exercise)
 
         if workout_component_id == WorkoutComponent.RESISTANCE:
             previous_exercise = exercise
@@ -295,6 +366,12 @@ def _add_exercises_for_component(workout_component_id, exercise_filter, user, wo
         exercises_this_component.append(exercise)
         if _max_exercises_reached_for_muscle_group_id(user, exercises_this_component, exercise.muscle_group_id):
             component_filter.discard_muscle_group_id(exercise.muscle_group_id)
+
+
+def _add_superset_if_necessary(workout, exercise, exercise_filter, user, workout_component_id):
+    if workout_component_id != WorkoutComponent.RESISTANCE:
+        return
+    exercise_filter = exercise_filter.copy()
 
 
 def _max_exercises_reached_for_muscle_group_id(user, exercises, muscle_group_id):
@@ -334,10 +411,6 @@ def _select_exercise(exercise_filter, previous_exercise=None, retry_mode=False):
         exercise = random.choice(exercise_list)
     except IndexError:
         raise NoExercisesAvailableException("No exercises left")
-
-    # (exercise_filter.
-    # exercise type is only used for supersets
-    # for_exercise_type(1))
     return exercise
 
 
