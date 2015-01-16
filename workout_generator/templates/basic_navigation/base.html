@@ -54,6 +54,7 @@
 
 </head>
 <body>
+
     {% include "underscore_templates/main_page.html" %}
     <input type="hidden" id="stripe-publish-key" value="{{ publishable_key }}" />
     <input type="hidden" id="square-icon" value="{% static 'img/weight_equipment/barbell.jpg' %}"/>
@@ -220,6 +221,16 @@
         }(document, 'script', 'facebook-jssdk'));
     });
     </script>
+
+    <script>
+    (function(d, t) {
+        var g = d.createElement(t),
+            s = d.getElementsByTagName(t)[0];
+        g.src = 'http://assets.gfycat.com/js/gfyajax-0.517d.js';
+        s.parentNode.insertBefore(g, s);
+    }(document, 'script'));
+    </script>
+
     <script type="text/javascript" src="{% static 'js/index_router.js' %}"></script>
     {% include "google_analytics.html" %}
 <!-- End Document
