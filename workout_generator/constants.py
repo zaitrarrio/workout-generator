@@ -610,8 +610,8 @@ class CardioZone(object):
     MEDIUM_FITNESS_LEVELS = (3, 4)
     HIGH_FITNESS_LEVELS = (5, )
 
-    # id, level, zone, minInterval, maxInterval, minPrevious, maxPrevious, minHeartRate,
-    #   heartRate, totalTime, maxOverall
+    # id, level, zone, minInterval, maxInterval, minPrevious, maxPrevious,
+    # minHeartRate (percent), maxHeartRate (percent), totalTime, maxOverall
     VALUES = (
         (1, 1, 1, 20, 20, 0, 0, 65, 75, 20, 20, ALL_CARDIO_TYPES, LOW_FITNESS_LEVELS),
         (2, 1, 2, 1, 2, 4, 8, 80, 85, 12, 20, ALL_CARDIO_TYPES, LOW_FITNESS_LEVELS),
