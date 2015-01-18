@@ -1,9 +1,15 @@
 import os
+import random
+
 from collections import defaultdict
 from storages.backends.s3boto import S3BotoStorage
 
 
 from workout_generator.utils import read_file_as_json
+
+
+def base_round(x, base=5):
+    return int(base * round(float(x) / base))
 
 
 class Exercise(object):
@@ -585,22 +591,42 @@ class CardioZone(object):
     '''
     Query by level and zone
     '''
+    # TODO don't truncate the tuple data, I actually need that stuff
     def __init__(self, tuple_data):
         # tuple data this point will be truncated
-        self.min_interval = tuple_data[0]
-        self.max_interval = tuple_data[1]
+        self.id = tuple_data[0]
+        self.level = tuple_data[1]
+        self.zone = tuple_data[2]
 
-        self.min_previous = tuple_data[2]
-        self.max_previous = tuple_data[3]
+        min_interval = tuple_data[3]
+        max_interval = tuple_data[4]
+        self.interval = random.random() * (max_interval - min_interval) + min_interval
+        if self.interval < 1.0:
+            # round to nearest 5 seconds
+            seconds = self.interval * 60
+            seconds = base_round(seconds, base=5)
+            self.interval = float(seconds) / 60
+        else:
+            self.interval = float(int(self.interval))
 
-        self.min_heart_rate = tuple_data[4]
-        self.max_heart_rate = tuple_data[5]
+        min_previous = tuple_data[5]
+        max_previous = tuple_data[6]
+        self.previous = random.random() * (max_previous - min_previous) + min_previous
+        if self.previous < 1.0:
+            seconds = self.previous * 60
+            seconds = base_round(seconds, base=5)
+            self.previous = float(seconds) / 60
+        else:
+            self.previous = float(int(self.previous))
 
-        self.total_time = tuple_data[6]
-        self.max_overall = tuple_data[7]
+        self.min_heart_rate = tuple_data[7]
+        self.max_heart_rate = tuple_data[8]
 
-        self.cardio_types = tuple_data[8]
-        self.fitness_levels = tuple_data[9]
+        self.total_time = tuple_data[9]
+        self.max_overall = tuple_data[10]
+
+        self.cardio_types = tuple_data[11]
+        self.fitness_levels = tuple_data[12]
 
     ALL_CARDIO_TYPES = (1, 2, 3, 4, 5)
     NOT_FOR_STRONGMAN = (1, 2, 3, 4)
@@ -611,40 +637,45 @@ class CardioZone(object):
     HIGH_FITNESS_LEVELS = (5, )
 
     # id, level, zone, minInterval, maxInterval, minPrevious, maxPrevious,
-    # minHeartRate (percent), maxHeartRate (percent), totalTime, maxOverall
+    # minHeartRate (percent), maxHeartRate (percent), totalTimeThisZone, maxOverall
     VALUES = (
         (1, 1, 1, 20, 20, 0, 0, 65, 75, 20, 20, ALL_CARDIO_TYPES, LOW_FITNESS_LEVELS),
         (2, 1, 2, 1, 2, 4, 8, 80, 85, 12, 20, ALL_CARDIO_TYPES, LOW_FITNESS_LEVELS),
-        (3, 1, 2, 0, 0, 0, 0, 80, 85, 0, 0, ALL_CARDIO_TYPES, LOW_FITNESS_LEVELS),
-        (4, 1, 3, 0, 0, 0, 0, 86, 90, 0, 0, ALL_CARDIO_TYPES, LOW_FITNESS_LEVELS),
+
         (5, 2, 1, 21, 30, 0, 0, 65, 75, 30, 30, ALL_CARDIO_TYPES, LOW_FITNESS_LEVELS),
         (6, 2, 2, 1, 4, 4, 8, 80, 85, 16, 35, ALL_CARDIO_TYPES, LOW_FITNESS_LEVELS),
         (7, 2, 2, 4, 6, 2, 4, 80, 85, 14, 30, ALL_CARDIO_TYPES, LOW_FITNESS_LEVELS),
         (8, 2, 3, 0.15, 0.25, 2, 6, 86, 90, 3, 35, ALL_CARDIO_TYPES, LOW_FITNESS_LEVELS),
+
         (9, 3, 1, 30, 45, 0, 0, 65, 75, 45, 45, ALL_CARDIO_TYPES, LOW_FITNESS_LEVELS),
         (10, 3, 2, 2, 6, 4, 8, 80, 85, 24, 40, ALL_CARDIO_TYPES, LOW_FITNESS_LEVELS),
         (11, 3, 2, 6, 8, 1, 3, 80, 85, 16, 25, ALL_CARDIO_TYPES, LOW_FITNESS_LEVELS),
         (12, 3, 3, 0.25, 0.5, 2, 6, 86, 90, 6, 35, ALL_CARDIO_TYPES, LOW_FITNESS_LEVELS),
+
         (13, 1, 1, 20, 30, 0, 0, 65, 75, 30, 30, NOT_FOR_STRONGMAN, MEDIUM_FITNESS_LEVELS),
         (14, 1, 2, 1, 3, 2, 6, 80, 85, 16, 35, NOT_FOR_STRONGMAN, MEDIUM_FITNESS_LEVELS),
         (15, 1, 2, 6, 8, 2, 3, 80, 85, 8, 13, NOT_FOR_STRONGMAN, MEDIUM_FITNESS_LEVELS),
-        (16, 1, 3, 0, 0, 0, 0, 86, 90, 0, 0, NOT_FOR_STRONGMAN, MEDIUM_FITNESS_LEVELS),
+
         (17, 2, 1, 31, 45, 0, 0, 65, 75, 45, 45, NOT_FOR_STRONGMAN, MEDIUM_FITNESS_LEVELS),
         (18, 2, 2, 1, 4, 2, 6, 80, 85, 24, 40, NOT_FOR_STRONGMAN, MEDIUM_FITNESS_LEVELS),
         (19, 2, 2, 9, 12, 2, 3, 80, 85, 12, 17, NOT_FOR_STRONGMAN, MEDIUM_FITNESS_LEVELS),
         (20, 2, 3, 0.15, 0.333, 2, 8, 86, 90, 5, 40, NOT_FOR_STRONGMAN, MEDIUM_FITNESS_LEVELS),
+
         (21, 3, 1, 45, 60, 0, 0, 65, 75, 60, 60, NOT_FOR_STRONGMAN, MEDIUM_FITNESS_LEVELS),
         (22, 3, 2, 2, 5, 2, 6, 80, 85, 32, 45, NOT_FOR_STRONGMAN, MEDIUM_FITNESS_LEVELS),
         (23, 3, 2, 12, 18, 2, 3, 80, 85, 18, 23, NOT_FOR_STRONGMAN, MEDIUM_FITNESS_LEVELS),
         (24, 3, 3, 0.33, 0.75, 2, 8, 86, 90, 10, 45, NOT_FOR_STRONGMAN, MEDIUM_FITNESS_LEVELS),
+
         (25, 1, 1, 30, 45, 0, 0, 65, 75, 45, 45, NOT_FOR_BODYBUILDER, HIGH_FITNESS_LEVELS),
         (26, 1, 2, 1, 3, 1, 4, 80, 85, 16, 30, NOT_FOR_BODYBUILDER, HIGH_FITNESS_LEVELS),
         (27, 1, 2, 8, 12, 2, 3, 80, 85, 12, 17, NOT_FOR_BODYBUILDER, HIGH_FITNESS_LEVELS),
         (28, 1, 3, 0.1, 0.25, 1, 3, 86, 90, 3, 20, NOT_FOR_BODYBUILDER, HIGH_FITNESS_LEVELS),
+
         (29, 2, 1, 45, 60, 0, 0, 65, 75, 60, 60, NOT_FOR_BODYBUILDER, HIGH_FITNESS_LEVELS),
         (30, 2, 2, 2, 6, 1, 4, 80, 85, 24, 50, NOT_FOR_BODYBUILDER, HIGH_FITNESS_LEVELS),
         (31, 2, 2, 12, 18, 2, 3, 80, 85, 18, 23, NOT_FOR_BODYBUILDER, HIGH_FITNESS_LEVELS),
         (32, 2, 3, 0.25, 0.5, 1, 4, 86, 90, 7, 40, NOT_FOR_BODYBUILDER, HIGH_FITNESS_LEVELS),
+
         (33, 3, 1, 60, 90, 0, 0, 65, 75, 90, 90, NOT_FOR_BODYBUILDER, HIGH_FITNESS_LEVELS),
         (34, 3, 2, 3, 7, 1, 4, 80, 85, 35, 60, NOT_FOR_BODYBUILDER, HIGH_FITNESS_LEVELS),
         (35, 3, 2, 18, 25, 2, 3, 80, 85, 25, 30, NOT_FOR_BODYBUILDER, HIGH_FITNESS_LEVELS),
@@ -654,10 +685,10 @@ class CardioZone(object):
     MAP = defaultdict(list)
     for t in VALUES:
         key = (t[1], t[2])
-        data = t[3:]
+        data = t
         MAP[key].append(data)
 
-    ID_MAP = {t[0]: t[3:] for t in VALUES}
+    ID_MAP = {t[0]: t for t in VALUES}
 
     @classmethod
     def get_by_id(cls, id):

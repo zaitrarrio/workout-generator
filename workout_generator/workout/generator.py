@@ -7,6 +7,7 @@ from workout_generator.constants import Exercise
 from workout_generator.constants import MuscleGroup
 from workout_generator.constants import MuscleFrequency
 from workout_generator.constants import WorkoutComponent
+from workout_generator.workout.cardio_creator import CardioCreator
 from workout_generator.workout.exceptions import NoExercisesAvailableException
 from workout_generator.workout.models import WorkoutCollection
 from workout_generator.workout.models import DayFrameworkCollection
@@ -204,9 +205,17 @@ def _discard_recuperating_muscles(user_exercise_filter, previous_workouts_by_dis
                 user_exercise_filter.discard_muscle_group_id(muscle_id)
 
 
+def _generate_cardio(user, cardio_level):
+    cardio_creator = CardioCreator(user, cardio_level)
+    cardio_creator.create()
+
+
 def _generate_workout(day_framework_id, user, workout_component_list, cardio_level, previous_workouts_by_distance):
     if not workout_component_list and cardio_level is None:
         return EmptyWorkout()
+
+    if cardio_level:
+        _generate_cardio(user, cardio_level)
 
     user_exercise_filter = (Exercise().
                             for_fitness_level(user.fitness_level).
