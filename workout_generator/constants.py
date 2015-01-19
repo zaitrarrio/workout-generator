@@ -591,9 +591,7 @@ class CardioZone(object):
     '''
     Query by level and zone
     '''
-    # TODO don't truncate the tuple data, I actually need that stuff
     def __init__(self, tuple_data):
-        # tuple data this point will be truncated
         self.id = tuple_data[0]
         self.level = tuple_data[1]
         self.zone = tuple_data[2]
@@ -696,6 +694,17 @@ class CardioZone(object):
         return CardioZone(data)
 
     @classmethod
+    def query_by_restricted_ids(cls, level, zone, possible_cardio_zone_ids):
+        '''
+        Ignores CardioType and FitnessLevel
+        '''
+        if not possible_cardio_zone_ids:
+            return None
+        possible_tuples = cls.MAP[(level, zone)]
+        possible_tuples = [t for t in possible_tuples if t[0] in possible_cardio_zone_ids]
+        return [CardioZone(t) for t in possible_tuples]
+
+    @classmethod
     def query(cls, level, zone, cardio_type_id, fitness_level):
         possible_tuples = cls.MAP[(level, zone)]
         possible_zones = [CardioZone(t) for t in possible_tuples]
@@ -706,20 +715,22 @@ class CardioZone(object):
 
 class HardcodedRule(object):
     # id, cardioType_id, phase_id, cardioZone_id
+    LOW_FITNESS_CARDIO_ZONES = tuple(range(1, 12 + 1))
+    MEDIUM_FITNESS_CARDIO_ZONES = tuple(range(12, 24 + 1))
     VALUES = (
-        (1, 4, 3, 12),
-        (2, 2, 4, 12),
-        (3, 2, 5, 12),
-        (4, 4, 4, 12),
-        (5, 4, 5, 12),
-        (6, 4, 1, 24),
-        (7, 4, 2, 24),
-        (8, 2, 3, 24),
-        (9, 5, 1, 12),
-        (10, 5, 2, 12),
-        (11, 5, 3, 12),
-        (12, 5, 4, 12),
-        (13, 5, 5, 12),
+        (1, 4, 3, LOW_FITNESS_CARDIO_ZONES),
+        (2, 2, 4, LOW_FITNESS_CARDIO_ZONES),
+        (3, 2, 5, LOW_FITNESS_CARDIO_ZONES),
+        (4, 4, 4, LOW_FITNESS_CARDIO_ZONES),
+        (5, 4, 5, LOW_FITNESS_CARDIO_ZONES),
+        (6, 4, 1, MEDIUM_FITNESS_CARDIO_ZONES),
+        (7, 4, 2, MEDIUM_FITNESS_CARDIO_ZONES),
+        (8, 2, 3, MEDIUM_FITNESS_CARDIO_ZONES),
+        (9, 5, 1, LOW_FITNESS_CARDIO_ZONES),
+        (10, 5, 2, LOW_FITNESS_CARDIO_ZONES),
+        (11, 5, 3, LOW_FITNESS_CARDIO_ZONES),
+        (12, 5, 4, LOW_FITNESS_CARDIO_ZONES),
+        (13, 5, 5, LOW_FITNESS_CARDIO_ZONES),
     )
 
     MAP = {(t[1], t[2]): t[3] for t in VALUES}

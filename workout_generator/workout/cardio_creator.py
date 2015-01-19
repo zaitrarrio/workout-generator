@@ -17,13 +17,22 @@ class CardioCreator(object):
         self.user = user
         self.level = level
 
-    def _get_cardio_zones(self):
+    def _get_zones(self, zone):
         cardio_type = self.user.get_cardio_type_id()
-        force_cardio_zone_id = HardcodedRule.get_by_cardio_type_phase(cardio_type, self.user.current_phase_id)
-        if force_cardio_zone_id:
-            cardio_zone = CardioZone.get_by_id(force_cardio_zone_id)
-            return [cardio_zone]
-        return self._get_zones_by_query(self)
+        force_cardio_zone_ids = HardcodedRule.get_by_cardio_type_phase(cardio_type, self.user.current_phase_id)
+        if force_cardio_zone_ids:
+            return self._get_zones_by_hard_coded_rule(zone, force_cardio_zone_ids)
+        else:
+            return self._get_zones_by_query(zone)
+
+    def _get_zones_by_hard_coded_rule(self, zone, force_cardio_zone_ids):
+        args = (
+            self.level,
+            zone,
+            force_cardio_zone_ids,
+        )
+        possible_zones = CardioZone.query_by_restricted_ids(*args)
+        return self._random_choice(possible_zones)
 
     def _get_zones_by_query(self, zone):
         cardio_type = self.user.get_cardio_type_id()
@@ -34,6 +43,9 @@ class CardioCreator(object):
             self.user.fitness_level
         )
         possible_zones = CardioZone.query(*args)
+        return self._random_choice(possible_zones)
+
+    def _random_choice(self, possible_zones):
         try:
             return random.choice(possible_zones)
         except IndexError:
@@ -62,7 +74,7 @@ class CardioCreator(object):
         return random.choice(valid_patterns)
 
     def _pick_three_cardio_zones(self):
-        cardio_zones = [self._get_zones_by_query(zone_number) for zone_number in xrange(1, 3 + 1)]
+        cardio_zones = [self._get_zones(zone_number) for zone_number in xrange(1, 3 + 1)]
         cardio_zones = [cz for cz in cardio_zones if cz is not None]
         return cardio_zones
 
@@ -115,5 +127,4 @@ class CardioCreator(object):
         cardio_zones = self._filter_out_unnecessary_cardio_zones(cardio_zones, zone_pattern)
         total_time_for_cardio = self._get_total_cardio_time(cardio_zones)
         cardio_session = self._create_cardio_from_rules(total_time_for_cardio, cardio_zones, zone_pattern)
-        # TODO then figure out the hardcoded rule nonsense
         return cardio_session
