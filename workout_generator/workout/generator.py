@@ -207,15 +207,17 @@ def _discard_recuperating_muscles(user_exercise_filter, previous_workouts_by_dis
 
 def _generate_cardio(user, cardio_level):
     cardio_creator = CardioCreator(user, cardio_level)
-    cardio_creator.create()
+    cardio_session = cardio_creator.create()
+    return cardio_session
 
 
 def _generate_workout(day_framework_id, user, workout_component_list, cardio_level, previous_workouts_by_distance):
     if not workout_component_list and cardio_level is None:
         return EmptyWorkout()
 
+    cardio_session = None
     if cardio_level:
-        _generate_cardio(user, cardio_level)
+        cardio_session = _generate_cardio(user, cardio_level)
 
     user_exercise_filter = (Exercise().
                             for_fitness_level(user.fitness_level).
@@ -233,7 +235,7 @@ def _generate_workout(day_framework_id, user, workout_component_list, cardio_lev
                              copy().
                              exclude_muscle_groups(yesterday_muscle_ids))
 
-    workout = Workout.create_new(day_framework_id, user.current_phase_id)
+    workout = Workout.create_new(day_framework_id, user.current_phase_id, cardio_session=cardio_session)
 
     workout_component_list = [w for w in workout_component_list if w != WorkoutComponent.FLEXIBILITY]
     for workout_component_id in workout_component_list:

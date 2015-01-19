@@ -1,4 +1,5 @@
 import datetime
+import json
 from collections import defaultdict
 
 # from django.core.exceptions import ObjectDoesNotExist
@@ -10,6 +11,8 @@ from workout_generator.constants import WorkoutComponent
 from workout_generator.datetime_tools import date_to_datetime
 from workout_generator.datetime_tools import datetime_to_timestamp_ms
 from workout_generator.workout.exceptions import NeedsNewWorkoutsException
+
+from .cardio_session import CardioSession
 # from workout_generator.constants import Exercise
 # from workout_generator.constants import Equipment
 # from workout_generator.user.constants import StatusState
@@ -29,11 +32,11 @@ class _Workout__Exercise(models.Model):
 
 
 class _Workout(models.Model):
-    cardio_string = models.CharField(max_length=1024, null=True)
     off_day = models.BooleanField(default=False)
     visited = models.BooleanField(default=False)
     day_framework_id = models.IntegerField()
     phase_id = models.IntegerField()
+    cardio_session_json = models.TextField()
 
 
 class _DayFramework__WorkoutComponent(models.Model):
@@ -257,7 +260,13 @@ class WorkoutCollection(object):
 
 class Workout(object):
 
-    def __init__(self, _workout=None, _workout__exercise_list=None, day_framework_id=None, phase_id=None):
+    def __init__(self,
+                 _workout=None,
+                 _workout__exercise_list=None,
+                 day_framework_id=None,
+                 phase_id=None,
+                 cardio_session=None):
+        self.cardio_session = cardio_session
         self._workout = _workout or self._create_new(day_framework_id, phase_id)
         self._workout__exercise_list = _workout__exercise_list or []
         self.phase_id = phase_id or _workout.phase_id
@@ -268,11 +277,11 @@ class Workout(object):
 
     def to_json(self):
         json_dict = {
-            "cardio_string": "",
             "off_day": False,
             "visited": False,
             "workout_components": [],
             "phase": self.phase.to_json(),
+            "cardio": "",  # TODO, needs to be cardio_session.to_json()
             # "day_framework_id": None,  # not in use yet
         }
         workout_component_to_exercises = self._get_workout_component_to_exercises()
@@ -315,19 +324,21 @@ class Workout(object):
 
     @classmethod
     def from_query_objects(cls, _workout, _workout__exercise_list):
-        return Workout(_workout=_workout, _workout__exercise_list=_workout__exercise_list)
+        cardio_session_str = _workout.cardio_session_json
+        cardio_session = CardioSession.from_json(json.loads(cardio_session_str)) if cardio_session_str else None
+        return Workout(_workout=_workout, _workout__exercise_list=_workout__exercise_list, cardio_session=cardio_session)
 
     @classmethod
-    def create_new(cls, day_framework_id, phase_id):
-        return Workout(day_framework_id=day_framework_id, phase_id=phase_id)
+    def create_new(cls, day_framework_id, phase_id, cardio_session=None):
+        return Workout(day_framework_id=day_framework_id, phase_id=phase_id, cardio_session=cardio_session)
 
     def _create_new(self, day_framework_id, phase_id):
         return _Workout.objects.create(
-            cardio_string="",
             off_day=False,
             visited=False,
             day_framework_id=day_framework_id,
-            phase_id=phase_id
+            phase_id=phase_id,
+            cardio_session_json=json.dumps(self.cardio_session.to_json()) if self.cardio_session else "",
         )
 
     @property

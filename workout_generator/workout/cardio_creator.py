@@ -3,6 +3,9 @@ import random
 from workout_generator.constants import CardioZone
 from workout_generator.constants import HardcodedRule
 
+from .cardio_session import CardioSession
+from .cardio_interval import CardioInterval
+
 
 class CardioCreator(object):
 
@@ -82,44 +85,35 @@ class CardioCreator(object):
         zone_to_cardio_zone = {cz.zone: cz for cz in cardio_zones}
         time_spent_so_far = 0.0
         zone_index_cursor = 0
-        temp_cardio_structure = []
+        cardio_session = CardioSession()
 
         self._update_cardio_rules_by_adjacent_zones(cardio_zones)
 
         if zone_pattern[0] != 1:
             cardio_zone = zone_to_cardio_zone[1]
-            self._append_cardio_structure_to_list(temp_cardio_structure, cardio_zone)
+            cardio_interval = CardioInterval.from_cardio_zone(cardio_zone)
+            cardio_session.add_interval(cardio_interval)
 
         while time_spent_so_far < total_time_for_cardio - zone_to_cardio_zone[1].interval:
             zone = zone_pattern[zone_index_cursor]
             cardio_zone = zone_to_cardio_zone[zone]
-            self._append_cardio_structure_to_list(temp_cardio_structure, cardio_zone)
+            cardio_interval = CardioInterval.from_cardio_zone(cardio_zone)
+            cardio_session.add_interval(cardio_interval)
             time_spent_so_far += cardio_zone.interval
             zone_index_cursor += 1
             zone_index_cursor = zone_index_cursor % len(zone_pattern)
 
-        if cardio_zone.zone != 1:
+        if cardio_session.is_empty() or cardio_zone.zone != 1:
             cardio_zone = zone_to_cardio_zone[1]
-            self._append_cardio_structure_to_list(temp_cardio_structure, cardio_zone)
-
-        return temp_cardio_structure
-
-    def _append_cardio_structure_to_list(self, cardio_list, cardio_zone):
-        cardio_list.append({
-            "zone": cardio_zone.zone,
-            "minutes": cardio_zone.interval,
-            "min_heart_rate": cardio_zone.min_heart_rate,
-            "max_heart_rate": cardio_zone.max_heart_rate,
-        })
+            cardio_interval = CardioInterval.from_cardio_zone(cardio_zone)
+            cardio_session.add_interval(cardio_interval)
+        return cardio_session
 
     def create(self):
         cardio_zones = self._pick_three_cardio_zones()
         zone_pattern = self._construct_zone_pattern(cardio_zones)
         cardio_zones = self._filter_out_unnecessary_cardio_zones(cardio_zones, zone_pattern)
         total_time_for_cardio = self._get_total_cardio_time(cardio_zones)
-        print self._create_cardio_from_rules(total_time_for_cardio, cardio_zones, zone_pattern)
-        # then figure out the hardcoded rule nonsense
-
-        # TODO need to actually return something, this doesn't hook up to
-        # anything right now
-        # self._get_cardio_zones()
+        cardio_session = self._create_cardio_from_rules(total_time_for_cardio, cardio_zones, zone_pattern)
+        # TODO then figure out the hardcoded rule nonsense
+        return cardio_session
