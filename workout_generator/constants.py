@@ -463,6 +463,12 @@ class Tempo(object):
         self.display_string = tuple_data[1]
         self.seconds_per_rep = tuple_data[2]
 
+    def to_json(self):
+        return {
+            "id": self.id,
+            "title": self.display_string
+        }
+
     @classmethod
     def get_by_id(cls, id):
         return cls(cls.MAP[id])
@@ -505,7 +511,7 @@ class Phase(object):
     def to_json(self):
         return {
             "title": self.title,
-            "tempo": self.tempo,
+            "tempo": self.tempo.to_json(),
             "description": self.description
         }
 

@@ -281,8 +281,7 @@ class Workout(AbstractTrimmable):
             "visited": False,
             "workout_components": [],
             "phase": self.phase.to_json(),
-            "cardio": "",  # TODO, needs to be cardio_session.to_json()
-            # "day_framework_id": None,  # not in use yet
+            "cardio": self.cardio_session.to_json() if self.cardio_session else None,
         }
         workout_component_to_exercises = self._get_workout_component_to_exercises()
         for workout_component_id in WorkoutComponent.WORKOUT_ORDER:
@@ -511,9 +510,10 @@ class Workout(AbstractTrimmable):
                     break
 
     def refresh_and_save(self):
-        # re-serialize the cardio
-        # delete or update the workout list
-        pass
+        if self.cardio_session:
+            self._workout.cardio_sesson_json = json.dumps(self.cardio_session.to_json())
+        for _we in self._workout__exercise_list:
+            _we.save()
 
 
 class EmptyWorkout(object):
