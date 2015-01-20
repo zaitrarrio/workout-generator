@@ -2595,3 +2595,8 @@ or wrap each row of columns in a <div class="row"> */
     -webkit-box-shadow: 0 0 8px rgba(0, 0, 0, .8);
     -moz-box-shadow: 0 0 8px rgba(0, 0, 0, .8);
 }
+
+.datepicker.datepicker-inline{
+    font-family: Helvetica,Arial,sans-serif;
+    border: 1px solid #ccc;
+}

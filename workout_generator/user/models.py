@@ -185,7 +185,7 @@ class User(object):
             'equipment_ids': self.get_available_equipment_ids(),
             'current_week_in_phase': self._user.current_week_in_phase,
             'total_weeks_in_phase': self._user.total_weeks_in_phase,
-            'phase': Phase.get_by_id(self._user.current_phase_id) if self._user.current_phase_id else None
+            'phase': Phase.get_by_id(self._user.current_phase_id).to_json() if self._user.current_phase_id else None
         }
 
     @property

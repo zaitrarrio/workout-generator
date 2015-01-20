@@ -538,6 +538,57 @@ LoginView = AbstractView.extend({
     }
 });
 
+WorkoutView = AbstractView.extend({
+    initialize: function(userModel){
+        this.userModel = userModel;
+        this.workoutCollection = new WorkoutCollection();
+        this.template = _.template($("#workout-view").html());
+        var self = this;
+        this.listenTo(this.workoutCollection, 'sync', function(){
+            self.render();
+        });
+        this.workoutCollection.fetch();
+    },
+    render: function(options){
+        this.datePickerView = new DatePickerView(this.workoutCollection);
+        this.$el.html(this.template());
+        this.$el.append(this.datePickerView.render().el);
+        this.postRender(options);
+        return this.$el;
+    }
+});
+
+
+DatePickerView = Backbone.View.extend({
+    initialize: function(workoutCollection){
+        this.template = _.template($("#datepicker-view").html());
+        this.workoutCollection = workoutCollection;
+        this.startDateTime = new Date(this.workoutCollection.getEarliestUTCTimestamp());
+        this.endDateTime = new Date(this.workoutCollection.getLatestUTCTimestamp());
+    },
+    initDatepicker: function(startDate, endDate){
+        this.$(".datepicker-input").datepicker({
+            format: 'DD, M d',
+            startDate: startDate,
+            endDate: endDate
+        });
+    },
+    render: function(){
+        this.$el.html(this.template());
+        this.initDatepicker(this.startDateTime, this.endDateTime);
+        return this;
+    }
+});
+
+
+IndividualWorkoutView = Backbone.View.extend({
+});
+
+
+CardioView = Backbone.View.extend({
+});
+
+
 GoalView = AbstractView.extend({
     events: {
         "click .member-container": "selectGoal",
@@ -700,6 +751,39 @@ User = Backbone.Model.extend({
     }
 });
 
+
+Workout = Backbone.Model.extend({
+});
+
+
+WorkoutCollection = Backbone.Collection.extend({
+    url: function(){
+         return '/api/workout/?username=' + Parse.User.current().get('username');
+    },
+    model: Workout,
+    getEarliestUTCTimestamp: function(){
+        // FIXME this can be done better with underscore
+        var minTimestamp = null;
+        this.each(function(model){
+            var timestamp = model.get("utc_date_timestamp");
+            if (!minTimestamp || timestamp < minTimestamp){
+                minTimestamp = timestamp;
+            }
+        });
+        return minTimestamp;
+    },
+    getLatestUTCTimestamp: function(){
+        var maxTimestamp = null;
+        this.each(function(model){
+            var timestamp = model.get("utc_date_timestamp");
+            if (!maxTimestamp || timestamp > maxTimestamp){
+                maxTimestamp = timestamp;
+            }
+        });
+        return maxTimestamp;
+    }
+});
+
 IndexRouter = Backbone.Router.extend({
     routes: {
         "!confirmation/:email": "confirmEmail",
@@ -710,6 +794,7 @@ IndexRouter = Backbone.Router.extend({
         "!schedule": "schedule",
         "!login": "login",
         "!payment": "payment",
+        "!workout": "workout",
         "": "defaultRoute"
     },
     initialize: function(){
@@ -718,6 +803,10 @@ IndexRouter = Backbone.Router.extend({
         this.globalView = new GlobalView();
         this.loginStateView = new LoginStateView(this.model);
         this.loginStateView.updateLoginState();
+    },
+    workout: function(){
+        this.workoutView = new WorkoutView(this.model);
+        this.globalView.goto(this.workoutView);
     },
     login: function(){
         var self = this;
