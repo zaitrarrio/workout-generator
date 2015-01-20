@@ -7,6 +7,7 @@ from workout_generator.constants import Exercise
 from workout_generator.constants import MuscleGroup
 from workout_generator.constants import MuscleFrequency
 from workout_generator.constants import WorkoutComponent
+from workout_generator.utils import get_new_trim_by_percent
 from workout_generator.workout.cardio_creator import CardioCreator
 from workout_generator.workout.exceptions import NoExercisesAvailableException
 from workout_generator.workout.models import WorkoutCollection
@@ -243,7 +244,7 @@ def _generate_workout(day_framework_id, user, workout_component_list, cardio_lev
     _add_flexibility_to_workout(workout, user_exercise_filter.copy())
 
     _add_more_time(workout)
-    _trim_to_time(workout)
+    _trim_to_time(workout, user)
 
     return workout
 
@@ -252,8 +253,23 @@ def _add_more_time(workout):
     pass
 
 
-def _trim_to_time(workout):
-    pass
+def _trim_to_time(workout, user):
+    items_to_trim = [workout]
+    cardio_session = workout.cardio_session
+    if cardio_session:
+        items_to_trim.append(cardio_session)
+    total_time = sum([trimmable.get_total_time() for trimmable in items_to_trim])
+    target_time = user.minutes_per_day
+    if target_time >= total_time:
+        return
+
+    trim_by_percent = 1.0 - (float(target_time) / total_time)
+    trim_by_percent = get_new_trim_by_percent(total_time, items_to_trim, trim_by_percent)
+
+    for trimmable in items_to_trim:
+        trimmable.trim_by_percent(trim_by_percent)
+
+    workout.refresh_and_save()
 
 
 def _add_flexibility_to_workout(workout, exercise_filter):

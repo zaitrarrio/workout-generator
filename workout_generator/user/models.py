@@ -158,6 +158,10 @@ class User(object):
     def id(self):
         return self._user.id
 
+    @property
+    def minutes_per_day(self):
+        return self._user.minutes_per_day
+
     def get_enabled_isoweekdays(self):
         enabled_days = []
         prop_to_isoweekday = {v: k for k, v in self.isoweekday_to_prop.items()}

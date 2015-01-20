@@ -1,7 +1,12 @@
+from workout_generator.utils import get_new_trim_by_percent
+
 from .cardio_interval import CardioInterval
+from .abstract_trimmable import AbstractTrimmable
+
+MIN_CARDIO_TIME = 15.0
 
 
-class CardioSession(object):
+class CardioSession(AbstractTrimmable):
 
     def __init__(self, cardio_intervals=None):
         self.cardio_intervals = cardio_intervals or []
@@ -23,3 +28,15 @@ class CardioSession(object):
 
     def is_empty(self):
         return len(self.cardio_intervals) == 0
+
+    def get_minimum_time_required(self):
+        return MIN_CARDIO_TIME
+
+    def get_total_time(self):
+        return sum([ci.get_total_time() for ci in self.cardio_intervals])
+
+    def _trim_by_exact_percent(self, percent):
+        total_time = self.get_total_time()
+        percent = get_new_trim_by_percent(total_time, self.cardio_intervals, percent)
+        for cardio_interval in self.cardio_intervals:
+            cardio_interval.trim_by_percent(percent)

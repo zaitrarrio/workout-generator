@@ -84,16 +84,16 @@ class WorkoutTestCase(unittest.TestCase):
 
     def test_all_goals_no_exceptions(self):
         # with open("output.json", "w+") as f:
-        # for fitness_level in xrange(1, 6):
-        #     for experience in xrange(1, 6):
-        for goal_id in Goal.IDS:
-            # user = User.get_or_create_by_username("workoutdude%s_%s_%s" % (fitness_level, experience, goal_id))
-            user = User.get_or_create_by_username("workoutdude%s" % goal_id)
-            user.update_goal_id(goal_id)
-            # user.update_fitness_level(fitness_level)
-            # user.update_experience(experience)
-            user.move_to_next_week()
-            workout_collection = generate_new_workouts(user)
+        for fitness_level in xrange(1, 6):
+            for experience in xrange(1, 6):
+                for goal_id in Goal.IDS:
+                    user = User.get_or_create_by_username("workoutdude%s_%s_%s" % (fitness_level, experience, goal_id))
+                    # user = User.get_or_create_by_username("workoutdude%s" % goal_id)
+                    user.update_goal_id(goal_id)
+                    # user.update_fitness_level(fitness_level)
+                    # user.update_experience(experience)
+                    user.move_to_next_week()
+                    workout_collection = generate_new_workouts(user)
             # import json
             # f.write(json.dumps(workout_collection.to_json(), indent=4))
 

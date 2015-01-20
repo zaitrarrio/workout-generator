@@ -5,11 +5,8 @@ from collections import defaultdict
 from storages.backends.s3boto import S3BotoStorage
 
 
+from workout_generator.utils import base_round
 from workout_generator.utils import read_file_as_json
-
-
-def base_round(x, base=5):
-    return int(base * round(float(x) / base))
 
 
 class Exercise(object):
@@ -439,9 +436,9 @@ class Equipment(object):
 
 class Tempo(object):
     VALUES = (
-        (1, "4-2-1"),
-        (2, "2-2-0"),
-        (3, "0-0-0"),
+        (1, "4-2-1", 7),
+        (2, "2-2-0", 4),
+        (3, "0-0-0", 3),
     )
     DESCRIPTION = "This is the speed at which the exercise is performed.  There are 3 basic portions of a lift, the lowering of the weight, the lifting of the weight, and the moment in-between.  " + \
         "You'll see a tempo displayed as 4-2-1, 2-2-0, or 0-0-0.  The first number is the lowering of the weight, the second is the lifting of the weight, and the last is that moment in-between. " + \
@@ -461,9 +458,14 @@ class Tempo(object):
 
     MAP = {t[0]: t for t in VALUES}
 
+    def __init__(self, tuple_data):
+        self.id = tuple_data[0]
+        self.display_string = tuple_data[1]
+        self.seconds_per_rep = tuple_data[2]
+
     @classmethod
     def get_by_id(cls, id):
-        return cls.MAP[id][1]
+        return cls(cls.MAP[id])
 
 
 class Phase(object):

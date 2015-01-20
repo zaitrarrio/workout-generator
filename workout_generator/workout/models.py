@@ -2,21 +2,21 @@ import datetime
 import json
 from collections import defaultdict
 
-# from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 
 from workout_generator.constants import Exercise
+from workout_generator.constants import MuscleGroup
 from workout_generator.constants import Phase
 from workout_generator.constants import WorkoutComponent
 from workout_generator.datetime_tools import date_to_datetime
 from workout_generator.datetime_tools import datetime_to_timestamp_ms
 from workout_generator.workout.exceptions import NeedsNewWorkoutsException
 
+from .abstract_trimmable import AbstractTrimmable
 from .cardio_session import CardioSession
-# from workout_generator.constants import Exercise
-# from workout_generator.constants import Equipment
-# from workout_generator.user.constants import StatusState
-# from workout_generator.user.constants import GenderType
+
+SECONDS_FOR_TIMED_EXERCISE = 30.0
+TIME_FUDGE_FACTOR = 1.08
 
 
 class _Workout__Exercise(models.Model):
@@ -258,7 +258,7 @@ class WorkoutCollection(object):
         return sorted_objs
 
 
-class Workout(object):
+class Workout(AbstractTrimmable):
 
     def __init__(self,
                  _workout=None,
@@ -289,10 +289,12 @@ class Workout(object):
             exercise_list = workout_component_to_exercises.get(workout_component_id)
             if exercise_list:
                 workout_component = WorkoutComponent.get_by_id(workout_component_id)
+                exercise_json_list = [self._workout__exercise_to_json(_w_e) for _w_e in exercise_list]
+                exercise_json_list = [e for e in exercise_json_list if e is not None]
                 json_dict["workout_components"].append({
                     "workout_component": workout_component.to_json(),
                     "rest": workout_component.get_rest(self.phase),
-                    "exercises": [self._workout__exercise_to_json(_w_e) for _w_e in exercise_list]
+                    "exercises": exercise_json_list
                 })
         return json_dict
 
@@ -315,6 +317,11 @@ class Workout(object):
     def _workout__exercise_to_json(self, _workout__exercise):
         if _workout__exercise is None:
             return None
+
+        if _workout__exercise.second_exercise is None and _workout__exercise.sets == 0:
+            # sets can be reduced to 0 via time trimming
+            return None
+
         return {
             "exercise": Exercise.get_by_id(_workout__exercise.exercise_id).to_json(),
             "reps": _workout__exercise.reps,
@@ -363,11 +370,13 @@ class Workout(object):
         workout_exercise = _Workout__Exercise.objects.create(**kwargs)
         self._workout__exercise_list.append(workout_exercise)
 
-    def add_superset_to_exercise(self, first_exercise, second_exercise, sets, reps):
+    def add_superset_to_exercise(self, first_exercise, second_exercise, reps):
         first_workout_exercise_id = None
+        sets = 0
         for _workout__exercise in self._workout__exercise_list:
             if _workout__exercise.exercise_id == first_exercise.id:
                 first_workout_exercise_id = _workout__exercise.id
+                sets = _workout__exercise.sets
         self.add_exercise_set_collection(second_exercise, sets, reps, first_super_set_workout_exercise_id=first_workout_exercise_id)
 
     def get_rep_prescriptions_for_muscle(self, muscle_id):
@@ -378,13 +387,132 @@ class Workout(object):
                 rep_list.append(_workout__exercise.reps)
         return rep_list
 
+    def get_minimum_time_required(self):
+        return 10.0
+
     def get_total_time(self):
-        pass
+        total_time = 0.0
+        workout_component_to_exercises = self._get_workout_component_to_exercises()
+        for workout_component_id, exercise_list in workout_component_to_exercises.items():
+            if workout_component_id == WorkoutComponent.FLEXIBILITY:
+                continue
+            workout_component = WorkoutComponent.get_by_id(workout_component_id)
+            for _workout__exercise in exercise_list:
+                seconds_rest = workout_component.get_rest(self.phase)
+                minutes_rest = float(seconds_rest) / 60
+                minutes_rest *= _workout__exercise.sets
+                total_time += minutes_rest
 
-    def trim(self):
-        pass
+                for _we in [_workout__exercise, _workout__exercise.second_exercise]:
+                    if _we is None:
+                        continue
+                    exercise = Exercise.get_by_id(_we.exercise_id)
+                    if exercise.timed:
+                        total_time += _we.sets * SECONDS_FOR_TIMED_EXERCISE / 60.0
+                    else:
+                        total_reps = _we.reps * _we.sets
+                        rep_minutes = total_reps * self.phase.tempo.seconds_per_rep / 60.0
+                        total_time += rep_minutes
+        total_time *= TIME_FUDGE_FACTOR
+        return total_time
 
-    def add(self):
+    def _trim_by_exact_percent(self, percent):
+        initial_time = self.get_total_time()
+        target_time = initial_time * (1.0 - percent)
+        self._trim_sets(target_time)
+        self._trim_lonely_muscle_groups(target_time)
+        self._trim_isolated_exercises(target_time)
+        self._trim_most_worked_muscles(target_time)
+
+    def _trim_sets(self, target_time):
+        if self.get_total_time() < target_time:
+            return
+
+        min_sets = 2
+        max_sets_to_delete = 2
+        non_supersets = [_we for _we in self._workout__exercise_list if _we.first_super_set_workout_exercise_id is None]
+        for _ in xrange(max_sets_to_delete):
+            for _we in non_supersets:
+                if _we.sets > min_sets:
+                    _we.sets -= 1
+                    if _we.second_exercise:
+                        _we.second_exercise.sets -= 1
+                if self.get_total_time() < target_time:
+                    break
+            else:
+                continue
+            break
+
+    def _trim_lonely_muscle_groups(self, target_time):
+        if self.get_total_time() < target_time:
+            return
+        non_supersets = [_we for _we in self._workout__exercise_list if _we.first_super_set_workout_exercise_id is None]
+        muscle_id_to_ring = {}
+        ring_to_count = {}
+        for muscle_id_set in MuscleGroup.get_rings():
+            muscle_id_tuple = tuple(muscle_id_set)
+            for muscle_id in muscle_id_tuple:
+                muscle_id_to_ring[muscle_id] = muscle_id_tuple
+            ring_to_count[muscle_id_tuple] = 0
+
+        for _we in non_supersets:
+            exercise = Exercise.get_by_id(_we.exercise_id)
+            muscle_id_tuple = muscle_id_to_ring[exercise.muscle_group_id]
+            ring_to_count[muscle_id_tuple] += 1
+        for muscle_ring, count in ring_to_count.items():
+            if count == 1:
+                for _we in non_supersets:
+                    _we.sets = 0
+                    if self.get_total_time() < target_time:
+                        break
+                else:
+                    continue
+                break
+
+    def _trim_isolated_exercises(self, target_time):
+        if self.get_total_time() < target_time:
+            return
+        non_supersets = [_we for _we in self._workout__exercise_list if _we.first_super_set_workout_exercise_id is None]
+        for _we in non_supersets:
+            exercise = Exercise.get_by_id(_we.exercise_id)
+            if not _we.second_exercise and exercise.compound:
+                _we.sets = 0
+                if self.get_total_time() < target_time:
+                    break
+
+    def _trim_most_worked_muscles(self, target_time):
+        if self.get_total_time() < target_time:
+            return
+        non_supersets = [_we for _we in self._workout__exercise_list if _we.first_super_set_workout_exercise_id is None]
+
+        while self.get_total_time() > target_time:
+            # SBL MOVE THIS LOGIC TO ITS OWN FUNCTION
+            muscle_id_to_ring = {}
+            ring_to_count = {}
+            for muscle_id_set in MuscleGroup.get_rings():
+                muscle_id_tuple = tuple(muscle_id_set)
+                for muscle_id in muscle_id_tuple:
+                    muscle_id_to_ring[muscle_id] = muscle_id_tuple
+                ring_to_count[muscle_id_tuple] = 0
+
+            for _we in non_supersets:
+                exercise = Exercise.get_by_id(_we.exercise_id)
+                muscle_id_tuple = muscle_id_to_ring[exercise.muscle_group_id]
+                if _we.sets:
+                    ring_to_count[muscle_id_tuple] += 1
+            muscle_ring__count = sorted(ring_to_count.items(), key=lambda t: t[1], reverse=True)
+
+            for _we in non_supersets:
+                exercise = Exercise.get_by_id(_we.exercise_id)
+                if _we.sets and exercise.muscle_group_id in muscle_ring__count[0][0]:
+                    _we.sets = 0
+                    if _we.second_exercise:
+                        _we.second_exercise.sets = 0
+                    break
+
+    def refresh_and_save(self):
+        # re-serialize the cardio
+        # delete or update the workout list
         pass
 
 
