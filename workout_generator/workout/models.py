@@ -356,6 +356,7 @@ class Workout(AbstractTrimmable):
         for _workout__exercise in self._workout__exercise_list:
             exercise = Exercise.get_by_id(_workout__exercise.exercise_id)
             muscle_ids.append(exercise.muscle_group_id)
+        muscle_ids = list(set(muscle_ids))
         return muscle_ids
 
     def add_exercise_set_collection(self, exercise, sets, reps, first_super_set_workout_exercise_id=None):

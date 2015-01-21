@@ -706,9 +706,18 @@ LiftingView = Backbone.View.extend({
 
 
 WorkoutComponentView = Backbone.View.extend({
+    events: {
+        "click .exercise-block": "clickExercise"
+    },
     initialize: function(workoutComponentJSON){
         this.template = _.template($("#workout-component-view").html());
         this.workoutComponentJSON = workoutComponentJSON;
+    },
+    clickExercise: function(evt){
+        var elId = evt.target.id;
+        var videoEl = this.$("#video_" + elId);
+        $(".exercise-video").hide();
+        videoEl.show();
     },
     render: function(){
         this.$el.html(this.template(this.workoutComponentJSON));
@@ -753,10 +762,55 @@ CardioView = Backbone.View.extend({
         }
         return zoneMeta;
     },
+    _getTotalTime: function(){
+        var totalTime = 0.0;
+        for(var i=0; i<this.cardioJSON.length; i++){
+            totalTime += this.cardioJSON[i].minutes;
+        }
+        return totalTime;
+    },
+    _getMaxBPM: function(){
+        return 100.0;
+        var maxBPM = 0;
+        for(var i=0; i<this.cardioJSON.length; i++){
+            var bpm = (this.cardioJSON[i].max_heart_rate + this.cardioJSON[i].min_heart_rate) / 2.0;
+            if(bpm > maxBPM){
+                maxBPM = bpm;
+            }
+        }
+        return maxBPM;
+    },
+    _getCardioBlocks: function(){
+        /* will return ordered list of zone, height%, width% */
+        var totalTime = this._getTotalTime();
+        var maxBPM = this._getMaxBPM();
+        var widthOfCardioDisplayPercent = 90.0;
+        var cardioBlocks = [];
+        for(var i=0; i<this.cardioJSON.length; i++){
+            var zone = this.cardioJSON[i].zone;
+            var zoneKey = "zone" + zone.toString();
+            var percentOfTotal = parseFloat(this.cardioJSON[i].minutes) * widthOfCardioDisplayPercent / totalTime;
+            if(percentOfTotal < 3.0){
+                percentOfTotal = 3.0;
+            }
+            var bpm = (this.cardioJSON[i].max_heart_rate + this.cardioJSON[i].min_heart_rate) / 2.0;
+            var height = bpm / maxBPM;
+            height *= height;
+            height *= 100.0;
+            cardioBlocks.push({
+                zoneClass: zoneKey,
+                widthPercent: percentOfTotal,
+                heightPercent: height
+            });
+        }
+        return cardioBlocks;
+    },
     render: function(){
         this.$el.html(this.template({
             cardioLevel: this._getCardioLevelDisplayString(),
-            zoneMeta: this._getZoneMeta()
+            zoneMeta: this._getZoneMeta(),
+            totalTime: this._getTotalTime(),
+            cardioBlocks: this._getCardioBlocks()
         }));
         return this;
     }

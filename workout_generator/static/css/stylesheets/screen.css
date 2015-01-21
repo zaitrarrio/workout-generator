@@ -2604,12 +2604,13 @@ or wrap each row of columns in a <div class="row"> */
 .phase-block {
     background-color: black;
     color: #8fba3b;
-    width: 15%;
-    padding-top: 20px;
-    position: relative;
-    float: left;
+    width: 50%;
+    padding: 20px 10px 5px 10px;
+    display: block;
+
     margin-top: 5px;
-    margin-right: 10px;
+    margin-right: auto;
+    margin-left: auto;
     webkit-border-radius: 5px;
     -moz-border-radius: 5px;
     -ms-border-radius: 5px;
@@ -2622,10 +2623,12 @@ or wrap each row of columns in a <div class="row"> */
     color: black;
 }
 
-.cardio-block{
-    color: #FFF;
+.cardio-meta-block{
+    color: black;
     padding: 10px 10px 0 10px;
-    text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
+    /*
+     * text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
+     */
 
     position: relative;
     float: left;
@@ -2639,16 +2642,16 @@ or wrap each row of columns in a <div class="row"> */
     border: 1px solid #ccc;
 }
 
-.cardio-block.zone1{
-    background-color: #289522;
+.zone1{
+    background-color: #8fba3b;
 }
 
-.cardio-block.zone2{
-    background-color: #fcff00;
+.zone2{
+    background-color: #baa93b;
 }
 
-.cardio-block.zone3{
-    background-color: #f65016;
+.zone3{
+    background-color: #ba3d3b;
 }
 
 .cardio-meta-container {
@@ -2666,4 +2669,73 @@ or wrap each row of columns in a <div class="row"> */
     position: relative;
     float: left;
     padding: 0 10px;
+}
+
+.cardio-graph-block{
+    position: relative;
+    float: left;
+    border-top: 1px solid #222;
+}
+.workout-component-block {
+    color: #8fba3b;
+    font-weight: 400;
+    background: #222;
+    padding: 10px;
+    outline: none;
+    margin: 0;
+    border-bottom: 1px solid #dddddd;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+.top-rounded{
+    -webkit-border-top-left-radius: 5px;
+    -moz-border-top-left-radius: 5px;
+    border-top-left-radius: 5px;
+    -webkit-border-top-right-radius: 5px;
+    -moz-border-top-right-radius: 5px;
+    border-top-right-radius: 5px;
+}
+
+.bottom-rounded{
+    -webkit-border-bottom-left-radius: 5px;
+    -moz-border-bottom-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+    -webkit-border-bottom-right-radius: 5px;
+    -moz-border-bottom-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+}
+
+.exercise-row{
+    color: black;
+    font-weight: 400;
+    background: #ccc;
+    padding: 10px;
+    outline: none;
+    margin: 0;
+    border-bottom: 1px solid #dddddd;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+.sets-reps {
+    display: inline-block;
+    background: #222;
+    color: #8fba3b;
+    padding: 5px;
+    webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    -ms-border-radius: 5px;
+    -o-border-radius: 5px;
+    border-radius: 5px;
+}
+
+.exercise-block{
+    display: inline-block;
+    background-color: #8fba3b;
+    padding: 5px;
+    webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    -ms-border-radius: 5px;
+    -o-border-radius: 5px;
+    border-radius: 5px;
+    cursor: pointer;
 }

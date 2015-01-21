@@ -605,25 +605,21 @@ You can rest assured that the details of your training have been finely tuned. Y
 
 <script type="text/html" id="workout-view">
 <div style="width: 100%; overflow: hidden">
-    <div class="four columns" id="datepicker-placeholder">
+    <div class="four columns">
+        <div id="datepicker-placeholder">
+        </div>
+        <div id="meta-placeholder">
+        </div>
     <br/><br/>
     </div>
 
-    <div class="twelve columns" id="meta-placeholder">
-    HEY HEY
-    <br/><br/>
+<div class="twelve columns">
+    <div id="workout-placeholder">
+    </div>
+<div id="cardio-placeholder" style="margin-top: 100px;">
     </div>
 </div>
 
-<div style="width: 100%; overflow: hidden; margin-top: 10px;">
-    <div class="eight columns" id="workout-placeholder">
-    Left side content
-    </div>
-
-    <div class="eight columns" id="cardio-placeholder">
-    Right side content
-    </div>
-</div>
 
 </script>
 
@@ -637,9 +633,18 @@ You can rest assured that the details of your training have been finely tuned. Y
 </script>
 
 <script type="text/html" id="meta-view">
-<blockquote class="no-quote" style="width: 80%; padding: 10px 30px;">
-<h1 style="margin-top: 15px;"><%= currentGoal %></h1>
+<blockquote class="no-quote" style="width: 80%; padding: 10px 30px; margin-top: 10px;">
+<h3 style="margin-top: 15px; line-height: 20px;"><%= currentGoal %></h3>
 </blockquote>
+<p>Weeks in Phase:
+<br/>
+<% for(var i=0; i<weekInPhase; i++) { %>
+<img style="width: 15%; display: inline-block;" src="{% static 'img/green_arrow.png' %}">
+<% } %>
+<% for(var i=0; i<totalWeeksInPhase - weekInPhase; i++) { %>
+<img style="width: 15%; display: inline-block;" src="{% static 'img/gray_arrow.png' %}">
+<% } %>
+</p>
 <% for (var i = 0; i < phaseNames.length; i++) { %>
     <div class="phase-block
     <% if(phaseNames[i] === currentPhase) {%>
@@ -657,9 +662,7 @@ You can rest assured that the details of your training have been finely tuned. Y
 <div style="margin-top: 5px; display: block; width: 80%;">
     <p>
 <br/>
-        Currently conducting week
-        <%= weekInPhase %> of
-        <%= totalWeeksInPhase %>
+
     </p>
 </div>
 </script>
@@ -670,20 +673,55 @@ You can rest assured that the details of your training have been finely tuned. Y
 </script>
 
 <script type="text/html" id="workout-component-view">
-<div>
+<div style="padding-bottom: 10px;">
+<div class="workout-component-block top-rounded">
 <%= workout_component.title %>
 </div>
 
 <% for (var i = 0; i < exercises.length; i++) { %>
+    <div class="exercise-row
+<% if(i === exercises.length-1){ %>
+bottom-rounded
+<% } %>
+">
     <% var exerciseSet = exercises[i]; %>
-    <%= exerciseSet.sets %> x <%= exerciseSet.reps %> <%= exerciseSet.exercise.name %>
+    <div class="sets-reps">
+    <%= exerciseSet.sets %> x
+<% if(!exerciseSet.exercise.timed) { %>
+<%= exerciseSet.reps %>
+<% } %>
+
+    </div>
+<div id="exercise_<%= exerciseSet.exercise.id %>" class="exercise-block">
+    <%= exerciseSet.exercise.name %>
+    </div>
     <% if(exerciseSet.superset){ %>
         superset with
-        <%= exerciseSet.superset.reps %> x <%= exerciseSet.superset.exercise.name %>
+
+<% if(!exerciseSet.superset.exercise.timed) { %>
+<div class="sets-reps">
+    <%= exerciseSet.superset.reps %>
+</div>
+<% } %>
+
+<div class="exercise-block" id="exercise_<%= exerciseSet.superset.exercise.id %>">
+<%= exerciseSet.superset.exercise.name %>
+</div>
     <% } %>
-    <br/>
+    </div>
+
+<video class="exercise-video" id="video_exercise_<%= exerciseSet.exercise.id %>" autoplay="" loop="" poster="true" width="480" height="360" style="display: none;">
+<source src="https://s3-us-west-1.amazonaws.com/workout-generator-exercises/smaller_webm/small_<%= exerciseSet.exercise.video_id  %>.webmsd.webm" type="video/webm" class="webmsource">
+</video>
+
+<% if(exerciseSet.superset) {%>
+<video class="exercise-video" id="video_exercise_<%= exerciseSet.superset.exercise.id %>" autoplay="" loop="" poster="true" width="480" height="360" style="display: none;">
+<source src="https://s3-us-west-1.amazonaws.com/workout-generator-exercises/smaller_webm/small_<%= exerciseSet.superset.exercise.video_id  %>.webmsd.webm" type="video/webm" class="webmsource">
+</video>
+<% } %>
 
 <% } %>
+</div>
 </script>
 
 <script type="text/html" id="cardio-view">
@@ -693,16 +731,37 @@ You can rest assured that the details of your training have been finely tuned. Y
     <div class="cardio-meta-container">
         <% var zoneKey = "zone" + zone; %>
         <% if(zoneMeta[zoneKey]) { %>
-            <div class="cardio-block <%= zoneKey %>" style="min-height: 20px; width: 10%;">
+            <div class="cardio-meta-block <%= zoneKey %>" style="min-height: 20px; width: 10%;">
             <p style="margin-bottom: 0;">Zone <%= zone %></p>
             </div>
 <p class="cardio-meta-descriptor" style="margin-bottom: 0;">
-    <%= zoneMeta[zoneKey].minutes %> minute interval<br/>
+    <% if(zoneMeta[zoneKey].minutes > 0) { %>
+        <%= zoneMeta[zoneKey].minutes %> minute
+    <% } %>
+    <% if(zoneMeta[zoneKey].seconds > 0) { %>
+        <%= zoneMeta[zoneKey].seconds %> second
+    <% } %>
+
+interval<br/>
             Heart Rate of <%= zoneMeta[zoneKey].minHeartRate %> to
             <%= zoneMeta[zoneKey].maxHeartRate %> bpm
             </p>
         <% } %>
     </div>
 <% } %>
+</div>
+<div class="cardio-graph" style="overflow: hidden; margin-top: 20px; min-height: 20px;">
+<% for(var i=0; i<cardioBlocks.length; i++) { %>
+    <% var cardioBlock = cardioBlocks[i]; %>
+    <% var maxHeight = 100.0; %>
+    <% var blockHeight = (cardioBlock.heightPercent / 100.0) * maxHeight; %>
+<div class="cardio-graph-block <%= cardioBlock.zoneClass %>" style="width: <%= cardioBlock.widthPercent %>%; height: <%= blockHeight %>px; margin-top: <%= maxHeight - blockHeight %>px;">
+    </div>
+<% } %>
+</div>
+<div style="width: 90%;">
+<center>
+<h3 style="margin-top: 10px;"><%= totalTime %> Minutes</h3>
+</center>
 </div>
 </script>

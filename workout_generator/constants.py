@@ -66,7 +66,8 @@ class Exercise(object):
         return Exercise(existing_query=self.query.copy())
 
     def discard_exercise_id(self, exercise_id):
-        self.query.discard(exercise_id)
+        exercise = Exercise.get_by_id(exercise_id)
+        self.query.discard(exercise)
         return self
 
     def discard_muscle_group_id(self, muscle_group_id):
