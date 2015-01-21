@@ -604,13 +604,105 @@ You can rest assured that the details of your training have been finely tuned. Y
 </script>
 
 <script type="text/html" id="workout-view">
+<div style="width: 100%; overflow: hidden">
+    <div class="four columns" id="datepicker-placeholder">
+    <br/><br/>
+    </div>
+
+    <div class="twelve columns" id="meta-placeholder">
+    HEY HEY
+    <br/><br/>
+    </div>
+</div>
+
+<div style="width: 100%; overflow: hidden; margin-top: 10px;">
+    <div class="eight columns" id="workout-placeholder">
+    Left side content
+    </div>
+
+    <div class="eight columns" id="cardio-placeholder">
+    Right side content
+    </div>
+</div>
+
+</script>
+
+<script type="text/html" id="datepicker-view">
+<div class="bootstrap">
+    <div class="date-select-block">
+        <div class="date-select datepicker-input datepicker-el">
+        </div>
+    </div>
+</div>
+</script>
+
+<script type="text/html" id="meta-view">
+<blockquote class="no-quote" style="width: 80%; padding: 10px 30px;">
+<h1 style="margin-top: 15px;"><%= currentGoal %></h1>
+</blockquote>
+<% for (var i = 0; i < phaseNames.length; i++) { %>
+    <div class="phase-block
+    <% if(phaseNames[i] === currentPhase) {%>
+        selected
+    <% } %>
+    ">
+        <center>
+            <p>
+                <%= phaseNames[i] %>
+            </p>
+        </center>
+    </div>
+<% } %>
+<div class="clear"></div>
+<div style="margin-top: 5px; display: block; width: 80%;">
+    <p>
+<br/>
+        Currently conducting week
+        <%= weekInPhase %> of
+        <%= totalWeeksInPhase %>
+    </p>
+</div>
+</script>
+
+<script type="text/html" id="lifting-view">
 <div>
 </div>
 </script>
 
-<script type="text/html" id="datepicker-view">
-<div class="date-select-block">
-    <div class="date-select datepicker-input">
+<script type="text/html" id="workout-component-view">
+<div>
+<%= workout_component.title %>
+</div>
+
+<% for (var i = 0; i < exercises.length; i++) { %>
+    <% var exerciseSet = exercises[i]; %>
+    <%= exerciseSet.sets %> x <%= exerciseSet.reps %> <%= exerciseSet.exercise.name %>
+    <% if(exerciseSet.superset){ %>
+        superset with
+        <%= exerciseSet.superset.reps %> x <%= exerciseSet.superset.exercise.name %>
+    <% } %>
+    <br/>
+
+<% } %>
+</script>
+
+<script type="text/html" id="cardio-view">
+<h2 style="margin-top: 10px;"><%= cardioLevel %></h2>
+<div class="cardio-meta">
+<% for (var zone = 1; zone <= 3; zone++) { %>
+    <div class="cardio-meta-container">
+        <% var zoneKey = "zone" + zone; %>
+        <% if(zoneMeta[zoneKey]) { %>
+            <div class="cardio-block <%= zoneKey %>" style="min-height: 20px; width: 10%;">
+            <p style="margin-bottom: 0;">Zone <%= zone %></p>
+            </div>
+<p class="cardio-meta-descriptor" style="margin-bottom: 0;">
+    <%= zoneMeta[zoneKey].minutes %> minute interval<br/>
+            Heart Rate of <%= zoneMeta[zoneKey].minHeartRate %> to
+            <%= zoneMeta[zoneKey].maxHeartRate %> bpm
+            </p>
+        <% } %>
     </div>
+<% } %>
 </div>
 </script>

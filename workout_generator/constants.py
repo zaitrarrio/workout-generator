@@ -3360,6 +3360,7 @@ class Goal(object):
                 "title": goal_tuple[1],
                 "description": goal_tuple[3],
                 "start_phase": Phase.get_by_id_as_json(goal_tuple[4]),
+                "phases": [phase_info.to_json() for phase_info in PhaseLengthByGoal.get_phases_for_goal_id(goal_tuple[0])],
                 "image": S3BotoStorage().url(goal_tuple[5]) if not os.environ.get("I_AM_IN_DEV_ENV") else "/static/%s" % goal_tuple[5],
                 "cardio_type": CardioType.get_by_id_as_json(goal_tuple[2])
             })
@@ -3436,6 +3437,13 @@ class PhaseLengthByGoal(object):
             self.min_length = min_length
             self.max_length = max_length
             self.phase = Phase.get_by_id(phase_id)
+
+        def to_json(self):
+            return {
+                "min_length": self.min_length,
+                "max_length": self.max_length,
+                "phase": self.phase.to_json()
+            }
 
     @classmethod
     def get_phases_for_goal_id(cls, goal_id):

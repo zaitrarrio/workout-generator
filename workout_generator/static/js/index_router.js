@@ -547,12 +547,49 @@ WorkoutView = AbstractView.extend({
         this.listenTo(this.workoutCollection, 'sync', function(){
             self.render();
         });
+        this.listenTo(this.userModel, 'sync', function(){
+            self.render();
+        });
         this.workoutCollection.fetch();
     },
-    render: function(options){
+    _initDatePickerView: function(){
         this.datePickerView = new DatePickerView(this.workoutCollection);
+        this.listenTo(this.datePickerView, this.datePickerView.EVENTS.DATE_CHANGED, this.renderNewWorkout);
+    },
+    renderNewWorkout: function(isoweekday){
+        var workoutModel = this.workoutCollection.getWorkoutForDay(isoweekday);
+        this.renderLifting(workoutModel);
+        this.renderCardio(workoutModel);
+    },
+    renderLifting: function(workoutModel){
+        this.liftingView = new LiftingView(workoutModel);
+        this.$("#workout-placeholder").html(this.liftingView.render().el);
+    },
+    renderCardio: function(workoutModel){
+        var cardioEl = this.$("#cardio-placeholder");
+        if(!workoutModel || !workoutModel.get("cardio")){
+            cardioEl.empty();
+            return;
+        }
+        this.cardioView = new CardioView(this.userModel, workoutModel.get("cardio"), workoutModel.get("cardio_level"));
+        cardioEl.html(this.cardioView.render().el);
+    },
+    renderMeta: function(){
+        if(!this.userModel.get("phase")){
+            return;
+        }
+        this.workoutMetaView = new WorkoutMetaView(this.userModel);
+        this.$("#meta-placeholder").html(this.workoutMetaView.render().el);
+    },
+
+    render: function(options){
+        this._initDatePickerView();
         this.$el.html(this.template());
-        this.$el.append(this.datePickerView.render().el);
+
+        this.$("#datepicker-placeholder").html(this.datePickerView.render().el);
+        this.datePickerView.selectToday();
+        this.renderMeta();
+
         this.postRender(options);
         return this.$el;
     }
@@ -560,18 +597,89 @@ WorkoutView = AbstractView.extend({
 
 
 DatePickerView = Backbone.View.extend({
+    events: {
+        "changeDate": "dateChanged"
+    },
+    EVENTS: {
+        DATE_CHANGED: "datepicker-date-changed"
+    },
     initialize: function(workoutCollection){
         this.template = _.template($("#datepicker-view").html());
         this.workoutCollection = workoutCollection;
         this.startDateTime = new Date(this.workoutCollection.getEarliestUTCTimestamp());
         this.endDateTime = new Date(this.workoutCollection.getLatestUTCTimestamp());
+        this.triggerDateChange = true;
     },
     initDatepicker: function(startDate, endDate){
-        this.$(".datepicker-input").datepicker({
+        this.$(".datepicker-el").datepicker({
             format: 'DD, M d',
             startDate: startDate,
             endDate: endDate
         });
+    },
+    dateChanged: function(evt){
+        if(this.triggerDateChange){
+            if (evt.date){
+                this.trigger(this.EVENTS.DATE_CHANGED, evt.date.getDay());
+            }
+        }
+    },
+    refreshEl: function(){
+        // necessary because datepicker contents are populated outside of our immediate control
+        this.$el = $(this.$el.selector);
+        this.delegateEvents();
+    },
+    selectToday: function(){
+        var datepickerStartDate = this.getStartDateFromDatepicker();
+        var selectedMonth = datepickerStartDate.getMonth();
+        var selectedYear = datepickerStartDate.getYear();
+        var now = new Date();
+
+        if (selectedYear === now.getYear() && selectedMonth === now.getMonth()){
+            this.selectDate(now);
+        } else {
+            this.$(".datepicker-el").datepicker('setDate', now);
+            this.$(".datepicker-el").datepicker('update');
+            var self = this;
+            setTimeout(function(){
+                self.selectDate(now);
+            }, 0);
+        }
+    },
+    selectFirstAvailableDay: function(){
+        /* this is hacky but the bootstrap datepicker doesn't appear to expose
+            * this through their API for inline datepickers.  Replace if there's
+            * a better way */
+        var enabledDaysSelector = this.$(".datepicker td.day:not(.disabled):not(.new):not(.old)");
+        if(enabledDaysSelector.length > 0){
+            $(enabledDaysSelector[0]).click();
+        }
+    },
+    selectDayOfMonth: function(dayOfMonth){
+        /* this is hacky but the bootstrap datepicker doesn't appear to expose
+            * this through their API for inline datepickers.  Replace if there's
+            * a better way */
+        var enabledDaysSelector = this.$(".datepicker td.day:not(.disabled):not(.new):not(.old)");
+        enabledDaysSelector.each(function(index, dayElement){
+            var dayNumber = parseInt(dayElement.innerHTML, 10);
+            if(dayNumber === dayOfMonth){
+                $(dayElement).click();
+            }
+        });
+    },
+    selectDate: function(date){
+        this.$(".datepicker-el").datepicker('setDate', date);
+        this.$(".datepicker-el").datepicker('update');
+        var dayNumber = date.getDate();
+        this.selectDayOfMonth(dayNumber);
+    },
+    getStartDateFromDatepicker: function(){
+        var selector = this.$(".datepicker .datepicker-switch");
+        if (selector.length === 0){
+            return new Date();
+        }
+        var dateString = selector[0].innerHTML;
+        return new Date(Date.parse(dateString));
     },
     render: function(){
         this.$el.html(this.template());
@@ -581,11 +689,100 @@ DatePickerView = Backbone.View.extend({
 });
 
 
-IndividualWorkoutView = Backbone.View.extend({
+LiftingView = Backbone.View.extend({
+    initialize: function(workoutModel){
+        this.workoutModel = workoutModel;
+        this.template = _.template($("#lifting-view").html());
+    },
+    render: function(){
+        this.$el.html(this.template());
+        var workoutComponents = this.workoutModel.get("workout_components");
+        for(var i=0; i<workoutComponents.length; i++){
+            this.$el.append(new WorkoutComponentView(workoutComponents[i]).render().el);
+        }
+        return this;
+    }
+});
+
+
+WorkoutComponentView = Backbone.View.extend({
+    initialize: function(workoutComponentJSON){
+        this.template = _.template($("#workout-component-view").html());
+        this.workoutComponentJSON = workoutComponentJSON;
+    },
+    render: function(){
+        this.$el.html(this.template(this.workoutComponentJSON));
+        return this;
+    }
 });
 
 
 CardioView = Backbone.View.extend({
+    initialize: function(userModel, cardioJSON, cardioLevel){
+        this.template = _.template($("#cardio-view").html());
+        this.cardioJSON = cardioJSON;
+        this.cardioLevel = cardioLevel;
+        this.maxHeartRate = userModel.get("max_heart_rate");
+    },
+    _getCardioLevelDisplayString: function(){
+        if(this.cardioLevel === 1){
+            return "Light Cardio";
+        } else if (this.cardioLevel === 2){
+            return "Medium Cardio";
+        } else if (this.cardioLevel === 3){
+            return "Heavy Cardio";
+        } else {
+            return "";
+        }
+    },
+    _getZoneMeta: function(){
+        var zoneMeta = {
+            "zone1": null,
+            "zone2": null,
+            "zone3": null
+        }
+        for(var i=0; i<this.cardioJSON.length; i++){
+            var zone = this.cardioJSON[i].zone;
+            var zoneKey = "zone" + zone.toString();
+            zoneMeta[zoneKey] = {
+                minutes: parseInt(this.cardioJSON[i].minutes, 10),
+                seconds: parseInt(parseFloat(this.cardioJSON[i].minutes) / 60.0, 10),
+                minHeartRate: parseInt(parseFloat(this.cardioJSON[i].min_heart_rate) * this.maxHeartRate / 100.0, 10),
+                maxHeartRate: parseInt(parseFloat(this.cardioJSON[i].max_heart_rate) * this.maxHeartRate / 100.0, 10)
+            }
+        }
+        return zoneMeta;
+    },
+    render: function(){
+        this.$el.html(this.template({
+            cardioLevel: this._getCardioLevelDisplayString(),
+            zoneMeta: this._getZoneMeta()
+        }));
+        return this;
+    }
+});
+
+
+WorkoutMetaView = Backbone.View.extend({
+    initialize: function(userModel){
+        this.userModel = userModel;
+        this.template = _.template($("#meta-view").html());
+    },
+    render: function(){
+        var phaseNames = [];
+        var phases = this.userModel.get("goal").phases;
+        for(var i=0; i<phases.length; i++){
+            phaseNames.push(phases[i].phase.title);
+        }
+        this.$el.html(this.template({
+            weekInPhase: this.userModel.get("current_week_in_phase"),
+            phaseNames: phaseNames,
+            currentPhase: this.userModel.get("phase").title,
+            currentGoal: this.userModel.get("goal").title,
+            totalWeeksInPhase: this.userModel.get("total_weeks_in_phase"),
+        }));
+        return this;
+    }
 });
 
 
@@ -760,7 +957,26 @@ WorkoutCollection = Backbone.Collection.extend({
     url: function(){
          return '/api/workout/?username=' + Parse.User.current().get('username');
     },
+    initialize: function(){
+        this.isoweekday_to_workout = {};
+        var self = this;
+        this.listenTo(this, 'sync', function(){
+            self._mapIsoweekdayToWorkout();
+        });
+    },
     model: Workout,
+    _mapIsoweekdayToWorkout: function(){
+        var self = this;
+        this.each(function(model){
+            var isoweekday = model.get("js_isoweekday");
+            var key = isoweekday.toString();
+            self.isoweekday_to_workout[key] = model;
+        });
+    },
+    getWorkoutForDay: function(isoweekday){
+        var key = isoweekday.toString();
+        return this.isoweekday_to_workout[key] || null;
+    },
     getEarliestUTCTimestamp: function(){
         // FIXME this can be done better with underscore
         var minTimestamp = null;
