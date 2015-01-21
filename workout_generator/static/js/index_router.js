@@ -7,6 +7,12 @@ function removeHash () {
         + window.location.search);
 }
 
+function redirectIfLoggedOut(){
+    if (Parse.User.current() === null){
+        Backbone.history.navigate('!login', {trigger: true});
+    }
+}
+
 function facebookGetMe(){
     FB.api('/v2.1/me?fields=id,email', function(response) {
         var facebook_id = response.id;
@@ -203,11 +209,24 @@ LandingView = AbstractView.extend({
     }
 });
 
+
+DashboardView = AbstractView.extend({
+    initialize: function(model){
+        this.model = model;
+        this.template = _.template($("#dashboard-view").html());
+    },
+    render: function(options){
+        this.$el.html(this.template());
+        return this.postRender(options);
+    }
+});
+
 FitnessLevelView = AbstractView.extend({
     events: {
         "click .save": "save"
     },
-    initialize: function(model){
+    initialize: function(model, returnHome){
+        this.returnHome = returnHome;
         this.model = model;
         this.template = _.template($("#fitness-level-view").html());
 
@@ -236,7 +255,11 @@ FitnessLevelView = AbstractView.extend({
         var self = this;
         this.model.once('sync', function(){
             self.$(".loading-icon").hide();
-            Backbone.history.navigate('!equipment', {trigger: true});
+            if(self.returnHome){
+                Backbone.history.navigate('', {trigger: true});
+            } else {
+                Backbone.history.navigate('!equipment', {trigger: true});
+            }
         });
         this.model.save();
     },
@@ -275,7 +298,8 @@ ScheduleView = AbstractView.extend({
     events: {
         "click .save": "save"
     },
-    initialize: function(model){
+    initialize: function(model, returnHome){
+        this.returnHome = returnHome;
         this.model = model;
         this.template = _.template($("#schedule-view").html());
         var self = this;
@@ -304,7 +328,11 @@ ScheduleView = AbstractView.extend({
         var self = this;
         this.model.once('sync', function(){
             self.$(".loading-icon").hide();
-            Backbone.history.navigate('!fitnesslevel', {trigger: true});
+            if(self.returnHome){
+                Backbone.history.navigate('', {trigger: true});
+            } else {
+                Backbone.history.navigate('!fitnesslevel', {trigger: true});
+            }
         });
         this.model.save();
     },
@@ -346,7 +374,8 @@ EquipmentView = AbstractView.extend({
     events: {
         "click .save": "save"
     },
-    initialize: function(model){
+    initialize: function(model, returnHome){
+        this.returnHome = returnHome;
         this.model = model;
         this.template = _.template($("#equipment-view").html());
         this.availableEquipmentJSON = [];
@@ -392,7 +421,11 @@ EquipmentView = AbstractView.extend({
         var self = this;
         this.model.once('sync', function(){
             self.$(".loading-icon").show();
-            Backbone.history.navigate('!payment', {trigger: true});
+            if(self.returnHome){
+                Backbone.history.navigate('', {trigger: true});
+            } else {
+                Backbone.history.navigate('!payment', {trigger: true});
+            }
         });
         this.model.save();
     },
@@ -459,7 +492,6 @@ PaymentView = AbstractView.extend({
                     contentType: 'application/x-www-form-urlencoded;charset=utf-8',
                     success: function(response){
                         alert("stripe success");
-                        console.log(response);
                     },
                     error: function(data){
                         alert("stripe fail");
@@ -562,8 +594,12 @@ WorkoutView = AbstractView.extend({
         this.renderCardio(workoutModel);
     },
     renderLifting: function(workoutModel){
-        this.liftingView = new LiftingView(workoutModel);
-        this.$("#workout-placeholder").html(this.liftingView.render().el);
+        if(workoutModel === null){
+            this.$("#workout-placeholder").html("<h1 style='margin-top: 20px;'>Off Day</h1>");
+        } else {
+            this.liftingView = new LiftingView(workoutModel);
+            this.$("#workout-placeholder").html(this.liftingView.render().el);
+        }
     },
     renderCardio: function(workoutModel){
         var cardioEl = this.$("#cardio-placeholder");
@@ -846,7 +882,8 @@ GoalView = AbstractView.extend({
         "mouseenter .member-container": "addSelected",
         "mouseleave .member-container": "removeSelected"
     },
-    initialize: function(model){
+    initialize: function(model, returnHome){
+        this.returnHome = returnHome;
         this.model = model;
         this.template = _.template($("#goal-view").html());
         this.goalJSON = [];
@@ -887,7 +924,11 @@ GoalView = AbstractView.extend({
             traditional: true,
             type: 'POST',
             success: function(data){
-                Backbone.history.navigate('!schedule', {trigger: true});
+                if(self.returnHome){
+                    Backbone.history.navigate('', {trigger: true});
+                } else {
+                    Backbone.history.navigate('!schedule', {trigger: true});
+                }
             },
             error: function(data){
                 self.$(".loading-icon").hide();
@@ -984,7 +1025,10 @@ LoginStateView = Backbone.View.extend({
 
 User = Backbone.Model.extend({
     url: function(){
-         return '/api/user/?username=' + Parse.User.current().get('username');
+        if(!Parse.User.current()){
+            return null;
+        }
+        return '/api/user/?username=' + Parse.User.current().get('username');
     },
     initialize: function(){
         this.listenTo(this, 'sync', function(){
@@ -1009,7 +1053,10 @@ Workout = Backbone.Model.extend({
 
 WorkoutCollection = Backbone.Collection.extend({
     url: function(){
-         return '/api/workout/?username=' + Parse.User.current().get('username');
+        if(!Parse.User.current()){
+            return null;
+        }
+        return '/api/workout/?username=' + Parse.User.current().get('username');
     },
     initialize: function(){
         this.isoweekday_to_workout = {};
@@ -1058,10 +1105,19 @@ IndexRouter = Backbone.Router.extend({
     routes: {
         "!confirmation/:email": "confirmEmail",
         "!signup": "signup",
+
+        "!goal/:returnHome": "goal",
         "!goal": "goal",
+
+        "!equipment/:returnHome": "equipment",
         "!equipment": "equipment",
+
+        "!fitnesslevel/:returnHome": "fitnessLevel",
         "!fitnesslevel": "fitnessLevel",
+
+        "!schedule/:returnHome": "schedule",
         "!schedule": "schedule",
+
         "!login": "login",
         "!payment": "payment",
         "!workout": "workout",
@@ -1075,6 +1131,7 @@ IndexRouter = Backbone.Router.extend({
         this.loginStateView.updateLoginState();
     },
     workout: function(){
+        redirectIfLoggedOut();
         this.workoutView = new WorkoutView(this.model);
         this.globalView.goto(this.workoutView);
     },
@@ -1090,23 +1147,28 @@ IndexRouter = Backbone.Router.extend({
         this.globalView.goto(this.templateView);
     },
     payment: function(){
+        redirectIfLoggedOut();
         this.paymentView = new PaymentView(this.model);
         this.globalView.goto(this.paymentView);
     },
-    goal: function(){
-        this.goalView = new GoalView(this.model);
+    goal: function(returnHome){
+        redirectIfLoggedOut();
+        this.goalView = new GoalView(this.model, returnHome);
         this.globalView.goto(this.goalView);
     },
-    equipment: function(){
-        this.equipmentView = new EquipmentView(this.model);
+    equipment: function(returnHome){
+        redirectIfLoggedOut();
+        this.equipmentView = new EquipmentView(this.model, returnHome);
         this.globalView.goto(this.equipmentView);
     },
-    fitnessLevel: function(){
-        this.fitnessLevelView = new FitnessLevelView(this.model);
+    fitnessLevel: function(returnHome){
+        redirectIfLoggedOut();
+        this.fitnessLevelView = new FitnessLevelView(this.model, returnHome);
         this.globalView.goto(this.fitnessLevelView);
     },
-    schedule: function(){
-        this.scheduleView = new ScheduleView(this.model);
+    schedule: function(returnHome){
+        redirectIfLoggedOut();
+        this.scheduleView = new ScheduleView(this.model, returnHome);
         this.globalView.goto(this.scheduleView);
     },
     signup: function(){
@@ -1118,7 +1180,12 @@ IndexRouter = Backbone.Router.extend({
     },
     defaultRoute: function(path){
         removeHash();
-        this.landingView = new LandingView(this.model);
-        this.globalView.goto(this.landingView);
+        if(!Parse.User.current()){
+            this.landingView = new LandingView(this.model);
+            this.globalView.goto(this.landingView);
+        } else {
+            this.dashboardView = new DashboardView(this.model);
+            this.globalView.goto(this.dashboardView);
+        }
     }
 });

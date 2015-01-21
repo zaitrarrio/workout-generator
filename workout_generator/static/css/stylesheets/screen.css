@@ -1537,6 +1537,10 @@ a.button {
   -o-transition: all 0.5s ease;
   transition: all 0.5s ease;
 }
+a.button.gray{
+    background-color: #777;
+    margin-top: 10px;
+}
 a.button.medium {
   font-size: 14px;
   padding: 14px 20px;
@@ -1548,6 +1552,7 @@ a.button.large {
 a.button:hover {
   background-color: #222;
 }
+
 a.button.rounded {
   -webkit-border-radius: 5px;
   -moz-border-radius: 5px;
