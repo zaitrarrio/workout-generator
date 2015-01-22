@@ -3,12 +3,14 @@ import json
 from django.http import Http404
 from django.http import HttpResponse
 
+from workout_generator.basic_navigation.constants import ResponseCodes
 from workout_generator.constants import Equipment
 from workout_generator.constants import Goal
 from workout_generator.mailgun.tasks import send_verify_email
 from workout_generator.stripe.utils import create_subscription
 from workout_generator.user.models import User
 from workout_generator.workout.exceptions import NeedsNewWorkoutsException
+from workout_generator.user.exceptions import NoGoalSetException
 from workout_generator.workout.models import WorkoutCollection
 from workout_generator.workout.generator import generate_new_workouts
 
@@ -161,5 +163,10 @@ def workout(request):
     try:
         workout_collection = WorkoutCollection.for_user(user)
     except NeedsNewWorkoutsException:
-        workout_collection = generate_new_workouts(user)
+        try:
+            workout_collection = generate_new_workouts(user)
+        except NoGoalSetException:
+            return render_to_json({
+                "redirect": "!goal/return"
+            }, status=ResponseCodes.REDIRECT_REQUIRED)
     return render_to_json(workout_collection.to_json())

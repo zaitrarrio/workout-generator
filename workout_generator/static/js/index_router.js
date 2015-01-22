@@ -1,3 +1,8 @@
+
+var ResponseCodes = {
+    REDIRECT_REQUIRED: 499
+};
+
 function validateEmail(email) {
     var re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     return re.test(email);
@@ -583,7 +588,15 @@ WorkoutView = AbstractView.extend({
         this.listenTo(this.userModel, 'sync', function(){
             self.render();
         });
-        this.workoutCollection.fetch();
+        this.workoutCollection.fetch({
+            error: function(junk, response){
+                var responseData = $.parseJSON(response.responseText);
+                if(response.status === ResponseCodes.REDIRECT_REQUIRED){
+                    var redirectDestination = responseData.redirect;
+                    Backbone.history.navigate(redirectDestination, {trigger: true});
+                }
+            }
+        });
     },
     _initDatePickerView: function(){
         this.datePickerView = new DatePickerView(this.workoutCollection);
