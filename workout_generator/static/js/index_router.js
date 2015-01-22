@@ -491,7 +491,7 @@ PaymentView = AbstractView.extend({
                     type: 'POST',
                     contentType: 'application/x-www-form-urlencoded;charset=utf-8',
                     success: function(response){
-                        alert("stripe success");
+                        Backbone.history.navigate('', {trigger: true});
                     },
                     error: function(data){
                         alert("stripe fail");
@@ -1009,6 +1009,7 @@ LoginStateView = Backbone.View.extend({
             this.authenticated = false;
             $('.profile-circular').hide();
             this.render();
+            Backbone.history.navigate('', {trigger: true});
         } else {
             Backbone.history.navigate('!login', {trigger: true});
         }
@@ -1070,6 +1071,9 @@ WorkoutCollection = Backbone.Collection.extend({
         var self = this;
         this.each(function(model){
             var isoweekday = model.get("js_isoweekday");
+            if(isoweekday === null || isoweekday === undefined){
+                return;
+            }
             var key = isoweekday.toString();
             self.isoweekday_to_workout[key] = model;
         });

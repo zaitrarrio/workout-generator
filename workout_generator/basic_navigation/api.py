@@ -40,8 +40,7 @@ def requires_post(fn):
 def signup(request, user=None):
     post_data = request.POST or json.loads(request.body)
     email = post_data['email']
-    password = post_data['password']
-    placeholder(email, password)
+    placeholder(email)
     send_verify_email(email)
     return render_to_json({}, status=204)
 
