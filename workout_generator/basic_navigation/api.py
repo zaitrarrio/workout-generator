@@ -80,9 +80,10 @@ def requires_post(fn):
 @requires_post
 def signup(request, user=None, access_token=None):
     post_data = request.POST or json.loads(request.body)
-    email = post_data['email']
-    placeholder(email)
-    send_verify_email(email)
+    if 'facebook' not in post_data:
+        email = post_data['email']
+        placeholder(email)
+        send_verify_email(email)
     return render_to_json({"access_token": access_token}, status=200)
 
 

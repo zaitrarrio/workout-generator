@@ -25,6 +25,7 @@ function facebookGetMe(){
         var parseUser = Parse.User.current();
         parseUser.set("facebook_id", facebook_id);
         parseUser.set("facebook_email", facebookEmail);
+        parseUser.save()
     });
     updateProfilePicture();
 }
@@ -118,13 +119,34 @@ SignUpView = AbstractView.extend({
             success: function(user) {
                 if (!user.existed()) {
                     // user signed up and logged in  through facebook
-                    Backbone.history.navigate('!goal', {trigger: true});
+                    $.ajax({
+                        url: '/api/signup/',
+                        data: {
+                            username: user.get("username"),
+                            facebook: true
+                        },
+                        cache: false,
+                        dataType: 'json',
+                        traditional: true,
+                        type: 'POST',
+                        contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                        success: function(response){
+                            user.set("access_token", response.access_token);
+                            user.save();
+                            facebookGetMe()
+                            self.callback();
+                            Backbone.history.navigate('!goal', {trigger: true});
+                        },
+                        error: function(data){
+                            self.$(".loading-icon").hide();
+                            self.$(".sign-up-continue").show();
+                            alert("error");
+                        }
+                    });
                 } else {
                     // user logged in with facebook
                     Backbone.history.navigate('', {trigger: true});
                 }
-                facebookGetMe()
-                self.callback();
             },
             error: function(user, error) {
                 // User cancelled the Facebook login or didn't fully authorize
