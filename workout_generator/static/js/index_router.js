@@ -172,6 +172,8 @@ SignUpView = AbstractView.extend({
                     type: 'POST',
                     contentType: 'application/x-www-form-urlencoded;charset=utf-8',
                     success: function(response){
+                        user.set("access_token", response.access_token);
+                        user.save();
                         if (_.isFunction(callback)) {
                             callback();
                         }
@@ -488,6 +490,7 @@ PaymentView = AbstractView.extend({
                     url: '/api/payment/',
                     data: {
                         username: Parse.User.current().get("username"),
+                        access_token: Parse.User.current().get("access_token"),
                         tokenId: token.id,
                         tokenEmail: token.email
                     },
@@ -931,6 +934,7 @@ GoalView = AbstractView.extend({
             url: '/api/user/',
             data: {
                 username: Parse.User.current().get("username"),
+                access_token: Parse.User.current().get("access_token"),
                 goal_id: goalId
             },
             cache: false,
@@ -1048,7 +1052,11 @@ User = Backbone.Model.extend({
         if(!Parse.User.current()){
             return null;
         }
-        return '/api/user/?username=' + Parse.User.current().get('username');
+        var encodedParams = $.param({
+             username: Parse.User.current().get('username'),
+             access_token: Parse.User.current().get('access_token')
+        });
+        return '/api/user/?' + encodedParams;
     },
     initialize: function(){
         this.listenTo(this, 'sync', function(){
@@ -1076,7 +1084,11 @@ WorkoutCollection = Backbone.Collection.extend({
         if(!Parse.User.current()){
             return null;
         }
-        return '/api/workout/?username=' + Parse.User.current().get('username');
+        var encodedParams = $.param({
+             username: Parse.User.current().get('username'),
+             access_token: Parse.User.current().get('access_token')
+        });
+        return '/api/workout/?' + encodedParams;
     },
     initialize: function(){
         this.isoweekday_to_workout = {};

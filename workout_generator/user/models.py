@@ -1,4 +1,5 @@
 # import datetime
+import base64
 import random
 import uuid
 
@@ -22,7 +23,6 @@ class _User(models.Model):
     username = models.CharField(max_length=255, null=False)
     email = models.CharField(max_length=255, null=True)
     confirmation_code = models.CharField(max_length=255, null=True)
-    # TODO need to add access_token
     status_state_id = models.IntegerField(default=StatusState.UNCONFIRMED.index, null=False)
 
     stripe_customer_id = models.CharField(max_length=255, null=True)
@@ -288,7 +288,7 @@ class User(object):
     def create_from_username(cls, username):
         _user = _User.objects.create(
             username=username,
-            confirmation_code=str(uuid.uuid4())
+            confirmation_code=base64.b64encode(str(uuid.uuid4()))
         )
         user = User(_user)
         user.update_equipment_ids(Equipment.DEFAULT_IDS)
@@ -299,8 +299,8 @@ class User(object):
         try:
             _user = _User.objects.get(username=username)
         except ObjectDoesNotExist:
-            return cls.create_from_username(username)
-        return User(_user)
+            return True, cls.create_from_username(username)
+        return False, User(_user)
 
     @classmethod
     def get_by_username(cls, username):

@@ -3,6 +3,7 @@ import json
 from django.http import Http404
 from django.http import HttpResponse
 
+from workout_generator.access_token.models import AccessToken
 from workout_generator.basic_navigation.constants import ResponseCodes
 from workout_generator.constants import Equipment
 from workout_generator.constants import Goal
@@ -32,19 +33,33 @@ def requires_post(fn):
             }, status=400)
 
         username = post_data['username']
-        user = User.get_or_create_by_username(username)
+        newly_created, user = User.get_or_create_by_username(username)
+        if newly_created:
+            access_token = AccessToken.create_for_user(user)
+        else:
+            if 'access_token' not in request.POST:
+                return render_to_json({
+                    "message": "POST request requires an access token",
+                }, status=400)
+
+            access_token = AccessToken.get_from_token_data(post_data['access_token'])
+            if not access_token.has_access_to_user(user):
+                return render_to_json({
+                    "message": "Invalid Access Token"
+                }, status=403)
         kwargs["user"] = user
+        kwargs["access_token"] = access_token.token_data
         return fn(request, *args, **kwargs)
     return inner
 
 
 @requires_post
-def signup(request, user=None):
+def signup(request, user=None, access_token=None):
     post_data = request.POST or json.loads(request.body)
     email = post_data['email']
     placeholder(email)
     send_verify_email(email)
-    return render_to_json({}, status=204)
+    return render_to_json({"access_token": access_token}, status=200)
 
 
 def placeholder(*args, **kwargs):
@@ -67,7 +82,7 @@ def user(request):
 
 
 @requires_post
-def _update_user(request, user=None):
+def _update_user(request, user=None, access_token=None):
     field_to_function = {
         'goal_id': _update_goal,
         'age': _update_age,
@@ -88,7 +103,7 @@ def _update_user(request, user=None):
         if field in post_data:
             function(user, post_data[field])
 
-    return render_to_json({}, status=204)
+    return render_to_json({"access_token": access_token}, status=200)
 
 
 def _get_user(request):
@@ -136,7 +151,7 @@ def _update_age(user, age):
 
 
 @requires_post
-def payment(request, user=None):
+def payment(request, user=None, access_token=None):
     post_data = request.POST or json.loads(request.body)
     stripe_token = post_data['tokenId']
     stripe_email = post_data['tokenEmail']
@@ -148,7 +163,7 @@ def payment(request, user=None):
 
     user.update_stripe_customer_id(customer_id_or_message)
 
-    return render_to_json({}, status=204)
+    return render_to_json({"access_token": access_token}, status=200)
 
 
 def workout(request):
