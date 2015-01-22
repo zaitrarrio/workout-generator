@@ -113,8 +113,10 @@ SignUpView = AbstractView.extend({
             success: function(user) {
                 if (!user.existed()) {
                     // user signed up and logged in  through facebook
+                    Backbone.history.navigate('!goal', {trigger: true});
                 } else {
                     // user logged in with facebook
+                    Backbone.history.navigate('', {trigger: true});
                 }
                 facebookGetMe()
                 self.callback();
