@@ -25,13 +25,13 @@ class UserTestCase(unittest.TestCase):
 
     def test_update_available_days(self):
         username = "testuser@test.com"
-        user = User.get_or_create_by_username(username)
+        _, user = User.get_or_create_by_username(username)
         user.update_available_days([0])
         self.assertEqual(user.to_json()["enabled_days"], [0])
 
     def test_move_to_next_week(self):
         username = "testuser@test.com"
-        user = User.get_or_create_by_username(username)
+        _, user = User.get_or_create_by_username(username)
         with self.assertRaises(NoGoalSetException):
             user.move_to_next_week()
         user.update_goal_id(1)
@@ -52,7 +52,7 @@ class UserTestCase(unittest.TestCase):
                 raise Exception("infinite loop reach")
 
     def test_get_min_max_cardio(self):
-        user = User.get_or_create_by_username("test")
+        _, user = User.get_or_create_by_username("test")
         user.update_goal_id(3)
         with self.assertRaises(NoGoalSetException):
             user.get_min_max_cardio()
@@ -61,7 +61,7 @@ class UserTestCase(unittest.TestCase):
         self.assertGreater(max_cardio, min_cardio)
 
     def test_get_workout_component_frequencies(self):
-        user = User.get_or_create_by_username("unique")
+        _, user = User.get_or_create_by_username("unique")
         user.update_goal_id(1)
         with self.assertRaises(NoGoalSetException):
             user.get_workout_component_frequencies()
@@ -71,7 +71,7 @@ class UserTestCase(unittest.TestCase):
             self.assertTrue(frequency_info.minimum <= frequency_info.maximum)
 
     def test_get_volume_for_workout_component(self):
-        user = User.get_or_create_by_username("unique2")
+        _, user = User.get_or_create_by_username("unique2")
         user.update_goal_id(1)
         with self.assertRaises(NoGoalSetException):
             user.get_volume_for_workout_component(1)
@@ -89,7 +89,7 @@ class UserTestCase(unittest.TestCase):
             self.assertTrue(hasattr(volume_info, attr))
 
     def test_update_equipment_ids(self):
-        user = User.get_or_create_by_username("equipment_user")
+        _, user = User.get_or_create_by_username("equipment_user")
         initial_equipment = user.get_available_equipment_ids()
         self.assertGreater(len(initial_equipment), 0)
         new_equipment = [1, 2, 3]

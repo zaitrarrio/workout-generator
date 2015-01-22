@@ -55,7 +55,7 @@ class WorkoutTestCase(unittest.TestCase):
         self.assertIn(1, isoweekday_no_cardio)
 
     def test_no_exception_generate_framework(self):
-        user = User.get_or_create_by_username("weekframework")
+        _, user = User.get_or_create_by_username("weekframework")
         user.update_goal_id(1)
         user.move_to_next_week()
         initial_workout_component_count = _DayFramework__WorkoutComponent.objects.count()
@@ -77,7 +77,7 @@ class WorkoutTestCase(unittest.TestCase):
         self.assertEqual(len(total_components), 14)
 
     def test_generate_workouts(self):
-        user = User.get_or_create_by_username("workoutdude")
+        _, user = User.get_or_create_by_username("workoutdude")
         user.update_goal_id(1)
         user.move_to_next_week()
         workout_collection = generate_new_workouts(user)
@@ -87,7 +87,7 @@ class WorkoutTestCase(unittest.TestCase):
         for fitness_level in xrange(1, 6):
             for experience in xrange(1, 6):
                 for goal_id in Goal.IDS:
-                    user = User.get_or_create_by_username("workoutdude%s_%s_%s" % (fitness_level, experience, goal_id))
+                    _, user = User.get_or_create_by_username("workoutdude%s_%s_%s" % (fitness_level, experience, goal_id))
                     # user = User.get_or_create_by_username("workoutdude%s" % goal_id)
                     user.update_goal_id(goal_id)
                     # user.update_fitness_level(fitness_level)

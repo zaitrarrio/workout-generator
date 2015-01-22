@@ -282,6 +282,7 @@ def _add_flexibility_to_workout(workout, exercise_filter):
         except IndexError:
             continue
         workout.add_exercise_set_collection(flexibility_exercise, 1, 30)
+        exercise_filter.discard_exercise_id(flexibility_exercise.id)
 
 
 def _add_exercises_for_component(workout_component_id, exercise_filter, user, workout):
