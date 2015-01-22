@@ -679,7 +679,7 @@ Don't have an account?  <a href="#!signup">Sign Up</a>!
 </script>
 
 <script type="text/html" id="workout-component-view">
-<div style="padding-bottom: 10px;">
+<div style="padding-bottom: 10px; margin-left: 30px;">
 <div class="workout-component-block top-rounded">
 <%= workout_component.title %>
 <% if(rest){ %>
@@ -738,6 +738,7 @@ bottom-rounded
 </script>
 
 <script type="text/html" id="cardio-view">
+<div style="padding-bottom: 10px; margin-left: 30px;">
 <h2 style="margin-top: 10px;"><%= cardioLevel %></h2>
 <div class="cardio-meta">
 <% for (var zone = 1; zone <= 3; zone++) { %>
@@ -776,6 +777,7 @@ interval<br/>
 <center>
 <h3 style="margin-top: 10px;"><%= totalTime %> Minutes</h3>
 </center>
+</div>
 </div>
 </script>
 

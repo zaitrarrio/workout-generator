@@ -13,25 +13,6 @@ function redirectIfLoggedOut(){
     }
 }
 
-function facebookGetMe(){
-    FB.api('/v2.1/me?fields=id,email', function(response) {
-        var facebook_id = response.id;
-        var facebookEmail = response.email || '';
-        var parseUser = Parse.User.current();
-        parseUser.set("facebook_id", facebook_id);
-        parseUser.set("facebook_email", facebookEmail);
-    });
-    updateProfilePicture();
-}
-
-function updateProfilePicture() {
-    FB.api('/v2.1/me/picture?redirect=false', function(response){
-        var profilePictureUrl = response.data.url;
-        $('.profile-circular').css({'background-image':'url(' + profilePictureUrl +')'});
-        $('.profile-circular').show();
-    });
-}
-
 function listToColumnMatrix(list, columns){
     var matrix = [];
     var buffer = [];
