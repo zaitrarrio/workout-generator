@@ -61,7 +61,7 @@ def requires_post(fn):
         if newly_created:
             access_token = AccessToken.create_for_user(user)
         else:
-            if 'access_token' not in request.POST:
+            if 'access_token' not in post_data:
                 return render_to_json({
                     "message": "POST request requires an access token",
                 }, status=400)

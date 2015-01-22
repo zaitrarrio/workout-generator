@@ -1092,6 +1092,7 @@ User = Backbone.Model.extend({
     },
     save: function(attrs, options) {
         this.set("username", Parse.User.current().get("username"));
+        this.set("access_token", Parse.User.current().get("access_token"));
         Backbone.Model.prototype.save.call(this, attrs, options);
     }
 });
