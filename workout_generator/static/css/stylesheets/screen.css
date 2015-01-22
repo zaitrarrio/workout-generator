@@ -2379,10 +2379,6 @@ label[for=background], select#background {
     display: block !important;
   }
 
-  .js .nav-bar {
-    display: none;
-  }
-
   .js .selectnav {
     display: block;
     width: 220px;
