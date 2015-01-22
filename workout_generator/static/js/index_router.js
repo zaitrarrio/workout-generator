@@ -833,7 +833,7 @@ CardioView = Backbone.View.extend({
             var zoneKey = "zone" + zone.toString();
             zoneMeta[zoneKey] = {
                 minutes: parseInt(this.cardioJSON[i].minutes, 10),
-                seconds: parseInt(parseFloat(this.cardioJSON[i].minutes) * 60.0, 10),
+                seconds: parseInt(parseFloat(this.cardioJSON[i].minutes) * 60.0, 10) - (60 * parseInt(this.cardioJSON[i].minutes, 10)),
                 minHeartRate: parseInt(parseFloat(this.cardioJSON[i].min_heart_rate) * this.maxHeartRate / 100.0, 10),
                 maxHeartRate: parseInt(parseFloat(this.cardioJSON[i].max_heart_rate) * this.maxHeartRate / 100.0, 10)
             }
