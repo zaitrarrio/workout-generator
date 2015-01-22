@@ -23,9 +23,6 @@ $(window).load(function() {
     $(this).find('.flyout').eq(0).fadeOut(500);
   });
 
-  /* Responsive Nav Menu */
-  selectnav('nav-bar');
-
   /* Flexslider */
   (function() {
     var caption = $('.flex-caption');

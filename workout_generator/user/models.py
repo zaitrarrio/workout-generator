@@ -22,6 +22,7 @@ class _User(models.Model):
     username = models.CharField(max_length=255, null=False)
     email = models.CharField(max_length=255, null=True)
     confirmation_code = models.CharField(max_length=255, null=True)
+    # TODO need to add access_token
     status_state_id = models.IntegerField(default=StatusState.UNCONFIRMED.index, null=False)
 
     stripe_customer_id = models.CharField(max_length=255, null=True)
