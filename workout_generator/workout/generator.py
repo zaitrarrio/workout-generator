@@ -180,7 +180,7 @@ def _get_workout_component_list_for_week(workout_component_info, num_enabled_day
 
 
 def _generate_workouts(user, day_framework_collection):
-    previous_workouts = WorkoutCollection.get_existing_workouts_for_user(user)
+    previous_workouts = WorkoutCollection.get_existing_workouts_for_user(user, cutoff_future_workouts=True)
     new_workouts = []
     for day_index in xrange(7):
         workout_components = day_framework_collection.get_workout_components_for_day_index(day_index)

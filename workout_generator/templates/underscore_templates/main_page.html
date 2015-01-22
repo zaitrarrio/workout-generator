@@ -682,6 +682,13 @@ Don't have an account?  <a href="#!signup">Sign Up</a>!
 <div style="padding-bottom: 10px;">
 <div class="workout-component-block top-rounded">
 <%= workout_component.title %>
+<% if(rest){ %>
+    <% if(rest > 60){ %>
+        (<%= rest / 60 %> minutes rest)
+    <% } else {%>
+        (<%= rest %> seconds rest)
+    <% } %>
+<% } %>
 </div>
 
 <% for (var i = 0; i < exercises.length; i++) { %>

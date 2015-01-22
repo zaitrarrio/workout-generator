@@ -230,12 +230,15 @@ class WorkoutCollection(object):
         return workout_id_to_exercises
 
     @classmethod
-    def get_existing_workouts_for_user(cls, user):
-        day_framework_ids = list(_DayFramework.
-                                objects.
-                                filter(user_id=user.id).
-                                order_by("date").
-                                values_list("id", flat=True))
+    def get_existing_workouts_for_user(cls, user, cutoff_future_workouts=False):
+        day_framework_qs = (_DayFramework.
+                            objects.
+                            filter(user_id=user.id).
+                            order_by("date").
+                            values_list("id", flat=True))
+        if cutoff_future_workouts:
+            day_framework_qs = day_framework_qs.filter(date__lt=datetime.datetime.utcnow().date())
+        day_framework_ids = list(day_framework_qs)
 
         corresponding_workouts = list(_Workout.objects.filter(day_framework_id__in=day_framework_ids))
 
