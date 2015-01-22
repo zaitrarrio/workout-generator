@@ -247,19 +247,4 @@ $(window).load(function() {
     '</li>'
   });
 
-  /* Google Maps */
-  $("#gmap").gmap3({
-    map:{
-      address:"Miami Beach, FL",
-      options:{
-        zoom:12,
-        styles: [{
-          "stylers": [
-            { "saturation": -50 }
-          ]
-        }]
-      }
-    }
-  });
-
 });

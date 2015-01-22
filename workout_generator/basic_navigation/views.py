@@ -1,3 +1,4 @@
+import datetime
 import json
 import os
 
@@ -18,6 +19,7 @@ def home(request):
         "publishable_key": get_publishable_key(),
         "facebook_app_id": settings.FACEBOOK_APP_ID,
         "parse_app_id": settings.PARSE_APP_ID,
+        "year": datetime.datetime.utcnow().date().year,
         "parse_key": settings.PARSE_KEY
     }
     return render_to_response("basic_navigation/base.html", render_data)
