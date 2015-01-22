@@ -795,6 +795,9 @@ WorkoutComponentView = Backbone.View.extend({
         videoEl.show();
     },
     render: function(){
+        if(this.workoutComponentJSON.exercises.length === 0){
+            return this;
+        }
         this.$el.html(this.template(this.workoutComponentJSON));
         return this;
     }
