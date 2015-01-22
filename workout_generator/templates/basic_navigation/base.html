@@ -187,8 +187,6 @@
 
     <script>
     $(document).ready(function(){
-        var indexRouter = new IndexRouter();
-        Backbone.history.start();
 
         var facebookOptions = {
             appId      : '{{ facebook_app_id }}',
@@ -203,26 +201,9 @@
             };
             FB.getLoginStatus(callback);
             Parse.FacebookUtils.init(facebookOptions);
+            var indexRouter = new IndexRouter();
+            Backbone.history.start();
             indexRouter.updateLoginState();
-
-function facebookGetMe(){
-    FB.api('/v2.1/me?fields=id,email', function(response) {
-        var facebook_id = response.id;
-        var facebookEmail = response.email || '';
-        var parseUser = Parse.User.current();
-        parseUser.set("facebook_id", facebook_id);
-        parseUser.set("facebook_email", facebookEmail);
-    });
-    updateProfilePicture();
-}
-
-function updateProfilePicture() {
-    FB.api('/v2.1/me/picture?redirect=false', function(response){
-        var profilePictureUrl = response.data.url;
-        $('.profile-circular').css({'background-image':'url(' + profilePictureUrl +')'});
-        $('.profile-circular').show();
-    });
-}
         };
 
         (function(d, s, id){
