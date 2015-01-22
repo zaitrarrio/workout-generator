@@ -21,6 +21,30 @@ def render_to_json(response_obj, context={}, content_type="application/json", st
     return HttpResponse(json_str, content_type=content_type, status=status)
 
 
+def requires_auth(fn):
+    def inner(request, *args, **kwargs):
+        if 'username' not in request.GET:
+            return render_to_json({
+                "message": "GET requires a 'username'"
+            }, status=400)
+        username = request.GET['username']
+        user = User.get_by_username(username)
+
+        if 'access_token' not in request.GET:
+            return render_to_json({
+                "message": "GET requires an 'access_token'"
+            }, status=400)
+        access_token = AccessToken.get_from_token_data(request.GET['access_token'])
+        if not access_token.has_access_to_user(user):
+            return render_to_json({
+                "message": "Invalid Access Token"
+            }, status=403)
+        kwargs['user'] = user
+
+        return fn(request, *args, **kwargs)
+    return inner
+
+
 def requires_post(fn):
     def inner(request, *args, **kwargs):
         if request.method != "POST":
@@ -106,9 +130,8 @@ def _update_user(request, user=None, access_token=None):
     return render_to_json({"access_token": access_token}, status=200)
 
 
-def _get_user(request):
-    username = request.GET["username"]
-    user = User.get_by_username(username)
+@requires_auth
+def _get_user(request, user=None):
     if not user:
         return render_to_json({}, status=400)
     return render_to_json(user.to_json())
@@ -166,13 +189,11 @@ def payment(request, user=None, access_token=None):
     return render_to_json({"access_token": access_token}, status=200)
 
 
-def workout(request):
+@requires_auth
+def workout(request, user=None):
     '''
     return a week's worth of data for the user
     '''
-    username = request.GET["username"]
-    # TODO add some better authentication here
-    user = User.get_by_username(username)
     if not user:
         return render_to_json({}, status=400)
     try:
