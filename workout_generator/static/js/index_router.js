@@ -1023,7 +1023,12 @@ LoginStateView = Backbone.View.extend({
             this.authenticated = false;
             $('.profile-circular').hide();
             this.render();
-            Backbone.history.navigate('', {trigger: true});
+            if(window.location.hash === ''){
+                // already at home page
+                Backbone.history.navigate('!login', {trigger: true});
+            } else {
+                Backbone.history.navigate('', {trigger: true});
+            }
         } else {
             Backbone.history.navigate('!login', {trigger: true});
         }
