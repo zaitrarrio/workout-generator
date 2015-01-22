@@ -830,7 +830,7 @@ CardioView = Backbone.View.extend({
             var zoneKey = "zone" + zone.toString();
             zoneMeta[zoneKey] = {
                 minutes: parseInt(this.cardioJSON[i].minutes, 10),
-                seconds: parseInt(parseFloat(this.cardioJSON[i].minutes) / 60.0, 10),
+                seconds: parseInt(parseFloat(this.cardioJSON[i].minutes) * 60.0, 10),
                 minHeartRate: parseInt(parseFloat(this.cardioJSON[i].min_heart_rate) * this.maxHeartRate / 100.0, 10),
                 maxHeartRate: parseInt(parseFloat(this.cardioJSON[i].max_heart_rate) * this.maxHeartRate / 100.0, 10)
             }
@@ -865,8 +865,8 @@ CardioView = Backbone.View.extend({
             var zone = this.cardioJSON[i].zone;
             var zoneKey = "zone" + zone.toString();
             var percentOfTotal = parseFloat(this.cardioJSON[i].minutes) * widthOfCardioDisplayPercent / totalTime;
-            if(percentOfTotal < 3.0){
-                percentOfTotal = 3.0;
+            if(percentOfTotal < 1.0){
+                percentOfTotal = 1.0;
             }
             var bpm = (this.cardioJSON[i].max_heart_rate + this.cardioJSON[i].min_heart_rate) / 2.0;
             var height = bpm / maxBPM;
@@ -884,7 +884,7 @@ CardioView = Backbone.View.extend({
         this.$el.html(this.template({
             cardioLevel: this._getCardioLevelDisplayString(),
             zoneMeta: this._getZoneMeta(),
-            totalTime: this._getTotalTime(),
+            totalTime: parseInt(this._getTotalTime(), 10),
             cardioBlocks: this._getCardioBlocks()
         }));
         return this;
@@ -1104,7 +1104,7 @@ Workout = Backbone.Model.extend({
 
 WorkoutCollection = Backbone.Collection.extend({
     url: function(){
-        if(!Parse.User.current()){
+        if(!Parse.User.current() || !Parse.User.current().get('access_token')){
             return null;
         }
         var encodedParams = $.param({
