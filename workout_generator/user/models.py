@@ -160,6 +160,10 @@ class User(object):
         return self._user.id
 
     @property
+    def stripe_customer_id(self):
+        return self._user.stripe_customer_id
+
+    @property
     def minutes_per_day(self):
         return self._user.minutes_per_day
 

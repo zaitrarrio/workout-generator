@@ -574,8 +574,28 @@ You can rest assured that the details of your training have been finely tuned. Y
 </script>
 
 <script type="text/html" id="payment-view">
-<div>
+<div class="four columns" style="height: 10px;"></div>
+<div class="eight columns">
+<center>
+<h1>Payment</h1>
+</center>
+<p style="margin-top: 20px; font-size: 1.1em;">
+The Workout-Generator service is a <strong style="font-weight: bold;">$7.99/month</strong> service.
+</p>
+
+<p style="font-size: 1.1em;">
+This is effectively comparable service to a personal trainer at <strong style="font-weight: bold;">less than $1 per hour</strong>.
+</p>
+
+<p style="font-size: 1.1em;">
+The service comes with a free <strong style="font-weight: bold;">2 week trial</strong> with no strings attached.  You're <strong style="font-weight: bold;">free to cancel</strong> at any time.
+</p>
+<a href="javascript:void(0);" class="button large rounded subscribe" style="padding: 10px 20px; margin-left: 40%; margin-bottom: 20px;">Subscibe</a>
+
+<p class="error-area" style="margin-left: 10%; color: #8f0000;"><%= optionalMessage %></p>
 </div>
+
+<div class="four columns" style="height: 10px;"></div>
 </script>
 
 <script type="text/html" id="login-view">
@@ -801,6 +821,26 @@ interval<br/>
 <a href="#!schedule/return" class="button large rounded gray" style="padding: 20px 60px; width: 160px;">Edit my Schedule</a>
     <br/>
 <a href="#!equipment/return" class="button large rounded gray" style="padding: 20px 60px; width: 160px;">Change Equipment</a>
+<br/>
+<a href="#!paymentsettings" class="button large rounded gray" style="padding: 20px 60px; width: 160px;">Payment Settings</a>
     <br/>
 </div>
+</script>
+
+<script type="text/html" id="payment-settings-view">
+<div class="four columns" style="height: 10px;"></div>
+<div class="eight columns">
+
+    <p style="font-size: 1.1em">
+        If you cancel your subscription you'll still be able to renew.
+
+    </p>
+    <p style="font-size: 1.1em;">
+        Otherwise, we'll be bummed if you go.  Feel free to tell us why.
+    </p>
+    <a href="#!paymentsettings" class="button large rounded gray cancel-payment" style="padding: 20px 60px; width: 160px;">Cancel Payment</a>
+<br/>
+<p class="success-area" style="display: none; margin-top: 30px; color: #008f00;">You will not be billed anymore.  You still have access to WorkoutGenerator for the remainder of your billing period.</p>
+</div>
+<div class="four columns" style="height: 10px;"></div>
 </script>

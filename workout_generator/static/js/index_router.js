@@ -495,8 +495,46 @@ EquipmentView = AbstractView.extend({
     }
 });
 
+PaymentSettingsView = AbstractView.extend({
+    events: {
+        "click .cancel-payment": "cancelPayment"
+    },
+    initialize: function(model, optionString){
+        this.template = _.template($("#payment-settings-view").html());
+    },
+    cancelPayment: function(){
+        var self = this;
+        $.ajax({
+            url: '/api/cancel_payment/',
+            data: {
+                username: Parse.User.current().get("username"),
+                access_token: Parse.User.current().get("access_token")
+            },
+            cache: false,
+            dataType: 'json',
+            traditional: true,
+            type: 'POST',
+            contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+            success: function(response){
+                self.$(".success-area").show();
+            },
+            error: function(data){
+                alert("error");
+            }
+        });
+    },
+    render: function(options){
+        this.$el.html(this.template(this.renderData));
+        return this.postRender(options);
+    }
+});
+
 PaymentView = AbstractView.extend({
-    initialize: function(model){
+    events: {
+        "click .subscribe": "openStripeModal"
+    },
+    initialize: function(model, optionString){
+        this.optionString = optionString;
         this.model = model;
         this.template = _.template($("#payment-view").html());
     },
@@ -525,7 +563,7 @@ PaymentView = AbstractView.extend({
                         Backbone.history.navigate('', {trigger: true});
                     },
                     error: function(data){
-                        alert("stripe fail");
+                        self.$(".error-area").html("There was a problem charging your card");
                     }
                 });
             }
@@ -533,13 +571,19 @@ PaymentView = AbstractView.extend({
 
         var options = {
             name: 'WorkoutGenerator.net',
-            description: 'Monthly Subscription'
+            description: 'Monthly Subscription (w Free Trial)'
         };
         options["panel-label"] = "Subscribe";
         handler.open(options);
     },
     render: function(options){
-        this.$el.html(this.template());
+        var optionalMessage = "";
+        if(this.optionString === "delinquent"){
+            optionalMessage = "There appears to be a problem with our last attempt charging your credit card.  We'll automatically retry, but you can also update your credit card details";
+        }
+        this.$el.html(this.template({
+            optionalMessage: optionalMessage
+        }));
         this.postRender(options);
         this.openStripeModal();
         return this.el;
@@ -1180,7 +1224,9 @@ IndexRouter = Backbone.Router.extend({
         "!schedule": "schedule",
 
         "!login": "login",
+        "!payment/:optionString": "payment",
         "!payment": "payment",
+        "!paymentsettings": "paymentsettings",
         "!workout": "workout",
         "": "defaultRoute"
     },
@@ -1196,6 +1242,11 @@ IndexRouter = Backbone.Router.extend({
         this.workoutView = new WorkoutView(this.model);
         this.globalView.goto(this.workoutView);
     },
+    paymentsettings: function(){
+        redirectIfLoggedOut();
+        this.paymentSettingsView = new PaymentSettingsView(this.model);
+        this.globalView.goto(this.paymentSettingsView);
+    },
     login: function(){
         var self = this;
         this.loginView = new LoginView(this.model, function(){
@@ -1207,9 +1258,9 @@ IndexRouter = Backbone.Router.extend({
         this.templateView = new TemplateView("#confirm-view", {email: email});
         this.globalView.goto(this.templateView);
     },
-    payment: function(){
+    payment: function(optionString){
         redirectIfLoggedOut();
-        this.paymentView = new PaymentView(this.model);
+        this.paymentView = new PaymentView(this.model, optionString);
         this.globalView.goto(this.paymentView);
     },
     goal: function(returnHome){

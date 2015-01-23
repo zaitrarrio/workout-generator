@@ -8,10 +8,14 @@ from workout_generator.basic_navigation.constants import ResponseCodes
 from workout_generator.constants import Equipment
 from workout_generator.constants import Goal
 from workout_generator.mailgun.tasks import send_verify_email
+from workout_generator.stripe.constants import SubscriptionState
+from workout_generator.stripe.utils import cancel_subscription
+from workout_generator.stripe.utils import change_credit_card
 from workout_generator.stripe.utils import create_subscription
+from workout_generator.stripe.utils import validate_user_payment
 from workout_generator.user.models import User
-from workout_generator.workout.exceptions import NeedsNewWorkoutsException
 from workout_generator.user.exceptions import NoGoalSetException
+from workout_generator.workout.exceptions import NeedsNewWorkoutsException
 from workout_generator.workout.models import WorkoutCollection
 from workout_generator.workout.generator import generate_new_workouts
 
@@ -175,19 +179,39 @@ def _update_age(user, age):
 
 
 @requires_post
+def cancel_payment(request, user=None, access_token=None):
+    cancel_subscription(user)
+    return render_to_json({}, status=204)
+
+
+@requires_post
 def payment(request, user=None, access_token=None):
     post_data = request.POST or json.loads(request.body)
     stripe_token = post_data['tokenId']
     stripe_email = post_data['tokenEmail']
-    success, customer_id_or_message = create_subscription(stripe_token, stripe_email)
-    if not success:
-        return render_to_json({
-            "error": customer_id_or_message
-        }, status=400)
+    if user.stripe_customer_id is None:
+        success, customer_id_or_message = create_subscription(stripe_token, stripe_email)
+        if not success:
+            return render_to_json({
+                "error": customer_id_or_message
+            }, status=400)
 
-    user.update_stripe_customer_id(customer_id_or_message)
+        user.update_stripe_customer_id(customer_id_or_message)
+    else:
+        change_credit_card(user)
 
     return render_to_json({"access_token": access_token}, status=200)
+
+
+def _error_for_subscription_state(subscription_state):
+    if subscription_state == SubscriptionState.DELINQUENT:
+        return render_to_json({
+            "redirect": "!payment/delinquent"
+        }, status=ResponseCodes.REDIRECT_REQUIRED)
+    elif subscription_state == SubscriptionState.INVALID:
+        return render_to_json({
+            "redirect": "!payment"
+        }, status=ResponseCodes.REDIRECT_REQUIRED)
 
 
 @requires_auth
@@ -195,6 +219,10 @@ def workout(request, user=None):
     '''
     return a week's worth of data for the user
     '''
+    subscription_state = validate_user_payment(user)
+    if subscription_state != SubscriptionState.VALID:
+        return _error_for_subscription_state(subscription_state)
+
     if not user:
         return render_to_json({}, status=400)
     try:
