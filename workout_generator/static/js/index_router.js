@@ -601,7 +601,7 @@ LoginView = AbstractView.extend({
         this.template = _.template($("#login-view").html());
     },
     login: function(){
-        var email = this.$(".email-input").val();
+        var email = this.$(".email-input").val().toLowerCase();
         var password = this.$(".password-input").val();
         this.$(".loading-icon").show();
         this.$(".log-in-continue").hide();
