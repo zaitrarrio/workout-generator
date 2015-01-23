@@ -544,7 +544,9 @@ PaymentView = AbstractView.extend({
         var self = this;
         var handler = StripeCheckout.configure({
             key: $("#stripe-publish-key").val(),
-            image: $("#square-icon").val(),
+            // image: $("#square-icon").val(),
+            // FIXME this is hardcoded right now
+            image: "https://workout-generator-static.s3.amazonaws.com/img/weight_equipment/barbell.jpg",
             token: function(token) {
                 $.ajax({
                     url: '/api/payment/',
