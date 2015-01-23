@@ -1101,7 +1101,6 @@ GlobalView = Backbone.View.extend({
         this.currentPage = null;
     },
     goto: function (view) {
-
         var previous = this.currentPage || null;
         var next = view;
 
