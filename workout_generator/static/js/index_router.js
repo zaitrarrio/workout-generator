@@ -1149,8 +1149,10 @@ LoginStateView = Backbone.View.extend({
     render: function(){
         if(this.authenticated){
             this.$el.html("<a href='javascript:void(0);'>Log Out <i class='icon-signout'></i></a></li>");
+            $("#pricing-link").hide();
         } else {
             this.$el.html("<a href='javascript:void(0);'>Log In <i class='icon-signin'></i></a></li>");
+            $("#pricing-link").show();
         }
     }
 });
@@ -1267,6 +1269,7 @@ IndexRouter = Backbone.Router.extend({
         "!payment/:optionString": "payment",
         "!payment": "payment",
         "!paymentsettings": "paymentsettings",
+        "!pricing": "pricing",
         "!workout": "workout",
         "!requiresconfirmation": "requiresConfirmation",
         "": "defaultRoute"
@@ -1282,6 +1285,10 @@ IndexRouter = Backbone.Router.extend({
         redirectIfLoggedOut();
         this.requiresConfirmationView = new RequiresConfirmationView(this.model);
         this.globalView.goto(this.requiresConfirmationView);
+    },
+    pricing: function(){
+        this.templateView = new TemplateView("#pricing-view", {});
+        this.globalView.goto(this.templateView);
     },
     workout: function(){
         redirectIfLoggedOut();
