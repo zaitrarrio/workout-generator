@@ -744,13 +744,15 @@ bottom-rounded
     <% } %>
     </div>
 
-<video class="exercise-video" id="video_exercise_<%= exerciseSet.exercise.id %>" autoplay="" loop="" poster="true" width="480" height="360" style="display: none;">
-<source src="https://s3-us-west-1.amazonaws.com/workout-generator-exercises/smaller_webm/small_<%= exerciseSet.exercise.video_id  %>.webmsd.webm" type="video/webm" class="webmsource">
+<video class="exercise-video" id="video_exercise_<%= exerciseSet.exercise.id %>" autoplay="" loop="" poster="true" width="480" height="360" style="max-width: 100%; display: none;">
+    <source src="https://s3-us-west-1.amazonaws.com/workout-generator-exercises/smaller_mp4/small_<%= exerciseSet.exercise.video_id  %>.mp4" type="video/mp4" class="mp4source">
+    <source src="https://s3-us-west-1.amazonaws.com/workout-generator-exercises/smaller_webm/small_<%= exerciseSet.exercise.video_id  %>.webmsd.webm" type="video/webm" class="webmsource">
 </video>
 
 <% if(exerciseSet.superset) {%>
-<video class="exercise-video" id="video_exercise_<%= exerciseSet.superset.exercise.id %>" autoplay="" loop="" poster="true" width="480" height="360" style="display: none;">
-<source src="https://s3-us-west-1.amazonaws.com/workout-generator-exercises/smaller_webm/small_<%= exerciseSet.superset.exercise.video_id  %>.webmsd.webm" type="video/webm" class="webmsource">
+<video class="exercise-video" id="video_exercise_<%= exerciseSet.superset.exercise.id %>" autoplay="" loop="" poster="true" width="480" height="360" style="max-width: 100%; display: none;">
+    <source src="https://s3-us-west-1.amazonaws.com/workout-generator-exercises/smaller_mp4/small_<%= exerciseSet.superset.exercise.video_id  %>.mp4" type="video/mp4" class="mp4source">
+    <source src="https://s3-us-west-1.amazonaws.com/workout-generator-exercises/smaller_webm/small_<%= exerciseSet.superset.exercise.video_id  %>.webmsd.webm" type="video/webm" class="webmsource">
 </video>
 <% } %>
 
