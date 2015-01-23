@@ -6,7 +6,7 @@ from django.db import models
 
 
 class _AccessToken(models.Model):
-    token = models.CharField(max_length=255)
+    token = models.CharField(max_length=255, db_index=True)
     user_id = models.IntegerField()
     permission_level = models.IntegerField()
 

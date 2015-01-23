@@ -19,7 +19,7 @@ TIME_FUDGE_FACTOR = 1.08
 
 
 class _Workout__Exercise(models.Model):
-    workout_id = models.IntegerField()
+    workout_id = models.IntegerField(db_index=True)
     exercise_id = models.IntegerField()
     reps = models.IntegerField()
     sets = models.IntegerField()
@@ -33,19 +33,19 @@ class _Workout__Exercise(models.Model):
 class _Workout(models.Model):
     off_day = models.BooleanField(default=False)
     visited = models.BooleanField(default=False)
-    day_framework_id = models.IntegerField()
+    day_framework_id = models.IntegerField(db_index=True)
     phase_id = models.IntegerField()
     cardio_session_json = models.TextField()
 
 
 class _DayFramework__WorkoutComponent(models.Model):
-    day_framework_id = models.IntegerField()
+    day_framework_id = models.IntegerField(db_index=True)
     workout_component_id = models.IntegerField()
 
 
 class _DayFramework(models.Model):
     js_isoweekday = models.IntegerField()
-    user_id = models.IntegerField()
+    user_id = models.IntegerField(db_index=True)
     level = models.IntegerField(null=True)
     datetime = models.DateTimeField()
 
