@@ -1,3 +1,5 @@
+from django.conf import settings
+
 from celery.task import task
 from .utils import send_test_email
 from .utils import send_email_with_data
@@ -41,8 +43,11 @@ def notify_admin_signup(facebook_service_id):
 
 
 @task
-def send_verify_email(email):
-    text = "Hey whats up"
+def send_verify_email(email, confirmation_code):
+    confirmation_link = settings.HOST_URL + "/confirm/%s/" % confirmation_code
+    text = "Thanks for signing up with Workout Generator!  Before using the application"\
+        + "you'll need to confirm your account.  You can do so by visiting:\n\n"\
+        + confirmation_link
     send_email_with_data(email, "Workout Generator Confirmation Email", text)
 
 

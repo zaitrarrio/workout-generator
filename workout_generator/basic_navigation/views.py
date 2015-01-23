@@ -4,13 +4,20 @@ import os
 
 from django.conf import settings
 from django.http import HttpResponse
+from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
 
+from workout_generator.user.models import User
 from workout_generator.stripe.constants import get_publishable_key
 
 
 def render_to_json(data, status=200):
     return HttpResponse(json.dumps(data), content_type="application/json", status=status)
+
+
+def confirm(request, confirmation_code):
+    User.update_for_confirmation_code(confirmation_code)
+    return HttpResponseRedirect("/")
 
 
 def home(request):

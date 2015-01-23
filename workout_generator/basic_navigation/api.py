@@ -13,6 +13,7 @@ from workout_generator.stripe.utils import cancel_subscription
 from workout_generator.stripe.utils import change_credit_card
 from workout_generator.stripe.utils import create_subscription
 from workout_generator.stripe.utils import validate_user_payment
+from workout_generator.user.constants import StatusState
 from workout_generator.user.models import User
 from workout_generator.user.exceptions import NoGoalSetException
 from workout_generator.workout.exceptions import NeedsNewWorkoutsException
@@ -23,6 +24,26 @@ from workout_generator.workout.generator import generate_new_workouts
 def render_to_json(response_obj, context={}, content_type="application/json", status=200):
     json_str = json.dumps(response_obj, indent=4)
     return HttpResponse(json_str, content_type=content_type, status=status)
+
+
+def requires_active_state(fn):
+    def inner(request, *args, **kwargs):
+        user = kwargs["user"]
+        is_valid = user.status_state == StatusState.ACTIVE
+        if not is_valid:
+            return _error_for_invalid_state()
+        return fn(request, *args, **kwargs)
+    return inner
+
+
+def requires_payment(fn):
+    def inner(request, *args, **kwargs):
+        user = kwargs["user"]
+        subscription_state = validate_user_payment(user)
+        if subscription_state != SubscriptionState.VALID:
+            return _error_for_subscription_state(subscription_state)
+        return fn(request, *args, **kwargs)
+    return inner
 
 
 def requires_auth(fn):
@@ -87,7 +108,7 @@ def signup(request, user=None, access_token=None):
     if 'facebook' not in post_data:
         email = post_data['email']
         placeholder(email)
-        send_verify_email(email)
+        send_verify_email(email, user.confirmation_code)
     return render_to_json({"access_token": access_token}, status=200)
 
 
@@ -203,6 +224,12 @@ def payment(request, user=None, access_token=None):
     return render_to_json({"access_token": access_token}, status=200)
 
 
+def _error_for_invalid_state():
+    return render_to_json({
+        "redirect": "!requiresconfirmation"
+    }, status=ResponseCodes.REDIRECT_REQUIRED)
+
+
 def _error_for_subscription_state(subscription_state):
     if subscription_state == SubscriptionState.DELINQUENT:
         return render_to_json({
@@ -215,14 +242,12 @@ def _error_for_subscription_state(subscription_state):
 
 
 @requires_auth
+@requires_active_state
+@requires_payment
 def workout(request, user=None):
     '''
     return a week's worth of data for the user
     '''
-    subscription_state = validate_user_payment(user)
-    if subscription_state != SubscriptionState.VALID:
-        return _error_for_subscription_state(subscription_state)
-
     if not user:
         return render_to_json({}, status=400)
     try:
@@ -235,3 +260,12 @@ def workout(request, user=None):
                 "redirect": "!goal/return"
             }, status=ResponseCodes.REDIRECT_REQUIRED)
     return render_to_json(workout_collection.to_json())
+
+
+@requires_post
+def re_send_confirmation(request, user=None, access_token=None):
+    email = user.username
+    send_verify_email(email, user.confirmation_code)
+    return render_to_json({
+        "email": email
+    }, status=200)

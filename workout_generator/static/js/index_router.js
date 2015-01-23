@@ -962,6 +962,46 @@ WorkoutMetaView = Backbone.View.extend({
 });
 
 
+RequiresConfirmationView = AbstractView.extend({
+    events: {
+        "click .re-send": "reSendEmail"
+    },
+    initialize: function(model){
+        this.template = _.template($("#requires-confirmation-view").html());
+    },
+    reSendEmail: function(){
+        this.$(".loading-icon").show();
+        var self = this;
+        $.ajax({
+            url: '/api/re_send_confirmation/',
+            data: {
+                username: Parse.User.current().get("username"),
+                access_token: Parse.User.current().get("access_token")
+            },
+            cache: false,
+            dataType: 'json',
+            traditional: true,
+            type: 'POST',
+            contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+            success: function(response){
+                var emailSentTo = response.email;
+                self.$(".loading-icon").hide();
+                self.$(".success-area").show();
+                self.$(".email-sent-to").html(emailSentTo);
+            },
+            error: function(data){
+                self.$(".loading-icon").hide();
+                alert("error");
+            }
+        });
+    },
+    render: function(){
+        this.$el.html(this.template());
+        return this;
+    }
+});
+
+
 GoalView = AbstractView.extend({
     events: {
         "click .member-container": "selectGoal",
@@ -1228,6 +1268,7 @@ IndexRouter = Backbone.Router.extend({
         "!payment": "payment",
         "!paymentsettings": "paymentsettings",
         "!workout": "workout",
+        "!requiresconfirmation": "requiresConfirmation",
         "": "defaultRoute"
     },
     initialize: function(){
@@ -1236,6 +1277,11 @@ IndexRouter = Backbone.Router.extend({
         this.globalView = new GlobalView();
         this.loginStateView = new LoginStateView(this.model);
         this.loginStateView.updateLoginState();
+    },
+    requiresConfirmation: function(){
+        redirectIfLoggedOut();
+        this.requiresConfirmationView = new RequiresConfirmationView(this.model);
+        this.globalView.goto(this.requiresConfirmationView);
     },
     workout: function(){
         redirectIfLoggedOut();

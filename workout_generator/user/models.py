@@ -160,6 +160,18 @@ class User(object):
         return self._user.id
 
     @property
+    def username(self):
+        return self._user.username
+
+    @property
+    def status_state(self):
+        return StatusState.from_index(self._user.status_state_id)
+
+    @property
+    def confirmation_code(self):
+        return self._user.confirmation_code
+
+    @property
     def stripe_customer_id(self):
         return self._user.stripe_customer_id
 
@@ -305,6 +317,14 @@ class User(object):
         except ObjectDoesNotExist:
             return True, cls.create_from_username(username)
         return False, User(_user)
+
+    @classmethod
+    def update_for_confirmation_code(cls, confirmation_code):
+        # TODO ensure that people cant jusr re-active an account or something
+        # by email
+        (_User.objects.
+         filter(confirmation_code=confirmation_code).
+         update(status_state_id=StatusState.ACTIVE.index))
 
     @classmethod
     def get_by_username(cls, username):

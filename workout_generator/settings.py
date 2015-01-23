@@ -151,3 +151,9 @@ if os.environ.get("I_AM_IN_DEV_ENV"):
 else:
     PARSE_APP_ID = "wa1yrXUI5ou6tlxvuXdnYziOOoVO8NjUM7D9onoD"
     PARSE_KEY = "HyFYNFSqehC9d4PWwDy57KWfZNah94noW2sOd1dm"
+
+
+if os.environ.get("I_AM_IN_DEV_ENV"):
+    HOST_URL = "http://localhost:5000"
+else:
+    HOST_URL = "http://workout-gen.herokuapp.com"
