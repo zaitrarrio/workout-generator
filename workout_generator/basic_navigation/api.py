@@ -109,6 +109,8 @@ def signup(request, user=None, access_token=None):
         email = post_data['email']
         placeholder(email)
         send_verify_email(email, user.confirmation_code)
+    else:
+        user.make_confirmed()
     return render_to_json({"access_token": access_token}, status=200)
 
 

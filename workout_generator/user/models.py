@@ -326,6 +326,10 @@ class User(object):
          filter(confirmation_code=confirmation_code).
          update(status_state_id=StatusState.ACTIVE.index))
 
+    def make_confirmed(self):
+        self._user.status_state_id = StatusState.ACTIVE.index
+        self._user.save()
+
     @classmethod
     def get_by_username(cls, username):
         try:
