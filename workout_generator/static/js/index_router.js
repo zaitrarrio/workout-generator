@@ -697,6 +697,10 @@ WorkoutView = AbstractView.extend({
         if(!this.userModel.get("phase")){
             return;
         }
+        if(screen.width <= 480){
+            //don't render for phones and stuff
+            return;
+        }
         this.workoutMetaView = new WorkoutMetaView(this.userModel);
         this.$("#meta-placeholder").html(this.workoutMetaView.render().el);
     },
