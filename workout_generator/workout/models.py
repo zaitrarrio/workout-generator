@@ -8,7 +8,6 @@ from workout_generator.constants import Exercise
 from workout_generator.constants import MuscleGroup
 from workout_generator.constants import Phase
 from workout_generator.constants import WorkoutComponent
-from workout_generator.datetime_tools import date_to_datetime
 from workout_generator.datetime_tools import datetime_to_timestamp_ms
 from workout_generator.workout.exceptions import NeedsNewWorkoutsException
 
@@ -48,7 +47,7 @@ class _DayFramework(models.Model):
     js_isoweekday = models.IntegerField()
     user_id = models.IntegerField()
     level = models.IntegerField(null=True)
-    date = models.DateField()
+    datetime = models.DateTimeField()
 
 
 class DayFrameworkCollection(object):
@@ -57,7 +56,7 @@ class DayFrameworkCollection(object):
         self.user_id = user.id
         day_frameworks = day_frameworks or self._get_day_frameworks()
         self.day_framework_id_to_obj = {d.id: d for d in day_frameworks}
-        self._sorted_day_frameworks = sorted(day_frameworks, key=lambda d: d.date)
+        self._sorted_day_frameworks = sorted(day_frameworks, key=lambda d: d.datetime)
 
         self._cached_m2m_workout_components = m2m_workout_components
         self.say_framework_id_to_workout_component_list = None
@@ -80,7 +79,7 @@ class DayFrameworkCollection(object):
         return {
             "js_isoweekday": _day_framework.js_isoweekday,
             "cardio_level": _day_framework.level,
-            "utc_date_timestamp": datetime_to_timestamp_ms(date_to_datetime(_day_framework.date))
+            "utc_date_timestamp": datetime_to_timestamp_ms(_day_framework.datetime)
         }
 
     def get_id_for_day_index(self, day_index):
@@ -136,7 +135,7 @@ class DayFrameworkCollection(object):
     def _get_start_isoweekdays(cls):
         # TODO add a test method for this
         js_isoweekdays = range(7)
-        start_isoweekday = datetime.datetime.utcnow().date().isoweekday()
+        start_isoweekday = datetime.datetime.utcnow().isoweekday()
         if start_isoweekday == 7:
             start_isoweekday = 0
         while js_isoweekdays[0] != start_isoweekday:
@@ -146,7 +145,7 @@ class DayFrameworkCollection(object):
     @classmethod
     def _create_day_framework_rows(cls, user, isoweekday_to_cardio_intensity):
         js_isoweekdays = cls._get_start_isoweekdays()
-        start_date = datetime.datetime.utcnow().date()
+        start_datetime = datetime.datetime.utcnow()
 
         isoweekday_to_day_framework = {}
         for offset, js_isoweekday in enumerate(js_isoweekdays):
@@ -154,7 +153,7 @@ class DayFrameworkCollection(object):
                 js_isoweekday=js_isoweekday,
                 user_id=user.id,
                 level=isoweekday_to_cardio_intensity.get(js_isoweekday),
-                date=start_date + datetime.timedelta(days=offset)
+                datetime=start_datetime + datetime.timedelta(days=offset)
             )
             isoweekday_to_day_framework[js_isoweekday] = _DayFramework.objects.create(**kwargs)
         return isoweekday_to_day_framework
@@ -197,8 +196,8 @@ class WorkoutCollection(object):
     def _check_needs_new_workouts(cls, existing_day_frameworks):
         if len(existing_day_frameworks) == 0:
             raise NeedsNewWorkoutsException("No Workouts Exist")
-        workout_dates = [d.date for d in existing_day_frameworks]
-        if max(workout_dates) < datetime.datetime.utcnow().date():
+        workout_dates = [d.datetime for d in existing_day_frameworks]
+        if max(workout_dates) < (datetime.datetime.utcnow() - datetime.timedelta(days=1)):
             raise NeedsNewWorkoutsException("Workouts are outdated")
 
     @classmethod
@@ -234,10 +233,10 @@ class WorkoutCollection(object):
         day_framework_qs = (_DayFramework.
                             objects.
                             filter(user_id=user.id).
-                            order_by("date").
+                            order_by("datetime").
                             values_list("id", flat=True))
         if cutoff_future_workouts:
-            day_framework_qs = day_framework_qs.filter(date__lt=datetime.datetime.utcnow().date())
+            day_framework_qs = day_framework_qs.filter(datetime__lte=datetime.datetime.utcnow())
         day_framework_ids = list(day_framework_qs)
 
         corresponding_workouts = list(_Workout.objects.filter(day_framework_id__in=day_framework_ids))
