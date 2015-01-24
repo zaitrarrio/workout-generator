@@ -5,6 +5,7 @@ from .basic_navigation import api
 
 urlpatterns = patterns('',
     url(r'^$', views.home, name='home'),
+    url(r'^mygoalsnew/$', views.redirect),
     url(r'^confirm/(?P<confirmation_code>\w+)/', views.confirm, name='confirm'),
     url(r'^api/signup/', api.signup, name="signup"),
     url(r'^api/goals/', api.goals, name="goals"),

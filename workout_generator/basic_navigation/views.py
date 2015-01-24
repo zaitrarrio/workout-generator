@@ -5,6 +5,7 @@ import os
 from django.conf import settings
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
+from django.http import HttpResponsePermanentRedirect
 from django.shortcuts import render_to_response
 
 from workout_generator.user.models import User
@@ -20,6 +21,10 @@ def render_to_json(data, status=200):
 def confirm(request, confirmation_code):
     User.update_for_confirmation_code(confirmation_code)
     return HttpResponseRedirect("/")
+
+
+def redirect(request):
+    return HttpResponsePermanentRedirect("/")
 
 
 @requires_ssl
