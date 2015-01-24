@@ -26,6 +26,7 @@ def confirm(request, confirmation_code):
 def home(request):
     render_data = {
         "dev": True if os.environ.get("I_AM_IN_DEV_ENV") else False,
+        "mixpanel_token": settings.MIXPANEL_TOKEN,
         "publishable_key": get_publishable_key(),
         "facebook_app_id": settings.FACEBOOK_APP_ID,
         "parse_app_id": settings.PARSE_APP_ID,

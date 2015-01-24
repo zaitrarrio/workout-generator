@@ -1318,35 +1318,50 @@ IndexRouter = Backbone.Router.extend({
         this.globalView.goto(this.loginView);
     },
     confirmEmail: function(email){
+        mixpanel.track("Confirm Email"); // Step 2.5
         this.templateView = new TemplateView("#confirm-view", {email: email});
         this.globalView.goto(this.templateView);
     },
     payment: function(optionString){
         redirectIfLoggedOut();
+        mixpanel.track("Payment"); // Step 7
         this.paymentView = new PaymentView(this.model, optionString);
         this.globalView.goto(this.paymentView);
     },
     goal: function(returnHome){
         redirectIfLoggedOut();
+        if(!returnHome){
+            mixpanel.track("Goal Select No Login"); // Step 3
+        }
         this.goalView = new GoalView(this.model, returnHome);
         this.globalView.goto(this.goalView);
     },
     equipment: function(returnHome){
         redirectIfLoggedOut();
+        if(!returnHome){
+            mixpanel.track("Equipment No Login"); // Step 6
+        }
         this.equipmentView = new EquipmentView(this.model, returnHome);
         this.globalView.goto(this.equipmentView);
     },
     fitnessLevel: function(returnHome){
         redirectIfLoggedOut();
+        if(!returnHome){
+            mixpanel.track("Fitness Level No Login"); // Step 5
+        }
         this.fitnessLevelView = new FitnessLevelView(this.model, returnHome);
         this.globalView.goto(this.fitnessLevelView);
     },
     schedule: function(returnHome){
         redirectIfLoggedOut();
+        if(!returnHome){
+            mixpanel.track("Schedule Select No Login"); // Step 4
+        }
         this.scheduleView = new ScheduleView(this.model, returnHome);
         this.globalView.goto(this.scheduleView);
     },
     signup: function(){
+        mixpanel.track("Sign Up Page"); // Step 2
         var self = this;
         this.signUpView = new SignUpView(this.model, function(){
             self.loginStateView.updateLoginState();
@@ -1356,6 +1371,7 @@ IndexRouter = Backbone.Router.extend({
     defaultRoute: function(path){
         removeHash();
         if(!Parse.User.current()){
+            mixpanel.track("Landing Page No Login"); // Step 1
             this.landingView = new LandingView(this.model);
             this.globalView.goto(this.landingView);
         } else {
