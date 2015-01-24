@@ -177,17 +177,6 @@ If you're looking for the old version of WorkoutGenerator be sure to visit <a hr
 
     <script type="text/javascript">
     Parse.initialize("{{ parse_app_id }}", "{{ parse_key }}");
-
-        var TestObject = Parse.Object.extend("TestObject");
-        var testObject = new TestObject();
-        testObject.save({foo: "bar"}, {
-            success: function(object) {
-                $(".success").show();
-            },
-            error: function(model, error) {
-                $(".error").show();
-            }
-        });
     </script>
 
     <script>
