@@ -737,6 +737,7 @@ DatePickerView = Backbone.View.extend({
     },
     initDatepicker: function(startDate, endDate){
         var now = new Date();
+        // FIXME this happens if you generate a workout on saturday
         if (startDate > now){
             startDate = now;
         }
