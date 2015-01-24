@@ -562,6 +562,7 @@ PaymentView = AbstractView.extend({
                     type: 'POST',
                     contentType: 'application/x-www-form-urlencoded;charset=utf-8',
                     success: function(response){
+                        mixpanel.track("Payment Complete"); // Step 8
                         Backbone.history.navigate('', {trigger: true});
                     },
                     error: function(data){
