@@ -736,6 +736,10 @@ DatePickerView = Backbone.View.extend({
         this.triggerDateChange = true;
     },
     initDatepicker: function(startDate, endDate){
+        var now = new Date();
+        if (startDate > now){
+            startDate = now;
+        }
         this.$(".datepicker-el").datepicker({
             format: 'DD, M d',
             startDate: startDate,
