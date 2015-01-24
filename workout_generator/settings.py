@@ -157,4 +157,4 @@ else:
 if os.environ.get("I_AM_IN_DEV_ENV"):
     HOST_URL = "http://localhost:5000"
 else:
-    HOST_URL = "https://workoutgenerator.net"
+    HOST_URL = "http://www.workoutgenerator.net"
