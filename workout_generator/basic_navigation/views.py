@@ -10,6 +10,8 @@ from django.shortcuts import render_to_response
 from workout_generator.user.models import User
 from workout_generator.stripe.constants import get_publishable_key
 
+from .utils import requires_ssl
+
 
 def render_to_json(data, status=200):
     return HttpResponse(json.dumps(data), content_type="application/json", status=status)
@@ -20,6 +22,7 @@ def confirm(request, confirmation_code):
     return HttpResponseRedirect("/")
 
 
+@requires_ssl
 def home(request):
     render_data = {
         "dev": True if os.environ.get("I_AM_IN_DEV_ENV") else False,
