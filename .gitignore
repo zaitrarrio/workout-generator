@@ -12,3 +12,4 @@ tmp
 *.sqlite3
 workout_generator/scripts/video_scripts/
 emails.json
+ssl_stuff

@@ -14,11 +14,15 @@ VALID_PLANS = [SUBSCRIPTION_ID]
 
 
 def get_secret_key():
-    return TEST_SECRET_KEY
+    if os.environ.get("I_AM_IN_DEV_ENV"):
+        return TEST_SECRET_KEY
+    return LIVE_SECRET_KEY
 
 
 def get_publishable_key():
-    return TEST_PUBLISHABLE_KEY
+    if os.environ.get("I_AM_IN_DEV_ENV"):
+        return TEST_PUBLISHABLE_KEY
+    return LIVE_PUBLISHABLE_KEY
 
 
 class _SubscriptionState(OrderedRichEnumValue):
