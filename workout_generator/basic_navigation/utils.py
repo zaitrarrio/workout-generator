@@ -6,8 +6,7 @@ from django.http import HttpResponsePermanentRedirect
 
 def requires_ssl(fn):
     def inner(request, *args, **kwargs):
-
-        if os.environ.get("I_AM_IN_DEV"):
+        if os.environ.get("I_AM_IN_DEV_ENV"):
             return fn(request, *args, **kwargs)
 
         if request.is_secure() or 'HTTP_X_SSL_PROTOCOL' in request.META:
