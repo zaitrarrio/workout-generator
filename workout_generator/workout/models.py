@@ -319,7 +319,7 @@ class Workout(AbstractTrimmable):
         if _workout__exercise is None:
             return None
 
-        if _workout__exercise.second_exercise is None and _workout__exercise.sets == 0:
+        if _workout__exercise.second_exercise is None or _workout__exercise.sets == 0:
             # sets can be reduced to 0 via time trimming
             return None
 
