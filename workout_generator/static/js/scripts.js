@@ -171,9 +171,6 @@ $(window).load(function() {
     heightStyle : "content"
   });
 
-  //tabs
-  $(".tabs").tabs().addClass("ui-tabs-vertical ui-helper-clearfix");
-
   //toggle
   $('#toggle').find('.toggle').click(function() {
     var header = $(this).find('h5');

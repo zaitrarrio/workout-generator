@@ -235,6 +235,7 @@ LandingView = AbstractView.extend({
     },
     render: function(options){
         this.$el.html(this.template());
+        this.$(".tabs").tabs().addClass("ui-tabs-vertical ui-helper-clearfix");
         return this.postRender(options);
     }
 });
