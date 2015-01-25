@@ -1299,6 +1299,7 @@ IndexRouter = Backbone.Router.extend({
         this.globalView.goto(this.requiresConfirmationView);
     },
     pricing: function(){
+        mixpanel.track("Pricing Check"); // Step 1.5
         this.templateView = new TemplateView("#pricing-view", {});
         this.globalView.goto(this.templateView);
     },
