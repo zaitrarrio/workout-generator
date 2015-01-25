@@ -2600,6 +2600,10 @@ or wrap each row of columns in a <div class="row"> */
 .datepicker.datepicker-inline{
     font-family: Helvetica,Arial,sans-serif;
     border: 1px solid #ccc;
+    box-shadow: 5px 5px 6px #aaaaaa;
+    -webkit-box-shadow: 5px 5px 6px #aaaaaa;
+    -moz-box-shadow: 5px 5px 6px #aaaaaa;
+    margin: auto;
 }
 
 .phase-block {
@@ -2640,7 +2644,7 @@ or wrap each row of columns in a <div class="row"> */
     -ms-border-radius: 5px;
     -o-border-radius: 5px;
     border-radius: 5px;
-    border: 1px solid #ccc;
+    border: 1px solid #999;
 }
 
 .zone1{
@@ -2657,6 +2661,7 @@ or wrap each row of columns in a <div class="row"> */
 
 .cardio-meta-container {
     overflow: hidden;
+    padding: 8px;
 }
 
 .cardio-meta-descriptor {
@@ -2667,6 +2672,7 @@ or wrap each row of columns in a <div class="row"> */
     -o-border-radius: 5px;
     border-radius: 5px;
     margin-top: 5px;
+    margin-left: 5px;
     position: relative;
     float: left;
     padding: 0 10px;
@@ -2685,7 +2691,9 @@ or wrap each row of columns in a <div class="row"> */
     outline: none;
     margin: 0;
     border-bottom: 1px solid #dddddd;
+    border-right: 1px solid #999;
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    box-shadow: 2px 2px 3px #aaaaaa;
 }
 
 .top-rounded{
@@ -2706,6 +2714,25 @@ or wrap each row of columns in a <div class="row"> */
     border-bottom-right-radius: 5px;
 }
 
+.bottom-bordered {
+    border-bottom: 1px solid #999;
+}
+
+.baller-shadow{
+    box-shadow: 5px 5px 6px #aaaaaa;
+    -webkit-box-shadow: 5px 5px 6px #aaaaaa;
+    -moz-box-shadow: 5px 5px 6px #aaaaaa;
+    /*
+    box-shadow: none|h-shadow v-shadow blur spread color
+    */
+}
+
+.tight-shadow{
+    box-shadow: 2px 3px 3px #777;
+    -webkit-box-shadow: 2px 3px 3px #777;
+    -moz-box-shadow: 2px 3px 3px #777;
+}
+
 .exercise-row{
     color: black;
     font-weight: 400;
@@ -2718,6 +2745,7 @@ or wrap each row of columns in a <div class="row"> */
 }
 
 .sets-reps {
+    margin: 2px;
     display: inline-block;
     background: #222;
     color: #8fba3b;
@@ -2730,6 +2758,7 @@ or wrap each row of columns in a <div class="row"> */
 }
 
 .exercise-block{
+    margin: 2px;
     display: inline-block;
     background-color: #8fba3b;
     padding: 5px;
@@ -2739,4 +2768,17 @@ or wrap each row of columns in a <div class="row"> */
     -o-border-radius: 5px;
     border-radius: 5px;
     cursor: pointer;
+}
+
+.exercise-video {
+    margin: 10px auto;
+    box-shadow: 5px 5px 6px #222;
+    -webkit-box-shadow: 5px 5px 6px #222;
+    -moz-box-shadow: 5px 5px 6px #222;
+    max-width: 90%;
+    display: block;
+}
+
+#workout-placeholder {
+    padding: 0 10px;
 }

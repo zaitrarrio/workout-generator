@@ -668,7 +668,7 @@ Don't have an account?  <a href="#!signup">Sign Up</a>!
 </script>
 
 <script type="text/html" id="meta-view">
-<blockquote class="no-quote" style="width: 80%; padding: 10px 30px; margin-top: 10px;">
+<blockquote class="baller-shadow no-quote" style="width: 80%; padding: 10px 30px; margin-top: 10px;">
 <h3 style="margin-top: 15px; line-height: 20px;"><%= currentGoal %></h3>
 </blockquote>
 <p>Weeks in Phase:
@@ -685,6 +685,7 @@ Don't have an account?  <a href="#!signup">Sign Up</a>!
     <% if(phaseNames[i] === currentPhase) {%>
         selected
     <% } %>
+    baller-shadow
     ">
         <center>
             <p>
@@ -708,8 +709,8 @@ Don't have an account?  <a href="#!signup">Sign Up</a>!
 </script>
 
 <script type="text/html" id="workout-component-view">
-<div style="padding-bottom: 10px; margin-left: 30px;">
-<div class="workout-component-block top-rounded">
+<div style="margin-bottom: 10px; margin-left: 30px; background-color: #777;" class="top-rounded bottom-rounded baller-shadow">
+<div class="workout-component-block top-rounded ">
 <%= workout_component.title %>
 <% if(rest){ %>
     <% if(rest > 60){ %>
@@ -724,41 +725,43 @@ Don't have an account?  <a href="#!signup">Sign Up</a>!
     <div class="exercise-row
 <% if(i === exercises.length-1){ %>
 bottom-rounded
+bottom-bordered
 <% } %>
+
 ">
     <% var exerciseSet = exercises[i]; %>
-    <div class="sets-reps">
+    <div class="sets-reps tight-shadow">
     <%= exerciseSet.sets %> x
 <% if(!exerciseSet.exercise.timed) { %>
 <%= exerciseSet.reps %>
 <% } %>
 
     </div>
-<div id="exercise_<%= exerciseSet.exercise.id %>" class="exercise-block">
+<div id="exercise_<%= exerciseSet.exercise.id %>" class="exercise-block tight-shadow">
     <%= exerciseSet.exercise.name %>
     </div>
     <% if(exerciseSet.superset){ %>
         superset with
 
 <% if(!exerciseSet.superset.exercise.timed) { %>
-<div class="sets-reps">
+<div class="sets-reps tight-shadow">
     <%= exerciseSet.superset.reps %>
 </div>
 <% } %>
 
-<div class="exercise-block" id="exercise_<%= exerciseSet.superset.exercise.id %>">
+<div class="exercise-block tight-shadow" id="exercise_<%= exerciseSet.superset.exercise.id %>">
 <%= exerciseSet.superset.exercise.name %>
 </div>
     <% } %>
     </div>
 
-<video class="exercise-video" id="video_exercise_<%= exerciseSet.exercise.id %>" muted autoplay="" loop="" poster="true" width="480" height="360" style="max-width: 100%; display: none;">
+<video class="exercise-video" id="video_exercise_<%= exerciseSet.exercise.id %>" muted autoplay="" loop="" poster="true" width="480" height="360" style="display: none;">
     <source src="https://s3-us-west-1.amazonaws.com/workout-generator-exercises/smaller_mp4/small_<%= exerciseSet.exercise.video_id  %>.mp4" type="video/mp4" class="mp4source">
     <source src="https://s3-us-west-1.amazonaws.com/workout-generator-exercises/smaller_webm/small_<%= exerciseSet.exercise.video_id  %>.webmsd.webm" type="video/webm" class="webmsource">
 </video>
 
 <% if(exerciseSet.superset) {%>
-<video class="exercise-video" id="video_exercise_<%= exerciseSet.superset.exercise.id %>" muted autoplay="" loop="" poster="true" width="480" height="360" style="max-width: 100%; display: none;">
+<video class="exercise-video" id="video_exercise_<%= exerciseSet.superset.exercise.id %>" muted autoplay="" loop="" poster="true" width="480" height="360" style="display: none;">
     <source src="https://s3-us-west-1.amazonaws.com/workout-generator-exercises/smaller_mp4/small_<%= exerciseSet.superset.exercise.video_id  %>.mp4" type="video/mp4" class="mp4source">
     <source src="https://s3-us-west-1.amazonaws.com/workout-generator-exercises/smaller_webm/small_<%= exerciseSet.superset.exercise.video_id  %>.webmsd.webm" type="video/webm" class="webmsource">
 </video>
@@ -776,10 +779,10 @@ bottom-rounded
     <div class="cardio-meta-container">
         <% var zoneKey = "zone" + zone; %>
         <% if(zoneMeta[zoneKey]) { %>
-            <div class="cardio-meta-block <%= zoneKey %>" style="min-height: 20px; width: 10%;">
+            <div class="cardio-meta-block <%= zoneKey %> baller-shadow" style="min-height: 20px; width: 10%;">
             <p style="margin-bottom: 0;">Zone <%= zone %></p>
             </div>
-<p class="cardio-meta-descriptor" style="margin-bottom: 0;">
+<p class="cardio-meta-descriptor baller-shadow" style="margin-bottom: 0;">
     <% if(zoneMeta[zoneKey].minutes > 0) { %>
         <%= zoneMeta[zoneKey].minutes %> minute
     <% } %>
@@ -800,7 +803,7 @@ interval<br/>
     <% var cardioBlock = cardioBlocks[i]; %>
     <% var maxHeight = 100.0; %>
     <% var blockHeight = (cardioBlock.heightPercent / 100.0) * maxHeight; %>
-<div class="cardio-graph-block <%= cardioBlock.zoneClass %>" style="width: <%= cardioBlock.widthPercent %>%; height: <%= blockHeight %>px; margin-top: <%= maxHeight - blockHeight %>px;">
+<div class="cardio-graph-block <%= cardioBlock.zoneClass %> baller-shadow" style="width: <%= cardioBlock.widthPercent %>%; height: <%= blockHeight %>px; margin-top: <%= maxHeight - blockHeight %>px;">
     </div>
 <% } %>
 </div>
