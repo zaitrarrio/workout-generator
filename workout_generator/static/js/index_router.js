@@ -1135,6 +1135,7 @@ GlobalView = Backbone.View.extend({
         this.$el.append( next.$el );
         next.transitionIn();
         this.currentPage = next;
+        $("#home-link").show();
     }
 });
 
@@ -1391,6 +1392,7 @@ IndexRouter = Backbone.Router.extend({
             mixpanel.track("Landing Page No Login"); // Step 1
             this.landingView = new LandingView(this.model);
             this.globalView.goto(this.landingView);
+            $("#home-link").hide();
         } else {
             this.dashboardView = new DashboardView(this.model);
             this.globalView.goto(this.dashboardView);
