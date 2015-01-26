@@ -236,6 +236,11 @@ LandingView = AbstractView.extend({
     render: function(options){
         this.$el.html(this.template());
         this.$(".tabs").tabs().addClass("ui-tabs-vertical ui-helper-clearfix");
+        if($(window).width() <= 672){
+            // special cases for iphones / small screens
+            this.$(".landing-button").css("padding-top", "0");
+            this.$(".desktop-only").hide();
+        }
         return this.postRender(options);
     }
 });
