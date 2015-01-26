@@ -2638,6 +2638,7 @@ or wrap each row of columns in a <div class="row"> */
     position: relative;
     float: left;
     margin: 5px;
+    min-width: 50px;
 
     webkit-border-radius: 5px;
     -moz-border-radius: 5px;
@@ -2775,7 +2776,7 @@ or wrap each row of columns in a <div class="row"> */
     box-shadow: 5px 5px 6px #222;
     -webkit-box-shadow: 5px 5px 6px #222;
     -moz-box-shadow: 5px 5px 6px #222;
-    max-width: 90%;
+    max-width: 100%;
     display: block;
 }
 
