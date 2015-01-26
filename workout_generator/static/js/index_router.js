@@ -539,6 +539,19 @@ PaymentView = AbstractView.extend({
         this.model = model;
         this.template = _.template($("#payment-view").html());
     },
+    _getEmailFromStripeUser: function(){
+        var parseUser = Parse.User.current();
+        var possiblyValidEmail = parseUser.get("username");
+        var isValidEmail = validateEmail(possiblyValidEmail);
+        if (isValidEmail){
+            return possiblyValidEmail;
+        }
+        var facebookEmail = parseUser.get("facebook_email");
+        if(validateEmail(facebookEmail)){
+            return facebookEmail;
+        }
+        return null;
+    },
     openStripeModal: function(){
         // READ
         // https://www.petekeen.net/using-stripe-checkout-for-subscriptions
@@ -548,6 +561,7 @@ PaymentView = AbstractView.extend({
             // image: $("#square-icon").val(),
             // FIXME this is hardcoded right now
             image: "https://workout-generator-static.s3.amazonaws.com/img/weight_equipment/barbell.jpg",
+            email: self._getEmailFromStripeUser(),
             token: function(token) {
                 $.ajax({
                     url: '/api/payment/',
