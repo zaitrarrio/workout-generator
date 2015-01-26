@@ -192,7 +192,7 @@ h1#title {
   background: url(../../img/broken_noise.png);
   padding: 35px 0;
   border-bottom: 5px solid #8fba3b;
-  margin-bottom: 55px;
+  margin-bottom: 20px;
 }
 .page-header h1 {
   color: #8fba3b;
@@ -2782,4 +2782,13 @@ or wrap each row of columns in a <div class="row"> */
 
 #workout-placeholder {
     padding: 0 10px;
+}
+
+.screenshot-holder {
+    padding :15px;
+}
+img.desaturate{
+    -webkit-filter: grayscale(1); -webkit-filter: grayscale(100%);
+    filter: gray; filter: grayscale(100%);
+    filter: url(desaturate.svg#greyscale);
 }
