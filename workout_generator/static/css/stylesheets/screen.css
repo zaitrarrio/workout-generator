@@ -2792,3 +2792,7 @@ img.desaturate{
     filter: gray; filter: grayscale(100%);
     filter: url(desaturate.svg#greyscale);
 }
+
+.home-bullet {
+    padding: 40px;
+}
