@@ -608,7 +608,7 @@ PaymentView = AbstractView.extend({
             optionalMessage: optionalMessage
         }));
         this.postRender(options);
-        this.openStripeModal();
+        // this.openStripeModal();
         return this.el;
     }
 });
