@@ -44,6 +44,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'workout_generator.access_token',
     'workout_generator.workout',
+    'workout_generator.coupon',
     'workout_generator.user'
 )
 

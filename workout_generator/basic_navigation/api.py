@@ -7,6 +7,7 @@ from workout_generator.access_token.models import AccessToken
 from workout_generator.basic_navigation.constants import ResponseCodes
 from workout_generator.constants import Equipment
 from workout_generator.constants import Goal
+from workout_generator.coupon.models import Coupon
 from workout_generator.mailgun.tasks import send_verify_email
 from workout_generator.stripe.constants import SubscriptionState
 from workout_generator.stripe.utils import cancel_subscription
@@ -29,6 +30,9 @@ def render_to_json(response_obj, context={}, content_type="application/json", st
 def requires_active_state(fn):
     def inner(request, *args, **kwargs):
         user = kwargs["user"]
+        # TODO just make another method on user for all this logic
+        if user.has_free_membership():
+            return fn(request, *args, **kwargs)
         is_valid = user.status_state == StatusState.ACTIVE
         if not is_valid:
             return _error_for_invalid_state()
@@ -39,6 +43,9 @@ def requires_active_state(fn):
 def requires_payment(fn):
     def inner(request, *args, **kwargs):
         user = kwargs["user"]
+        if user.has_free_membership():
+            return fn(request, *args, **kwargs)
+
         subscription_state = validate_user_payment(user)
         if subscription_state != SubscriptionState.VALID:
             return _error_for_subscription_state(subscription_state)
@@ -210,6 +217,15 @@ def cancel_payment(request, user=None, access_token=None):
 @requires_post
 def payment(request, user=None, access_token=None):
     post_data = request.POST or json.loads(request.body)
+    coupon_code = post_data.get("coupon_code")
+
+    # TODO move to its own function or something
+    if coupon_code:
+        coupon = Coupon.get_by_code(coupon_code)
+        if coupon.valid and coupon.stripe_plan_id is None:
+            user.make_free_membership()
+            return render_to_json({"access_token": access_token}, status=200)
+
     stripe_token = post_data['tokenId']
     stripe_email = post_data['tokenEmail']
     if user.stripe_customer_id is None:
@@ -271,3 +287,9 @@ def re_send_confirmation(request, user=None, access_token=None):
     return render_to_json({
         "email": email
     }, status=200)
+
+
+def coupon(request, coupon_code):
+    return render_to_json(
+        Coupon.get_by_code(coupon_code).to_json(),
+        status=200)

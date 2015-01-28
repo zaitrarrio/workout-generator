@@ -52,6 +52,14 @@ function listToColumnMatrix(list, columns){
     return matrix;
 }
 
+Coupon = Backbone.Model.extend({
+    url: function(){
+        return '/api/coupon/' + this.code + '/';
+    },
+    initialize: function(code){
+        this.code = code;
+    }
+});
 AbstractView = Backbone.View.extend({
     transitionIn: function (callback) {
         var view = this;
@@ -537,12 +545,37 @@ PaymentSettingsView = AbstractView.extend({
 
 PaymentView = AbstractView.extend({
     events: {
+        "click .apply-coupon": "applyCoupon",
         "click .subscribe": "openStripeModal"
     },
     initialize: function(model, optionString){
         this.optionString = optionString;
         this.model = model;
         this.template = _.template($("#payment-view").html());
+    },
+    applyCoupon: function(){
+        var couponCode = this.$(".coupon-input").val();
+        if(!couponCode){
+            return;
+        }
+        this.$(".loading-icon").show();
+        this.$(".apply-coupon").hide();
+        var coupon = new Coupon(couponCode);
+        var self = this;
+        this.listenToOnce(coupon, 'sync', function(){
+            self.$(".loading-icon").hide();
+            self.$(".apply-coupon").show();
+            if(coupon.get("valid")){
+                self.$(".success-area").html("Coupon applied! " + coupon.get("description"));
+                self.$(".success-area").show();
+                window.validCouponCode = coupon.get("code");
+                window.stripePlanId = coupon.get("striple_plan_id");
+            } else {
+                self.$(".error-area").html("No valid coupons exist with that code.");
+                self.$(".error-area").show();
+            }
+        });
+        coupon.fetch();
     },
     _getEmailFromStripeUser: function(){
         var parseUser = Parse.User.current();
@@ -557,7 +590,34 @@ PaymentView = AbstractView.extend({
         }
         return null;
     },
+    _freeMembershipFlow: function(){
+        $.ajax({
+            url: '/api/payment/',
+            data: {
+                username: Parse.User.current().get("username"),
+                access_token: Parse.User.current().get("access_token"),
+                coupon_code: window.validCouponCode
+            },
+            cache: false,
+            dataType: 'json',
+            traditional: true,
+            type: 'POST',
+            contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+            success: function(response){
+                mixpanel.track("Free Signup", {coupon_code: window.validCouponCode});
+                Backbone.history.navigate('', {trigger: true});
+            },
+            error: function(data){
+                self.$(".error-area").html("There was a problem! Contact support if the issue persists.");
+            }
+        });
+    },
     openStripeModal: function(){
+        if(window.validCouponCode){
+            if(window.stripePlanId === null){
+                return this._freeMembershipFlow();
+            }
+        }
         // READ
         // https://www.petekeen.net/using-stripe-checkout-for-subscriptions
         var self = this;

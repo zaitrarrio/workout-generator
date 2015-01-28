@@ -337,6 +337,13 @@ class User(object):
         self._user.status_state_id = StatusState.ACTIVE.index
         self._user.save()
 
+    def make_free_membership(self):
+        self._user.status_state_id = StatusState.ACTIVE_FREE_MEMBERSHIP.index
+        self._user.save()
+
+    def has_free_membership(self):
+        return self._user.status_state_id == StatusState.ACTIVE_FREE_MEMBERSHIP.index
+
     @classmethod
     def get_by_username(cls, username):
         try:
