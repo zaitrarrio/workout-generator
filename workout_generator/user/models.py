@@ -292,11 +292,18 @@ class User(object):
         self._user.minutes_per_day = minutes_per_day
         self._user.save()
 
+    def _validate_in_range(self, value):
+        value = min(value, 5)
+        value = max(value, 1)
+        return value
+
     def update_fitness_level(self, fitness_level_id):
+        fitness_level_id = self._validate_in_range(fitness_level_id)
         self._user.fitness_level = fitness_level_id
         self._user.save()
 
     def update_experience(self, experience_id):
+        experience_id = self._validate_in_range(experience_id)
         self._user.experience = experience_id
         self._user.save()
 

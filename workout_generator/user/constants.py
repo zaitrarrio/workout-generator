@@ -12,6 +12,8 @@ class StatusState(OrderedRichEnum):
     ACTIVE = _StatusState(2, 'active', 'Active')
     DEACTIVATED = _StatusState(3, 'deactivated', 'Deactivated')
 
+    ACTIVE_FREE_MEMBERSHIP = _StatusState(4, 'active_free', 'Active Free Membership')
+
 
 class _GenderType(OrderedRichEnumValue):
     def __init__(self, index, canonical_name, display_name):
