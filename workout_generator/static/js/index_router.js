@@ -184,6 +184,7 @@ SignUpView = AbstractView.extend({
         }
     },
     signUp: function(email, password, callback){
+        email = email.toLowerCase();
         var user = new Parse.User();
         user.set("username", email);
         user.set("password", password);
