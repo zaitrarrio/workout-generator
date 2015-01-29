@@ -3,6 +3,8 @@ var ResponseCodes = {
     REDIRECT_REQUIRED: 499
 };
 
+var FACEBOOK_PAGE_ID = "225330625974";
+
 function validateEmail(email) {
     var re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     return re.test(email);
@@ -17,6 +19,27 @@ function redirectIfLoggedOut(){
         Backbone.history.navigate('!login', {trigger: true});
     }
 }
+
+function facebookUserLikesMyPage(successCallback){
+
+    function facebookFetchCallback(response){
+        var likedPages = response.data;
+        for (var i=0; i < likedPages.length; i++){
+            var facebookPage = likedPages[i];
+            if(facebookPage.id === FACEBOOK_PAGE_ID){
+                successCallback();
+                break;
+            }
+            if(i === likedPages.length - 1){
+                if(response.next){
+                    FB.api(response.next, facebookFetchCallback);
+                }
+            }
+        }
+    }
+    FB.api('/v2.2/me/likes', facebookFetchCallback);
+}
+
 
 function facebookGetMe(){
     FB.api('/v2.1/me?fields=id,email', function(response) {
