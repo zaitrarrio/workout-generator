@@ -1094,6 +1094,19 @@ RequiresConfirmationView = AbstractView.extend({
 });
 
 
+FacebookLikerView = AbstractView.extend({
+    initialize: function(userModel){
+        this.userModel = userModel;
+        this.template = _.template($("#facebook-liker-view").html());
+    },
+    render: function(options){
+        this.$el.html(this.template());
+        this.postRender(options);
+        return this.$el;
+    }
+});
+
+
 GoalView = AbstractView.extend({
     events: {
         "click .member-container": "selectGoal",
@@ -1364,6 +1377,7 @@ IndexRouter = Backbone.Router.extend({
         "!pricing": "pricing",
         "!workout": "workout",
         "!requiresconfirmation": "requiresConfirmation",
+        "!secretfacebooklink": "secretFacebookLink",
         "": "defaultRoute"
     },
     initialize: function(){
@@ -1372,6 +1386,10 @@ IndexRouter = Backbone.Router.extend({
         this.globalView = new GlobalView();
         this.loginStateView = new LoginStateView(this.model);
         this.loginStateView.updateLoginState();
+    },
+    secretFacebookLink: function(){
+        this.facebookLikerView = new FacebookLikerView(this.model);
+        this.globalView.goto(this.facebookLikerView);
     },
     requiresConfirmation: function(){
         redirectIfLoggedOut();
