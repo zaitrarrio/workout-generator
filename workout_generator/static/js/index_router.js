@@ -1107,6 +1107,26 @@ FacebookLikerView = AbstractView.extend({
 });
 
 
+ResetPasswordView = AbstractView.extend({
+    events: {
+        "click .reset": "resetPassword"
+    },
+    initialize: function(model){
+        this.template = _.template($("#reset-password-view").html());
+    },
+    resetPassword: function(){
+        var email = this.$(".email-input").val();
+        Parse.User.requestPasswordReset(email);
+        this.$(".email-sent-to").html(email);
+        this.$(".success-area").show();
+    },
+    render: function(options){
+        this.$el.html(this.template());
+        this.postRender(options);
+        return this.$el;
+    }
+});
+
 GoalView = AbstractView.extend({
     events: {
         "click .member-container": "selectGoal",
@@ -1378,6 +1398,7 @@ IndexRouter = Backbone.Router.extend({
         "!workout": "workout",
         "!requiresconfirmation": "requiresConfirmation",
         "!secretfacebooklink": "secretFacebookLink",
+        "!passwordreset": "resetPassword",
         "": "defaultRoute"
     },
     initialize: function(){
@@ -1386,6 +1407,10 @@ IndexRouter = Backbone.Router.extend({
         this.globalView = new GlobalView();
         this.loginStateView = new LoginStateView(this.model);
         this.loginStateView.updateLoginState();
+    },
+    resetPassword: function(){
+        this.resetPasswordView = new ResetPasswordView(this.model);
+        this.globalView.goto(this.resetPasswordView);
     },
     secretFacebookLink: function(){
         this.facebookLikerView = new FacebookLikerView(this.model);
