@@ -821,6 +821,9 @@ bottom-bordered
 
     </div>
 <div id="exercise_<%= exerciseSet.exercise.id %>" class="exercise-block tight-shadow">
+    <span class="collapse-arrow">
+        <i class="icon-circle-arrow-right"></i>
+    </span>
     <%= exerciseSet.exercise.name %>
     </div>
     <% if(exerciseSet.superset){ %>
@@ -833,6 +836,9 @@ bottom-bordered
 <% } %>
 
 <div class="exercise-block tight-shadow" id="exercise_<%= exerciseSet.superset.exercise.id %>">
+    <span class="collapse-arrow">
+        <i class="icon-circle-arrow-right"></i>
+    </span>
 <%= exerciseSet.superset.exercise.name %>
 </div>
     <% } %>

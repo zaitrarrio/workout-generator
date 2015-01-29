@@ -2771,6 +2771,10 @@ or wrap each row of columns in a <div class="row"> */
     cursor: pointer;
 }
 
+.exercise-block:hover{
+    background-color: #777;
+}
+
 .exercise-video {
     margin: 10px auto;
     box-shadow: 5px 5px 6px #222;

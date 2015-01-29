@@ -929,6 +929,10 @@ WorkoutComponentView = Backbone.View.extend({
         var elId = evt.target.id;
         var videoEl = this.$("#video_" + elId);
         $(".exercise-video").hide();
+        var arrowRightHTML = "<i class='icon-circle-arrow-right'></i>";
+        $(".collapse-arrow").html(arrowRightHTML);
+        var arrowDownHTML = "<i class='icon-circle-arrow-down'></i>";
+        this.$("#" + elId + " .collapse-arrow").html(arrowDownHTML);
         videoEl.show();
     },
     render: function(){
