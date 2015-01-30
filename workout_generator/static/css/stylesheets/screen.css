@@ -2800,3 +2800,9 @@ img.desaturate{
 .home-bullet {
     padding: 40px;
 }
+
+.big-bullet li {
+    font-size: 1.2em;
+    margin-top: 15px;
+    line-height: 25px;
+}
