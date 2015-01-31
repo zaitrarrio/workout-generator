@@ -1,4 +1,6 @@
 import json
+import traceback
+from workout_generator.mailgun.tasks import send_email_with_data
 
 
 def read_file(file_path, mode="r"):
@@ -26,3 +28,23 @@ def get_new_trim_by_percent(parent_total_time, items_to_trim, target_percent):
         target_percent *= (1.0 / total_percent_trimmable)
 
     return target_percent
+
+
+def email_admin_on_exception(fn):
+    def inner(*args, **kwargs):
+        try:
+            result = fn(*args, **kwargs)
+        except Exception as e:
+            stack_trace = traceback.format_exc()
+            notify_admin(e, stack_trace)
+            raise e
+        return result
+    return inner
+
+
+def notify_admin(exception, stack_trace):
+    text = "Exception: %s\n\n" % exception
+    text += stack_trace
+    if hasattr(exception, "message"):
+        text += "\n%s" % exception.message
+    send_email_with_data("scott.lobdell@gmail.com", "Workout Generator Error!", text)
