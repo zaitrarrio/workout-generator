@@ -8,6 +8,7 @@ from workout_generator.basic_navigation.constants import ResponseCodes
 from workout_generator.constants import Equipment
 from workout_generator.constants import Goal
 from workout_generator.coupon.models import Coupon
+from workout_generator.datetime_tools import get_timezone_from_utc_offset_minutes
 from workout_generator.mailgun.tasks import send_verify_email
 from workout_generator.stripe.constants import SubscriptionState
 from workout_generator.stripe.utils import cancel_subscription
@@ -17,6 +18,7 @@ from workout_generator.stripe.utils import validate_user_payment
 from workout_generator.user.constants import StatusState
 from workout_generator.user.models import User
 from workout_generator.user.exceptions import NoGoalSetException
+from workout_generator.utils import email_admin_on_exception
 from workout_generator.workout.exceptions import NeedsNewWorkoutsException
 from workout_generator.workout.models import WorkoutCollection
 from workout_generator.workout.generator import generate_new_workouts
@@ -259,6 +261,7 @@ def _error_for_subscription_state(subscription_state):
         }, status=ResponseCodes.REDIRECT_REQUIRED)
 
 
+@email_admin_on_exception
 @requires_auth
 @requires_active_state
 @requires_payment
@@ -268,8 +271,10 @@ def workout(request, user=None):
     '''
     if not user:
         return render_to_json({}, status=400)
+    utc_offset = int(request.GET.get('utc_offset', 0))
+    timezone = get_timezone_from_utc_offset_minutes(utc_offset)
     try:
-        workout_collection = WorkoutCollection.for_user(user)
+        workout_collection = WorkoutCollection.for_user(user, timezone)
     except NeedsNewWorkoutsException:
         try:
             workout_collection = generate_new_workouts(user)

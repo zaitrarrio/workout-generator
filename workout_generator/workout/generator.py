@@ -8,7 +8,6 @@ from workout_generator.constants import MuscleGroup
 from workout_generator.constants import MuscleFrequency
 from workout_generator.constants import WorkoutComponent
 from workout_generator.utils import get_new_trim_by_percent
-from workout_generator.utils import email_admin_on_exception
 from workout_generator.workout.cardio_creator import CardioCreator
 from workout_generator.workout.exceptions import NoExercisesAvailableException
 from workout_generator.workout.models import WorkoutCollection
@@ -20,7 +19,6 @@ from workout_generator.workout.utils import get_reps_sets_from_volume_info
 from workout_generator.workout.utils import evenly_distribute_exercises_by_muscle_group
 
 
-@email_admin_on_exception
 def generate_new_workouts(user):
     old_framework = DayFrameworkCollection.get_for_user(user)
 

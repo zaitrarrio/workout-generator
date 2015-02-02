@@ -1,5 +1,6 @@
 import datetime
 import json
+import pytz
 from collections import defaultdict
 
 from django.db import models
@@ -193,17 +194,24 @@ class WorkoutCollection(object):
         return day_framework_id_to_json.values()
 
     @classmethod
-    def _check_needs_new_workouts(cls, existing_day_frameworks):
+    def _check_needs_new_workouts(cls, existing_day_frameworks, tz):
         if len(existing_day_frameworks) == 0:
             raise NeedsNewWorkoutsException("No Workouts Exist")
         workout_dates = [d.datetime for d in existing_day_frameworks]
-        if max(workout_dates) < (datetime.datetime.utcnow() - datetime.timedelta(days=1)):
+
+        max_workout_date = max(workout_dates)
+        max_workout_date = max_workout_date.replace(tzinfo=pytz.timezone("UTC")).astimezone(tz)
+
+        local_now = datetime.datetime.now(tz)
+        date_older_than_one_day = max_workout_date < local_now - datetime.timedelta(days=1)
+        day_difference = max_workout_date < local_now and max_workout_date.isoweekday() != local_now.isoweekday()
+        if date_older_than_one_day or day_difference:
             raise NeedsNewWorkoutsException("Workouts are outdated")
 
     @classmethod
-    def for_user(cls, user):
+    def for_user(cls, user, tz):
         existing_day_frameworks = list(_DayFramework.objects.filter(user_id=user.id))
-        cls._check_needs_new_workouts(existing_day_frameworks)
+        cls._check_needs_new_workouts(existing_day_frameworks, tz)
         day_framework_collection = DayFrameworkCollection(user, day_frameworks=existing_day_frameworks)
         return cls.from_day_framework_collection(day_framework_collection)
 

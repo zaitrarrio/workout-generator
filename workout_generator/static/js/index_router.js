@@ -1349,9 +1349,12 @@ WorkoutCollection = Backbone.Collection.extend({
         if(!Parse.User.current() || !Parse.User.current().get('access_token')){
             return null;
         }
+        var offsetMinutes = new Date().getTimezoneOffset();
+        offsetMinutes *= -1; // different JS and Python conventions
         var encodedParams = $.param({
-             username: Parse.User.current().get('username'),
-             access_token: Parse.User.current().get('access_token')
+            username: Parse.User.current().get('username'),
+            utc_offset: offsetMinutes,
+            access_token: Parse.User.current().get('access_token')
         });
         return '/api/workout/?' + encodedParams;
     },
