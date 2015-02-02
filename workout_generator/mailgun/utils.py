@@ -13,6 +13,20 @@ def send_email_with_data(customer_email, subject, text):
               "text": text})
 
 
+def send_complex_message(to_address):
+    domain = "workoutgenerator.net"
+    html_template = "/Users/slobdell/projects/workout-generator/workout_generator/scripts/email_template.html"
+    with open(html_template, "rb") as f:
+        html_content = f.read()
+    return requests.post(
+        "https://api.mailgun.net/v2/%s/messages" % domain,
+        auth=("api", API_KEY),
+        data={"from": "Scott Lobdell <scott@workoutgenerator.net>",
+              "to": to_address,
+              "subject": "WorkoutGenerator v2.0 Released and Free to You!",
+              "html": html_content})
+
+
 def send_test_email():
     text = "This is totally in prod"
     title = "prod email"
