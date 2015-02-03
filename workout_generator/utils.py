@@ -24,6 +24,11 @@ def get_new_trim_by_percent(parent_total_time, items_to_trim, target_percent):
         percent_trimmable_of_parent = trimmable.percent_trimmable * percent_of_parent
         total_percent_trimmable += percent_trimmable_of_parent
 
+    if total_percent_trimmable == 0:
+        # SBL not sure if this is accurate
+        # I dont think this matters though because trimming wont be applied
+        return 0.0
+
     if total_percent_trimmable < 1.0:
         target_percent *= (1.0 / total_percent_trimmable)
 
