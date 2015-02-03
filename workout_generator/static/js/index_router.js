@@ -848,6 +848,10 @@ DatePickerView = Backbone.View.extend({
         if (startDate > now){
             startDate = now;
         }
+        var oneWeekLater = new Date(startDate.getTime() + (7 * 24 * 60 * 60 * 1000));
+        if (oneWeekLater > endDate){
+            endDate = oneWeekLater;
+        }
         this.$(".datepicker-el").datepicker({
             format: 'DD, M d',
             startDate: startDate,
