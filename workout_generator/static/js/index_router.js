@@ -17,7 +17,9 @@ function removeHash () {
 function redirectIfLoggedOut(){
     if (Parse.User.current() === null){
         Backbone.history.navigate('!login', {trigger: true});
+        return true;
     }
+    return false;
 }
 
 function facebookUserLikesMyPage(successCallback){
@@ -1448,7 +1450,7 @@ IndexRouter = Backbone.Router.extend({
         this.globalView.goto(this.facebookLikerView);
     },
     requiresConfirmation: function(){
-        redirectIfLoggedOut();
+        if(redirectIfLoggedOut())return;
         this.requiresConfirmationView = new RequiresConfirmationView(this.model);
         this.globalView.goto(this.requiresConfirmationView);
     },
@@ -1458,12 +1460,12 @@ IndexRouter = Backbone.Router.extend({
         this.globalView.goto(this.templateView);
     },
     workout: function(){
-        redirectIfLoggedOut();
+        if(redirectIfLoggedOut())return;
         this.workoutView = new WorkoutView(this.model);
         this.globalView.goto(this.workoutView);
     },
     paymentsettings: function(){
-        redirectIfLoggedOut();
+        if(redirectIfLoggedOut())return;
         this.paymentSettingsView = new PaymentSettingsView(this.model);
         this.globalView.goto(this.paymentSettingsView);
     },
@@ -1480,13 +1482,13 @@ IndexRouter = Backbone.Router.extend({
         this.globalView.goto(this.templateView);
     },
     payment: function(optionString){
-        redirectIfLoggedOut();
+        if(redirectIfLoggedOut())return;
         mixpanel.track("Payment"); // Step 7
         this.paymentView = new PaymentView(this.model, optionString);
         this.globalView.goto(this.paymentView);
     },
     goal: function(returnHome){
-        redirectIfLoggedOut();
+        if(redirectIfLoggedOut())return;
         if(!returnHome){
             mixpanel.track("Goal Select No Login"); // Step 3
         }
@@ -1494,7 +1496,7 @@ IndexRouter = Backbone.Router.extend({
         this.globalView.goto(this.goalView);
     },
     equipment: function(returnHome){
-        redirectIfLoggedOut();
+        if(redirectIfLoggedOut())return;
         if(!returnHome){
             mixpanel.track("Equipment No Login"); // Step 6
         }
@@ -1502,7 +1504,7 @@ IndexRouter = Backbone.Router.extend({
         this.globalView.goto(this.equipmentView);
     },
     fitnessLevel: function(returnHome){
-        redirectIfLoggedOut();
+        if(redirectIfLoggedOut())return;
         if(!returnHome){
             mixpanel.track("Fitness Level No Login"); // Step 5
         }
@@ -1510,7 +1512,7 @@ IndexRouter = Backbone.Router.extend({
         this.globalView.goto(this.fitnessLevelView);
     },
     schedule: function(returnHome){
-        redirectIfLoggedOut();
+        if(redirectIfLoggedOut())return;
         if(!returnHome){
             mixpanel.track("Schedule Select No Login"); // Step 4
         }
