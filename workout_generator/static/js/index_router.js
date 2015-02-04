@@ -838,6 +838,10 @@ DatePickerView = Backbone.View.extend({
     initialize: function(workoutCollection){
         this.template = _.template($("#datepicker-view").html());
         this.workoutCollection = workoutCollection;
+        this.renderDatePicker = true;
+        if(!this.workoutCollection.getEarliestUTCTimestamp()){
+            this.renderDatePicker = false;
+        }
         this.startDateTime = new Date(this.workoutCollection.getEarliestUTCTimestamp());
         this.endDateTime = new Date(this.workoutCollection.getLatestUTCTimestamp());
         this.triggerDateChange = true;
@@ -848,6 +852,7 @@ DatePickerView = Backbone.View.extend({
         if (startDate > now){
             startDate = now;
         }
+        // should be 6 days because a workout covers a 24 hour period, so that accounts for the remaining day
         var oneWeekLater = new Date(startDate.getTime() + (6 * 24 * 60 * 60 * 1000));
         if (oneWeekLater > endDate){
             endDate = oneWeekLater;
@@ -871,6 +876,9 @@ DatePickerView = Backbone.View.extend({
         this.delegateEvents();
     },
     selectToday: function(){
+        if(!this.renderDatePicker){
+            return;
+        }
         var datepickerStartDate = this.getStartDateFromDatepicker();
         var selectedMonth = datepickerStartDate.getMonth();
         var selectedYear = datepickerStartDate.getYear();
@@ -909,6 +917,9 @@ DatePickerView = Backbone.View.extend({
         });
     },
     selectDate: function(date){
+        if(!this.renderDatePicker){
+            return;
+        }
         this.$(".datepicker-el").datepicker('setDate', date);
         this.$(".datepicker-el").datepicker('update');
         var dayNumber = date.getDate();
@@ -924,7 +935,9 @@ DatePickerView = Backbone.View.extend({
     },
     render: function(){
         this.$el.html(this.template());
-        this.initDatepicker(this.startDateTime, this.endDateTime);
+        if(this.renderDatePicker){
+            this.initDatepicker(this.startDateTime, this.endDateTime);
+        }
         return this;
     }
 });
