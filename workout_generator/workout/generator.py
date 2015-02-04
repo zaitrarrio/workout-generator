@@ -241,6 +241,7 @@ def _generate_workout(day_framework_id, user, workout_component_list, cardio_lev
     workout_component_list = [w for w in workout_component_list if w != WorkoutComponent.FLEXIBILITY]
     for workout_component_id in workout_component_list:
         _add_exercises_for_component(workout_component_id, today_exercise_filter, user, workout)
+
     _add_flexibility_to_workout(workout, user_exercise_filter.copy())
 
     _add_more_time(workout)
@@ -292,7 +293,6 @@ def _add_exercises_for_component(workout_component_id, exercise_filter, user, wo
     super_set_manager = SuperSetManager(workout_component_id, user, component_filter)
     component_filter = super_set_manager.get_updated_exercise_filter()
     volume_info = super_set_manager.get_volume_info_first_exercise()
-
     num_exercises = random.randint(volume_info.min_exercises, volume_info.max_exercises)
 
     previous_exercise = None
@@ -339,7 +339,6 @@ def _max_exercises_reached_for_muscle_group_id(user, exercises, muscle_group_id)
 
 
 def _select_exercise(exercise_filter, previous_exercise=None, retry_mode=False):
-
     if previous_exercise is not None:
         for related_muscle_group_set in MuscleGroup.get_rings():
             if previous_exercise.muscle_group_id in related_muscle_group_set:

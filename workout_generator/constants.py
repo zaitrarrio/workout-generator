@@ -66,7 +66,10 @@ class Exercise(object):
         return cls._exercises_by_id[id]
 
     def __init__(self, existing_query=None):
-        self.query = existing_query or set(self._exercises)
+        if existing_query is None:
+            self.query = set(self._exercises)
+        else:
+            self.query = existing_query
 
     def copy(self):
         return Exercise(existing_query=self.query.copy())
