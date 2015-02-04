@@ -39,12 +39,16 @@ class Exercise(object):
     _exercises_by_phase = defaultdict(set)
     _exercises_by_id = {}
 
+    _exercise_id_to_mutually_exclusive_set = {e.id: set() for e in _exercises}
+
     for e in _exercises:
         _exercises_by_workout_component[e.workout_component_id].add(e)
         _exercises_by_muscle_group[e.muscle_group_id].add(e)
         _exercises_by_fitness_level[e.min_fitness_level_id].add(e)
         _exercises_by_experience[e.min_experience_id].add(e)
         _exercises_by_id[e.id] = e
+        if e.mutually_exclusive:
+            _exercise_id_to_mutually_exclusive_set[e.id] = _exercise_id_to_mutually_exclusive_set[e.mutually_exclusive]
 
         required_equipment_key = tuple(sorted(e.equipment_ids))
         _exercises_by_required_equipment[required_equipment_key].add(e)
@@ -54,6 +58,8 @@ class Exercise(object):
 
         for phase_id in e.phase_ids:
             _exercises_by_phase[phase_id].add(e)
+    for e in _exercises:
+        _exercise_id_to_mutually_exclusive_set[e.id].add(e.id)
 
     @classmethod
     def get_by_id(cls, id):
@@ -68,6 +74,12 @@ class Exercise(object):
     def discard_exercise_id(self, exercise_id):
         exercise = Exercise.get_by_id(exercise_id)
         self.query.discard(exercise)
+        return self
+
+    def discard_mutually_exclusive(self, exercise_id):
+        all_mutually_exclusive_ids = self._exercise_id_to_mutually_exclusive_set[exercise_id]
+        for exercise_id in all_mutually_exclusive_ids:
+            self.discard_exercise_id(exercise_id)
         return self
 
     def discard_muscle_group_id(self, muscle_group_id):

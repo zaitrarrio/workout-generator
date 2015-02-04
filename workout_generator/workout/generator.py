@@ -283,6 +283,7 @@ def _add_flexibility_to_workout(workout, exercise_filter):
             continue
         workout.add_exercise_set_collection(flexibility_exercise, 1, 30)
         exercise_filter.discard_exercise_id(flexibility_exercise.id)
+        exercise_filter.discard_mutually_exclusive(flexibility_exercise.id)
 
 
 def _add_exercises_for_component(workout_component_id, exercise_filter, user, workout):
@@ -317,8 +318,7 @@ def _add_exercises_for_component(workout_component_id, exercise_filter, user, wo
         workout.add_exercise_set_collection(exercise, sets, reps)
 
         component_filter.discard_exercise_id(exercise.id)
-        if exercise.mutually_exclusive:
-            component_filter.discard_exercise_id(exercise.mutually_exclusive)
+        component_filter.discard_mutually_exclusive(exercise.id)
         super_set_manager.add_superset_exercise_to_workout(workout, exercise, component_filter)
 
         if workout_component_id == WorkoutComponent.RESISTANCE:

@@ -53,15 +53,14 @@ class SuperSetManager(object):
 
     def _discard_exercise_from_filters(self, exercise, first_exercise_filter):
         first_exercise_filter.discard_exercise_id(exercise.id)
+        first_exercise_filter.discard_mutually_exclusive(exercise.id)
+
         self.superset_filter.discard_exercise_id(exercise.id)
-        if exercise.mutually_exclusive:
-            self.superset_filter.discard_exercise_id(exercise.mutually_exclusive)
-            first_exercise_filter.discard_exercise_id(exercise.mutually_exclusive)
+        self.superset_filter.discard_mutually_exclusive(exercise.id)
 
     def _select_superset_exercise(self, first_exercise):
         self.superset_filter.discard_exercise_id(first_exercise.id)
-        if first_exercise.mutually_exclusive:
-            self.superset_filter.discard_exercise_id(first_exercise.mutually_exclusive)
+        self.superset_filter.discard_mutually_exclusive(first_exercise.id)
 
         possible_muscle_ids = [first_exercise.muscle_group_id]
         possible_muscle_ids += MuscleGroup.ALLOWABLE_RELATED_FOR_SUPERSETS.get(first_exercise.muscle_group_id, [])
