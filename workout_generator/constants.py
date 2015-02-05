@@ -47,8 +47,6 @@ class Exercise(object):
         _exercises_by_fitness_level[e.min_fitness_level_id].add(e)
         _exercises_by_experience[e.min_experience_id].add(e)
         _exercises_by_id[e.id] = e
-        if e.mutually_exclusive:
-            _exercise_id_to_mutually_exclusive_set[e.id] = _exercise_id_to_mutually_exclusive_set[e.mutually_exclusive]
 
         required_equipment_key = tuple(sorted(e.equipment_ids))
         _exercises_by_required_equipment[required_equipment_key].add(e)
@@ -58,6 +56,11 @@ class Exercise(object):
 
         for phase_id in e.phase_ids:
             _exercises_by_phase[phase_id].add(e)
+
+    for e in sorted(_exercises, key=lambda e: e.mutually_exclusive):
+        if e.mutually_exclusive:
+            _exercise_id_to_mutually_exclusive_set[e.id] = _exercise_id_to_mutually_exclusive_set[e.mutually_exclusive]
+
     for e in _exercises:
         _exercise_id_to_mutually_exclusive_set[e.id].add(e.id)
 
