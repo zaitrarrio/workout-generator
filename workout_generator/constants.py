@@ -227,6 +227,22 @@ class MuscleGroup(object):
     }
 
     @classmethod
+    def as_json(cls):
+        json_list = []
+        list_of_sets = cls.get_rings()
+        clump_id_to_set = {i: id_set for i, id_set in enumerate(list_of_sets)}
+        for tuple_obj in cls.VALUES:
+            for clump_id, muscle_set in clump_id_to_set.items():
+                if tuple_obj[0] in muscle_set:
+                    break
+            json_list.append({
+                "id": tuple_obj[0],
+                "title": tuple_obj[1],
+                "clump_id": clump_id,
+            })
+        return json_list
+
+    @classmethod
     def get_related_muscle_group_ids(cls, muscle_group_id):
         list_of_sets = cls.get_rings()
         for muscle_group_id_set in list_of_sets:

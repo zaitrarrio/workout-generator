@@ -16,8 +16,11 @@ class AbstractTrimmable(object):
 
     @property
     def percent_trimmable(self):
-        absolute_trimmable_time = max(float(self.get_total_time() - self.get_minimum_time_required()), 0.0)
-        return absolute_trimmable_time / self.get_total_time()
+        total_time = self.get_total_time()
+        if total_time == 0:
+            return 0.0
+        absolute_trimmable_time = max(float(total_time - self.get_minimum_time_required()), 0.0)
+        return absolute_trimmable_time / total_time
 
     def trim_by_percent(self, percent):
         percent_to_trim = min(self.percent_trimmable, percent)
