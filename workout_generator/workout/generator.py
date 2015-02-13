@@ -19,10 +19,13 @@ from workout_generator.workout.utils import get_reps_sets_from_volume_info
 from workout_generator.workout.utils import evenly_distribute_exercises_by_muscle_group
 
 
-def generate_new_workouts(user):
+def generate_new_workouts(user, move_to_next_week=True):
     old_framework = DayFrameworkCollection.get_for_user(user)
 
-    user.move_to_next_week()
+    if move_to_next_week:
+        # added the option to backfill workouts in case of a bug
+        user.move_to_next_week()
+
     day_framework_collection = _generate_day_frameworks(user)
     new_workouts = _generate_workouts(user, day_framework_collection)
 
@@ -197,7 +200,7 @@ def _discard_recuperating_muscles(user_exercise_filter, previous_workouts_by_dis
         muscle_to_days_worked = defaultdict(int)
         muscle_to_reps = defaultdict(list)
         for workout in previous_workouts_by_distance:
-            for muscle_id in set(workout.get_muscle_ids_used()):
+            for muscle_id in set(workout.get_primary_muscle_ids_used()):
                 muscle_to_days_worked[muscle_id] += 1
                 muscle_to_reps[muscle_id].extend(workout.get_rep_prescriptions_for_muscle(muscle_id))
         for muscle_id, times_worked_this_period in muscle_to_days_worked.items():
@@ -235,10 +238,11 @@ def _generate_workout(day_framework_id, user, workout_component_list, cardio_lev
     today_exercise_filter = (user_exercise_filter.
                              copy().
                              exclude_muscle_groups(yesterday_muscle_ids))
+    today_exercise_filter = _prioritize_unused_muscle_groups(today_exercise_filter, previous_workouts_by_distance)
 
     workout = Workout.create_new(day_framework_id, user.current_phase_id, cardio_session=cardio_session)
-
     workout_component_list = [w for w in workout_component_list if w != WorkoutComponent.FLEXIBILITY]
+
     for workout_component_id in workout_component_list:
         _add_exercises_for_component(workout_component_id, today_exercise_filter, user, workout)
 
@@ -248,6 +252,31 @@ def _generate_workout(day_framework_id, user, workout_component_list, cardio_lev
     _trim_to_time(workout, user)
 
     return workout
+
+
+def _prioritize_unused_muscle_groups(today_exercise_filter, previous_workouts_by_distance):
+    list_of_sets = MuscleGroup.get_required_rings()
+    list_of_tuples = [tuple(muscle_set) for muscle_set in list_of_sets]
+    muscle_tuple_to_should_use = {t: True for t in list_of_tuples}
+    muscle_id_to_tuple = {}
+    for muscle_tuple in muscle_tuple_to_should_use.keys():
+        for muscle_id in muscle_tuple:
+            muscle_id_to_tuple[muscle_id] = muscle_tuple
+
+    for workout in reversed(previous_workouts_by_distance):
+        for muscle_id in workout.get_primary_muscle_ids_used():
+            muscle_tuple = muscle_id_to_tuple.get(muscle_id)
+            if muscle_tuple:
+                muscle_tuple_to_should_use[muscle_tuple] = False
+                if not any(muscle_tuple_to_should_use.values()):
+                    for muscle_tuple in muscle_tuple_to_should_use.keys():
+                        muscle_tuple_to_should_use[muscle_tuple] = True
+    remaining_muscle_group_ids = []
+    for muscle_tuple, should_use in muscle_tuple_to_should_use.items():
+        if should_use:
+            remaining_muscle_group_ids.extend(list(muscle_tuple))
+    non_repeating_exercise_filter = today_exercise_filter.copy().restrict_to_muscle_group_ids(remaining_muscle_group_ids)
+    return non_repeating_exercise_filter
 
 
 def _add_more_time(workout):

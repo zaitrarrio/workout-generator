@@ -13,16 +13,34 @@ class Exercise(object):
 
     class _Exercise(object):
 
+        _template_dir = "%s/templates/exercise_descriptions/" % os.path.dirname(os.path.realpath(__file__))
+
         def __init__(self, dict_obj):
             self.json_fields = []
             for key, value in dict_obj.items():
                 self.json_fields.append(key)
                 setattr(self, key, value)
+            self._populate_html_description()
+
+        def _populate_html_description(self):
+            try:
+                with open("%s%s.html" % (self._template_dir, self.canonical_name), "rb") as f:
+                    self.html_description = f.read()
+            except IOError:
+                self.html_description = ""
+
+        @property
+        def canonical_name(self):
+            canonical_name = self.name.replace(",", "")
+            canonical_name = canonical_name.replace("(", "").replace(")", "")
+            canonical_name = canonical_name.replace(" ", "-")
+            return canonical_name.lower()
 
         def to_json(self):
             json_blob = {}
             for field in self.json_fields:
                 json_blob[field] = getattr(self, field)
+            json_blob["html_description"] = self.html_description
             return json_blob
 
         def __hash__(self):
@@ -37,6 +55,8 @@ class Exercise(object):
     _exercises_by_required_equipment = defaultdict(set)
     _exercises_by_type = defaultdict(set)
     _exercises_by_phase = defaultdict(set)
+
+    _exercises_by_canonical_name = {}
     _exercises_by_id = {}
 
     _exercise_id_to_mutually_exclusive_set = {e.id: set() for e in _exercises}
@@ -47,6 +67,7 @@ class Exercise(object):
         _exercises_by_fitness_level[e.min_fitness_level_id].add(e)
         _exercises_by_experience[e.min_experience_id].add(e)
         _exercises_by_id[e.id] = e
+        _exercises_by_canonical_name[e.canonical_name] = e
 
         required_equipment_key = tuple(sorted(e.equipment_ids))
         _exercises_by_required_equipment[required_equipment_key].add(e)
@@ -67,6 +88,10 @@ class Exercise(object):
     @classmethod
     def get_by_id(cls, id):
         return cls._exercises_by_id[id]
+
+    @classmethod
+    def get_by_canonical_name(cls, canonical_name):
+        return cls._exercises_by_canonical_name[canonical_name]
 
     def __init__(self, existing_query=None):
         if existing_query is None:
@@ -170,46 +195,82 @@ class Exercise(object):
 
 class MuscleGroup(object):
     # id, muscle_group_name, related
+
+    ABS = "Abdominal Region"
+    ARMS = "Arms"
+    BACK = "Back"
+    CHEST = "Chest"
+    LEGS = "Legs"
+    LOWER_BODY = "Lower Body"
+    MIDSECTION = "Mid Section"
+    NECK = "Neck"
+    SHOULDERS = "Shoulders"
+    TOTAL_BODY = "Total Body"
+    UPPER_BODY = "Upper Body"
+
     VALUES = (
-        (1, "Upper Back", 29),
-        (2, "Lats", 1),
-        (3, "Lower Back", 2),
-        (29, "Traps", 3),
+        (1, "Upper Back", 29, (BACK, UPPER_BODY)),
+        (2, "Lats", 1, (BACK, UPPER_BODY)),
+        (3, "Lower Back", 2, (BACK, UPPER_BODY)),
+        (29, "Traps", 3, (BACK, UPPER_BODY)),
 
-        (4, "Front Neck", 6),
-        (5, "Rear Neck", 4),
-        (6, "SCM", 5),
+        (4, "Front Neck", 6, (NECK, UPPER_BODY)),
+        (5, "Rear Neck", 4, (NECK, UPPER_BODY)),
+        (6, "SCM", 5, (NECK, UPPER_BODY)),
 
-        (7, "Upper Abs", 28),
-        (8, "Center Abs", 7),
-        (9, "Transverse Abs", 8),
-        (10, "Obliques", 9),
-        (28, "Lower Abs", 10),
+        (7, "Upper Abs", 28, (ABS, MIDSECTION)),
+        (8, "Center Abs", 7, (ABS, MIDSECTION)),
+        (9, "Transverse Abs", 8, (ABS, MIDSECTION)),
+        (10, "Obliques", 9, (ABS, MIDSECTION)),
+        (28, "Lower Abs", 10, (ABS, MIDSECTION)),
 
-        (11, "Front Deltoids", 13),
-        (12, "Medial Deltoids", 11),
-        (13, "Rear Deltoids", 12),
+        (11, "Front Deltoids", 13, (SHOULDERS, UPPER_BODY)),
+        (12, "Medial Deltoids", 11, (SHOULDERS, UPPER_BODY)),
+        (13, "Rear Deltoids", 12, (SHOULDERS, UPPER_BODY)),
 
-        (14, "Biceps", 16),
-        (15, "Triceps", 14),
-        (16, "Forearms", 15),
+        (14, "Biceps", 16, (ARMS, UPPER_BODY)),
+        (15, "Triceps", 14, (ARMS, UPPER_BODY)),
+        (16, "Forearms", 15, (ARMS, UPPER_BODY)),
 
-        (17, "Hamstring", 27),
-        (18, "Quads", 17),
-        (19, "Calves", 18),
-        (20, "Shins", 19),
-        (21, "Glutes", 20),
-        (22, "Hip Flexors", 24),
-        (27, "Triple Extension", 21),
+        (17, "Hamstring", 27, (LEGS, LOWER_BODY)),
+        (18, "Quads", 17, (LEGS, LOWER_BODY)),
+        (19, "Calves", 18, (LEGS, LOWER_BODY)),
+        (20, "Shins", 19, (LEGS, LOWER_BODY)),
+        (21, "Glutes", 20, (LEGS, LOWER_BODY)),
+        (22, "Hip Flexors", 24, (LEGS, LOWER_BODY)),
+        (27, "Triple Extension", 21, (LEGS, LOWER_BODY)),
 
-        (23, "Abductors", 22),
-        (24, "Adductors", 23),
+        (23, "Abductors", 22, (ABS, MIDSECTION)),
+        (24, "Adductors", 23, (ABS, MIDSECTION)),
 
-        (25, "Upper Chest", 26),
-        (26, "Lower Chest", 25),
+        (25, "Upper Chest", 26, (CHEST, UPPER_BODY)),
+        (26, "Lower Chest", 25, (CHEST, UPPER_BODY)),
 
-        (30, "Total Body", 30),
+        (30, "Total Body", 30, (TOTAL_BODY, TOTAL_BODY)),
     )
+
+    MAP = {t[0]: t[1] for t in VALUES}
+
+    @classmethod
+    def get_name_for_id(cls, id):
+        return cls.MAP[id]
+
+    @classmethod
+    def get_id_from_canonical(cls, canonical_name):
+        for id, name in cls.MAP.items():
+            if name.lower().replace(" ", "-") == canonical_name:
+                return id
+
+    @classmethod
+    def get_muscle_ids_as_tree(cls):
+        muscle_tree = defaultdict(dict)
+        for tuple_obj in cls.VALUES:
+            tree_structure = tuple_obj[3]
+            low_level, high_level = tree_structure
+            current_list = muscle_tree[high_level].get(low_level, [])
+            current_list.append(tuple_obj[0])
+            muscle_tree[high_level][low_level] = current_list
+        return dict(muscle_tree)
 
     ALLOWABLE_RELATED_FOR_SUPERSETS = {
         # certain leg muscle can superset to triple extension
@@ -251,6 +312,20 @@ class MuscleGroup(object):
         return []
 
     @classmethod
+    def get_required_rings(cls):
+        muscle_ids_not_required = {4, 5, 6, 30}
+        list_of_sets = cls.get_rings()
+        required_list_of_sets = []
+        for muscle_id_set in list_of_sets:
+            include_set = True
+            for muscle_id in muscle_id_set:
+                if muscle_id in muscle_ids_not_required:
+                    include_set = False
+            if include_set:
+                required_list_of_sets.append(muscle_id_set)
+        return required_list_of_sets
+
+    @classmethod
     def get_rings(cls):
         accounted_for_muscle_tuples = set()
         id_to_muscle_tuple = {t[0]: t for t in cls.VALUES}
@@ -274,7 +349,7 @@ class MuscleGroup(object):
 
                 tuple_buffer.append(muscle_tuple)
                 accounted_for_muscle_tuples.add(muscle_tuple)
-                related_id = muscle_tuple[-1]
+                related_id = muscle_tuple[2]
                 muscle_tuple = id_to_muscle_tuple[related_id]
 
         rings = []
@@ -426,10 +501,25 @@ class ExerciseType(object):
         (3, "Stabilization"),
         (4, "Stretch"),
     )
+    MAP = {t[0]: t[1] for t in VALUES}
     STRENGTH = 1
     POWER = 2
     STABILIZATION = 3
     STRETCH = 4
+
+    @classmethod
+    def get_name_for_id(cls, id):
+        return cls.MAP[id]
+
+    @classmethod
+    def as_json(cls):
+        json_list = []
+        for tuple_obj in cls.VALUES:
+            json_list.append({
+                "id": tuple_obj[0],
+                "title": tuple_obj[1],
+            })
+        return json_list
 
 
 class Equipment(object):
@@ -456,6 +546,11 @@ class Equipment(object):
     DEFAULT_IDS = (
         1, 2, 5, 10, 20, 21
     )
+    MAP = {t[0]: t[1] for t in VALUES}
+
+    @classmethod
+    def get_name_for_id(cls, id):
+        return cls.MAP[id]
 
     @classmethod
     def as_json(cls):

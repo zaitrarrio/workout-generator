@@ -362,6 +362,14 @@ class Workout(AbstractTrimmable):
         return self._workout.day_framework_id
 
     def get_muscle_ids_used(self):
+        muscle_ids = self.get_primary_muscle_ids_used()
+        for _workout__exercise in self._workout__exercise_list:
+            exercise = Exercise.get_by_id(_workout__exercise.exercise_id)
+            muscle_ids.extend(exercise.muscle_group_ids)
+        muscle_ids = list(set(muscle_ids))
+        return muscle_ids
+
+    def get_primary_muscle_ids_used(self):
         muscle_ids = []
         for _workout__exercise in self._workout__exercise_list:
             exercise = Exercise.get_by_id(_workout__exercise.exercise_id)
@@ -536,7 +544,10 @@ class EmptyWorkout(object):
         return {}
 
     def get_muscle_ids_used(self):
-        return []
+        return tuple()
+
+    def get_primary_muscle_ids_used(self):
+        return tuple()
 
     def get_rep_prescriptions_for_muscle(self, muscle_id):
         return []
