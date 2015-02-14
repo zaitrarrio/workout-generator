@@ -28,10 +28,14 @@ def generate_new_workouts(user, move_to_next_week=True):
 
     day_framework_collection = _generate_day_frameworks(user)
     new_workouts = _generate_workouts(user, day_framework_collection)
+    workout_collection = WorkoutCollection(new_workouts, day_framework_collection)
+    _swap_empty_workouts(workout_collection)
+    for workout in workout_collection.workout_list:
+        _trim_to_time(workout, user)
+        _add_more_time(workout)
 
     old_framework.delete()
-
-    return WorkoutCollection(new_workouts, day_framework_collection)
+    return workout_collection
 
 
 def _generate_day_frameworks(user):
@@ -192,7 +196,26 @@ def _generate_workouts(user, day_framework_collection):
         workout = _generate_workout(day_framework_id, user, workout_components, cardio_level, list(reversed(previous_workouts)))
         previous_workouts.append(workout)
         new_workouts.append(workout)
+
     return new_workouts
+
+
+def _swap_empty_workouts(workout_collection):
+    ''' This is a fairly extreme edge case '''
+    cardio_and_lifting = []
+    no_cardio_no_lifting = []
+    for workout in workout_collection.workout_list:
+        if not workout.can_manipulate():
+            continue
+        if workout.needs_populate():
+            no_cardio_no_lifting.append(workout)
+        if workout.has_cardio() and workout.has_lifting():
+            cardio_and_lifting.append(workout)
+    day_framework_collection = workout_collection.day_framework_collection
+    while no_cardio_no_lifting and len(no_cardio_no_lifting) < len(cardio_and_lifting):
+        empty_workout = no_cardio_no_lifting.pop(0)
+        full_workout = cardio_and_lifting.pop(0)
+        day_framework_collection.swap_cardio_for_workouts(empty_workout, full_workout)
 
 
 def _discard_recuperating_muscles(user_exercise_filter, previous_workouts_by_distance):
@@ -215,6 +238,21 @@ def _generate_cardio(user, cardio_level):
     return cardio_session
 
 
+def _get_today_exercise_filter(user_exercise_filter, previous_workouts_by_distance):
+    today_exercise_filter = user_exercise_filter.copy()
+    _discard_recuperating_muscles(today_exercise_filter, previous_workouts_by_distance)
+    _discard_yesterday_muscles(today_exercise_filter, previous_workouts_by_distance)
+    today_exercise_filter = _prioritize_unused_muscle_groups(today_exercise_filter, previous_workouts_by_distance)
+    return today_exercise_filter
+
+
+def _discard_yesterday_muscles(exercise_filter, previous_workouts_by_distance):
+    if not previous_workouts_by_distance:
+        return
+    yesterday_muscle_ids = previous_workouts_by_distance[0].get_muscle_ids_used()
+    exercise_filter.exclude_muscle_groups(yesterday_muscle_ids)
+
+
 def _generate_workout(day_framework_id, user, workout_component_list, cardio_level, previous_workouts_by_distance):
     if not workout_component_list and cardio_level is None:
         return EmptyWorkout()
@@ -229,16 +267,7 @@ def _generate_workout(day_framework_id, user, workout_component_list, cardio_lev
                             for_phase(user.current_phase_id).
                             for_equipment_list(user.get_available_equipment_ids()))
 
-    _discard_recuperating_muscles(user_exercise_filter, previous_workouts_by_distance)
-
-    yesterday_muscle_ids = []
-    if len(previous_workouts_by_distance) > 0:
-        yesterday_muscle_ids = previous_workouts_by_distance[0].get_muscle_ids_used()
-
-    today_exercise_filter = (user_exercise_filter.
-                             copy().
-                             exclude_muscle_groups(yesterday_muscle_ids))
-    today_exercise_filter = _prioritize_unused_muscle_groups(today_exercise_filter, previous_workouts_by_distance)
+    today_exercise_filter = _get_today_exercise_filter(user_exercise_filter, previous_workouts_by_distance)
 
     workout = Workout.create_new(day_framework_id, user.current_phase_id, cardio_session=cardio_session)
     workout_component_list = [w for w in workout_component_list if w != WorkoutComponent.FLEXIBILITY]
@@ -247,10 +276,6 @@ def _generate_workout(day_framework_id, user, workout_component_list, cardio_lev
         _add_exercises_for_component(workout_component_id, today_exercise_filter, user, workout)
 
     _add_flexibility_to_workout(workout, user_exercise_filter.copy())
-
-    _add_more_time(workout)
-    _trim_to_time(workout, user)
-
     return workout
 
 
@@ -284,6 +309,8 @@ def _add_more_time(workout):
 
 
 def _trim_to_time(workout, user):
+    if not workout.can_manipulate():
+        return
     items_to_trim = [workout]
     cardio_session = workout.cardio_session
     if cardio_session:
@@ -318,6 +345,9 @@ def _add_flexibility_to_workout(workout, exercise_filter):
 
 def _add_exercises_for_component(workout_component_id, exercise_filter, user, workout):
     component_filter = exercise_filter.copy().for_workout_component(workout_component_id)
+    if len(component_filter.query) == 0:
+        pass
+        # import pdb; pdb.set_trace()
 
     super_set_manager = SuperSetManager(workout_component_id, user, component_filter)
     component_filter = super_set_manager.get_updated_exercise_filter()

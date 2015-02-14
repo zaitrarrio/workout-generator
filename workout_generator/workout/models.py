@@ -179,6 +179,21 @@ class DayFrameworkCollection(object):
         existing_day_frameworks = isoweekday_to_day_framework.values()
         return DayFrameworkCollection(user, day_frameworks=existing_day_frameworks, m2m_workout_components=existing_m2ms)
 
+    def swap_cardio_for_workouts(self, empty_workout, full_workout):
+        # FIXME this is lazy
+        empty_df = self.day_framework_id_to_obj[empty_workout.day_framework_id]
+        full_df = self.day_framework_id_to_obj[full_workout.day_framework_id]
+        empty_df.level = full_df.level
+        full_df.level = None
+        empty_df.save()
+        full_df.save()
+
+        empty_workout._workout.cardio_session_json = full_workout._workout.cardio_session_json
+        full_workout._workout.cardio_session_json = "{}"
+
+        empty_workout._workout.save()
+        full_workout._workout.save()
+
 
 class WorkoutCollection(object):
 
@@ -534,6 +549,18 @@ class Workout(AbstractTrimmable):
         for _we in self._workout__exercise_list:
             _we.save()
 
+    def needs_populate(self):
+        return (not self.has_cardio() and not self.has_lifting())
+
+    def has_cardio(self):
+        return self.cardio_session is not None
+
+    def has_lifting(self):
+        return len(self._get_workout_component_to_exercises()) > 0
+
+    def can_manipulate(self):
+        return True
+
 
 class EmptyWorkout(object):
 
@@ -554,3 +581,10 @@ class EmptyWorkout(object):
 
     def add_exercise_set_collection(self, *args, **kwargs):
         raise Exception("This case should not be reached")
+
+    def needs_populate(self):
+        return False
+
+    def can_manipulate(self):
+        # FIXME probably a better way to do this
+        return False
