@@ -94,18 +94,19 @@ class WorkoutTestCase(unittest.TestCase):
                     user.update_goal_id(goal_id)
                     # user.update_fitness_level(fitness_level)
                     # user.update_experience(experience)
-                    user.move_to_next_week()
-                    workout_collection = generate_new_workouts(user)
-                    for workout in workout_collection.get_existing_workouts_for_user(user):
-                        total += 1
-                        empty_cardio = workout.cardio_session is None
-                        empty_exercises = len(workout._get_workout_component_to_exercises()) == 0
-                        if empty_cardio and empty_exercises:
-                            # problem here: the database is populated with a
-                            # framework, but exercises empty I guess
-                            print "EMPTY DATA"
-                            bad += 1
-                            # raise ValueError("there's empty data")
+                    for week_count in xrange(10):
+                        user.move_to_next_week()
+                        workout_collection = generate_new_workouts(user)
+                        for workout in workout_collection.get_existing_workouts_for_user(user):
+                            total += 1
+                            empty_cardio = workout.cardio_session is None
+                            empty_exercises = len(workout._get_workout_component_to_exercises()) == 0
+                            if empty_cardio and empty_exercises:
+                                # problem here: the database is populated with a
+                                # framework, but exercises empty I guess
+                                print "EMPTY DATA"
+                                bad += 1
+                                # raise ValueError("there's empty data")
             # import json
             # f.write(json.dumps(workout_collection.to_json(), indent=4))
         print "%s/%s" % (bad, total)

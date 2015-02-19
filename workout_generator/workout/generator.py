@@ -42,7 +42,39 @@ def _generate_day_frameworks(user):
     isoweekday_to_components = _fill_isoweekdays_with_workout_components(user)
     isoweekday_to_cardio_intensity = _fill_isoweekdays_with_cardio_intensity(user, isoweekday_to_components)
     _mandate_cardio_or_resistance(isoweekday_to_components, isoweekday_to_cardio_intensity)
+    _evenly_distribute_cardio_lifting_days(isoweekday_to_components, isoweekday_to_cardio_intensity)
     return DayFrameworkCollection.create(user, isoweekday_to_components, isoweekday_to_cardio_intensity)
+
+
+def _evenly_distribute_cardio_lifting_days(isoweekday_to_components, isoweekday_to_cardio_intensity):
+    enabled_isoweekdays = list(set(isoweekday_to_cardio_intensity.keys() + isoweekday_to_components.keys()))
+    cardio_intensities = [0] * len(enabled_isoweekdays)
+
+    index = 0
+    cardio_intensity_to_isoweekday = defaultdict(list)
+    for isoweekday, intensity in isoweekday_to_cardio_intensity.items():
+        cardio_intensities[index] = intensity
+        cardio_intensity_to_isoweekday[intensity].append(isoweekday)
+        index += 1
+
+    scrambled_cardio_intensities = _scramble_list_by_alternating_intensities(cardio_intensities)
+    sorted_isoweekdays = sorted(enabled_isoweekdays)
+    for index, cardio_intensity in enumerate(scrambled_cardio_intensities):
+        if cardio_intensity:
+            old_isoweekday = cardio_intensity_to_isoweekday[cardio_intensity].pop()
+            new_isoweekday = sorted_isoweekdays[index]
+
+            _swap_dict_values(isoweekday_to_components, old_isoweekday, new_isoweekday)
+            _swap_dict_values(isoweekday_to_cardio_intensity, old_isoweekday, new_isoweekday)
+
+
+def _swap_dict_values(dictionary, old_key, new_key):
+    temp_value = dictionary[old_key]
+    if new_key in dictionary:
+        dictionary[old_key] = dictionary[new_key]
+    else:
+        del dictionary[old_key]
+    dictionary[new_key] = temp_value
 
 
 def _mandate_cardio_or_resistance(isoweekday_to_components, isoweekday_to_cardio_intensity):
