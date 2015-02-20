@@ -163,6 +163,8 @@ def _update_user(request, user=None, access_token=None):
 
         if field in post_data:
             function(user, post_data[field])
+    if WorkoutCollection.workouts_exist_for_user(user):
+        generate_new_workouts(user, move_to_next_week=False)
 
     return render_to_json({"access_token": access_token}, status=200)
 
@@ -171,11 +173,16 @@ def _update_user(request, user=None, access_token=None):
 def _get_user(request, user=None):
     if not user:
         return render_to_json({}, status=400)
-    return render_to_json(user.to_json())
+    user_json = user.to_json()
+    user_json["has_workouts"] = WorkoutCollection.workouts_exist_for_user(user)
+    return render_to_json(user_json)
 
 
 def _update_goal(user, goal_id):
-    user.update_goal_id(goal_id)
+    goal_id = int(goal_id)
+    initial_goal_id = user.goal_id
+    if initial_goal_id != goal_id:
+        user.update_goal_id(goal_id)
 
 
 def _update_equipment_ids(user, equipment_id_list):

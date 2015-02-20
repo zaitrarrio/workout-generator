@@ -306,6 +306,12 @@ FitnessLevelView = AbstractView.extend({
         });
     },
     save: function(){
+        if(this.model.get("has_workouts")){
+            var userConfirmed = confirm("Updating your fitness level will re-generate your workouts.  Are you sure?");
+            if (!userConfirmed){
+                return;
+            }
+        }
         var fitness_level = this.$(".slider-fitness").val();
         fitness_level = parseInt(parseInt(fitness_level, 10) / 20, 10);
 
@@ -388,6 +394,12 @@ ScheduleView = AbstractView.extend({
         return selectedDays;
     },
     save: function(){
+        if(this.model.get("has_workouts")){
+            var userConfirmed = confirm("Updating your schedule will re-generate your workouts.  Are you sure?");
+            if (!userConfirmed){
+                return;
+            }
+        }
         this.$(".save").hide();
         this.$(".loading-icon").show();
 
@@ -484,6 +496,12 @@ EquipmentView = AbstractView.extend({
         return checkedEquipment;
     },
     save: function(){
+        if(this.model.get("has_workouts")){
+            var userConfirmed = confirm("Updating your equipment will re-generate your workouts.  Are you sure?");
+            if (!userConfirmed){
+                return;
+            }
+        }
         this.$(".save").hide();
         this.$(".loading-icon").show();
         this.model.set("equipment_ids", this._getCheckedEquipmentIds());
@@ -762,6 +780,7 @@ WorkoutView = AbstractView.extend({
         var self = this;
         this.listenTo(this.workoutCollection, 'sync', function(){
             self.render();
+            self.userModel.set("has_workouts", true);
         });
         this.listenTo(this.userModel, 'sync', function(){
             self.render();
@@ -1086,6 +1105,10 @@ WorkoutMetaView = Backbone.View.extend({
     render: function(){
         var phaseNames = [];
         var phases = this.userModel.get("goal").phases;
+        if(!phases){
+            // FIXME: this is a hack from lazily setting goal to an int above
+            return;
+        }
         for(var i=0; i<phases.length; i++){
             phaseNames.push(phases[i].phase.title);
         }
@@ -1205,12 +1228,20 @@ GoalView = AbstractView.extend({
         element.removeClass("selected");
     },
     selectGoal: function(evt){
+        // FIXME change to "has_workouts"
+        if(this.model.get("goal")){
+            var userConfirmed = confirm("Changing your goal will change re-generate your workouts.  Are you sure?");
+            if (!userConfirmed){
+                return;
+            }
+        }
         var element = this.getElement(evt);
         var goalId = parseInt(element.attr("id").split("_")[1], 10);
         this.$(".row").hide();
         this.$(".loading-icon").show();
         var self = this;
         // TODO replace this with this.model.save()
+        this.model.set("goal", goalId);
         $.ajax({
             url: '/api/user/',
             data: {

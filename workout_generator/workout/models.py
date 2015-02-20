@@ -209,6 +209,10 @@ class WorkoutCollection(object):
         return day_framework_id_to_json.values()
 
     @classmethod
+    def workouts_exist_for_user(cls, user):
+        return _DayFramework.objects.filter(user_id=user.id).exists()
+
+    @classmethod
     def _check_needs_new_workouts(cls, existing_day_frameworks, tz):
         if len(existing_day_frameworks) == 0:
             raise NeedsNewWorkoutsException("No Workouts Exist")
