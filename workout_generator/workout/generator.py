@@ -274,7 +274,11 @@ def _get_today_exercise_filter(user_exercise_filter, previous_workouts_by_distan
     today_exercise_filter = user_exercise_filter.copy()
     _discard_recuperating_muscles(today_exercise_filter, previous_workouts_by_distance)
     _discard_yesterday_muscles(today_exercise_filter, previous_workouts_by_distance)
-    today_exercise_filter = _prioritize_unused_muscle_groups(today_exercise_filter, previous_workouts_by_distance)
+
+    # FIXME SBL come back and re-add this, it's discarding way too much and
+    # making it hard to fill workouts
+
+    # today_exercise_filter = _prioritize_unused_muscle_groups(today_exercise_filter, previous_workouts_by_distance)
     return today_exercise_filter
 
 
@@ -298,7 +302,6 @@ def _generate_workout(day_framework_id, user, workout_component_list, cardio_lev
                             for_experience(user.experience).
                             for_phase(user.current_phase_id).
                             for_equipment_list(user.get_available_equipment_ids()))
-
     today_exercise_filter = _get_today_exercise_filter(user_exercise_filter, previous_workouts_by_distance)
 
     workout = Workout.create_new(day_framework_id, user.current_phase_id, cardio_session=cardio_session)
