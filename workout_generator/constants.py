@@ -103,6 +103,17 @@ class Exercise(object):
     def copy(self):
         return Exercise(existing_query=self.query.copy())
 
+    @classmethod
+    def join(cls, *exercise_filters):
+        query = set()
+        for exercise_filter in exercise_filters:
+            query |= exercise_filter.query
+        return Exercise(existing_query=query)
+
+    def get_muscle_group_ids(self):
+        muscle_group_ids = {e.muscle_group_id for e in self.query}
+        return muscle_group_ids
+
     def discard_exercise_id(self, exercise_id):
         exercise = Exercise.get_by_id(exercise_id)
         self.query.discard(exercise)

@@ -1107,7 +1107,7 @@ WorkoutMetaView = Backbone.View.extend({
         var phases = this.userModel.get("goal").phases;
         if(!phases){
             // FIXME: this is a hack from lazily setting goal to an int above
-            return;
+            return this;
         }
         for(var i=0; i<phases.length; i++){
             phaseNames.push(phases[i].phase.title);

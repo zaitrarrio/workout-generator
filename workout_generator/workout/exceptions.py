@@ -4,3 +4,7 @@ class NeedsNewWorkoutsException(Exception):
 
 class NoExercisesAvailableException(Exception):
     pass
+
+
+class DeadEndException(Exception):
+    pass

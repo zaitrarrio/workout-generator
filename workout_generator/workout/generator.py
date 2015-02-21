@@ -9,6 +9,7 @@ from workout_generator.constants import MuscleFrequency
 from workout_generator.constants import WorkoutComponent
 from workout_generator.utils import get_new_trim_by_percent
 from workout_generator.workout.cardio_creator import CardioCreator
+from workout_generator.workout.exceptions import DeadEndException
 from workout_generator.workout.exceptions import NoExercisesAvailableException
 from workout_generator.workout.models import WorkoutCollection
 from workout_generator.workout.models import DayFrameworkCollection
@@ -270,22 +271,30 @@ def _generate_cardio(user, cardio_level):
     return cardio_session
 
 
-def _get_today_exercise_filter(user_exercise_filter, previous_workouts_by_distance):
+def _get_today_exercise_filter(user_exercise_filter, previous_workouts_by_distance, retry_count=0):
     today_exercise_filter = user_exercise_filter.copy()
-    _discard_recuperating_muscles(today_exercise_filter, previous_workouts_by_distance)
-    _discard_yesterday_muscles(today_exercise_filter, previous_workouts_by_distance)
 
-    # FIXME SBL come back and re-add this, it's discarding way too much and
-    # making it hard to fill workouts
+    retry_mode = False
+    if retry_count >= 1:
+        retry_mode = True
+    _discard_yesterday_muscles(today_exercise_filter, previous_workouts_by_distance, retry_mode=retry_mode)
 
-    # today_exercise_filter = _prioritize_unused_muscle_groups(today_exercise_filter, previous_workouts_by_distance)
+    if retry_count <= 2:
+        today_exercise_filter = _prioritize_unused_muscle_groups(user_exercise_filter, today_exercise_filter, previous_workouts_by_distance)
+
+    if retry_count <= 3:
+        _discard_recuperating_muscles(today_exercise_filter, previous_workouts_by_distance)
+
     return today_exercise_filter
 
 
-def _discard_yesterday_muscles(exercise_filter, previous_workouts_by_distance):
+def _discard_yesterday_muscles(exercise_filter, previous_workouts_by_distance, retry_mode=False):
     if not previous_workouts_by_distance:
         return
-    yesterday_muscle_ids = previous_workouts_by_distance[0].get_muscle_ids_used()
+    if retry_mode:
+        yesterday_muscle_ids = previous_workouts_by_distance[0].get_primary_muscle_ids_used()
+    else:
+        yesterday_muscle_ids = previous_workouts_by_distance[0].get_muscle_ids_used()
     exercise_filter.exclude_muscle_groups(yesterday_muscle_ids)
 
 
@@ -302,41 +311,76 @@ def _generate_workout(day_framework_id, user, workout_component_list, cardio_lev
                             for_experience(user.experience).
                             for_phase(user.current_phase_id).
                             for_equipment_list(user.get_available_equipment_ids()))
-    today_exercise_filter = _get_today_exercise_filter(user_exercise_filter, previous_workouts_by_distance)
 
     workout = Workout.create_new(day_framework_id, user.current_phase_id, cardio_session=cardio_session)
     workout_component_list = [w for w in workout_component_list if w != WorkoutComponent.FLEXIBILITY]
 
+    today_exercise_filter = _get_today_exercise_filter(user_exercise_filter, previous_workouts_by_distance)
+    max_retries = 4
     for workout_component_id in workout_component_list:
-        _add_exercises_for_component(workout_component_id, today_exercise_filter, user, workout)
+        temp_filter = today_exercise_filter
+        for dead_end_count in xrange(max_retries):
+            try:
+                _add_exercises_for_component(workout_component_id, temp_filter, user, workout)
+            except DeadEndException:
+                temp_filter = _get_today_exercise_filter(user_exercise_filter, previous_workouts_by_distance, retry_count=dead_end_count)
 
     _add_flexibility_to_workout(workout, user_exercise_filter.copy())
     return workout
 
 
-def _prioritize_unused_muscle_groups(today_exercise_filter, previous_workouts_by_distance):
+def _prioritize_unused_muscle_groups(user_exercise_filter, today_exercise_filter, previous_workouts_by_distance):
+    component_filters = []
+    for workout_component_id in WorkoutComponent.WORKOUT_ORDER:
+        muscle_tuple_to_should_use = _get_muscle_tuple_to_should_use(user_exercise_filter, workout_component_id)
+        _discard_or_reset_muscle_tuples(muscle_tuple_to_should_use, previous_workouts_by_distance, workout_component_id)
+        remaining_muscle_group_ids = _get_remaining_muscle_groups(muscle_tuple_to_should_use)
+        non_repeating_component_filter = (today_exercise_filter.copy().
+                                          for_workout_component(workout_component_id).
+                                          restrict_to_muscle_group_ids(remaining_muscle_group_ids))
+        component_filters.append(non_repeating_component_filter)
+    non_repeating_exercise_filter = Exercise.join(*component_filters)
+    return non_repeating_exercise_filter
+
+
+def _get_muscle_tuple_to_should_use(user_exercise_filter, workout_component_id):
+    usable_muscle_group_ids = user_exercise_filter.copy().for_workout_component(workout_component_id).get_muscle_group_ids()
+
     list_of_sets = MuscleGroup.get_required_rings()
-    list_of_tuples = [tuple(muscle_set) for muscle_set in list_of_sets]
+    for index in xrange(len(list_of_sets)):
+        list_of_sets[index] = {item for item in list_of_sets[index] if item in usable_muscle_group_ids}
+
+    list_of_tuples = [tuple(muscle_set) for muscle_set in list_of_sets if muscle_set]
     muscle_tuple_to_should_use = {t: True for t in list_of_tuples}
+    return muscle_tuple_to_should_use
+
+
+def _get_muscle_id_to_tuple(muscle_tuple_to_should_use):
     muscle_id_to_tuple = {}
     for muscle_tuple in muscle_tuple_to_should_use.keys():
         for muscle_id in muscle_tuple:
             muscle_id_to_tuple[muscle_id] = muscle_tuple
+    return muscle_id_to_tuple
 
+
+def _get_remaining_muscle_groups(muscle_tuple_to_should_use):
+    remaining_muscle_group_ids = []
+    for muscle_tuple, should_use in muscle_tuple_to_should_use.items():
+        if should_use:
+            remaining_muscle_group_ids.extend(list(muscle_tuple))
+    return remaining_muscle_group_ids
+
+
+def _discard_or_reset_muscle_tuples(muscle_tuple_to_should_use, previous_workouts_by_distance, workout_component_id):
+    muscle_id_to_tuple = _get_muscle_id_to_tuple(muscle_tuple_to_should_use)
     for workout in reversed(previous_workouts_by_distance):
-        for muscle_id in workout.get_primary_muscle_ids_used():
+        for muscle_id in workout.get_primary_muscle_ids_used(workout_component_id=workout_component_id):
             muscle_tuple = muscle_id_to_tuple.get(muscle_id)
             if muscle_tuple:
                 muscle_tuple_to_should_use[muscle_tuple] = False
                 if not any(muscle_tuple_to_should_use.values()):
                     for muscle_tuple in muscle_tuple_to_should_use.keys():
                         muscle_tuple_to_should_use[muscle_tuple] = True
-    remaining_muscle_group_ids = []
-    for muscle_tuple, should_use in muscle_tuple_to_should_use.items():
-        if should_use:
-            remaining_muscle_group_ids.extend(list(muscle_tuple))
-    non_repeating_exercise_filter = today_exercise_filter.copy().restrict_to_muscle_group_ids(remaining_muscle_group_ids)
-    return non_repeating_exercise_filter
 
 
 def _add_more_time(workout):
@@ -381,8 +425,7 @@ def _add_flexibility_to_workout(workout, exercise_filter):
 def _add_exercises_for_component(workout_component_id, exercise_filter, user, workout):
     component_filter = exercise_filter.copy().for_workout_component(workout_component_id)
     if len(component_filter.query) == 0:
-        pass
-        # import pdb; pdb.set_trace()
+        raise DeadEndException("No Exercises Available")
 
     super_set_manager = SuperSetManager(workout_component_id, user, component_filter)
     component_filter = super_set_manager.get_updated_exercise_filter()

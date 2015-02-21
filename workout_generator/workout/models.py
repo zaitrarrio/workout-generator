@@ -388,11 +388,12 @@ class Workout(AbstractTrimmable):
         muscle_ids = list(set(muscle_ids))
         return muscle_ids
 
-    def get_primary_muscle_ids_used(self):
+    def get_primary_muscle_ids_used(self, workout_component_id=None):
         muscle_ids = []
         for _workout__exercise in self._workout__exercise_list:
             exercise = Exercise.get_by_id(_workout__exercise.exercise_id)
-            muscle_ids.append(exercise.muscle_group_id)
+            if workout_component_id is None or exercise.workout_component_id == workout_component_id:
+                muscle_ids.append(exercise.muscle_group_id)
         muscle_ids = list(set(muscle_ids))
         return muscle_ids
 
@@ -577,7 +578,7 @@ class EmptyWorkout(object):
     def get_muscle_ids_used(self):
         return tuple()
 
-    def get_primary_muscle_ids_used(self):
+    def get_primary_muscle_ids_used(self, **extras):
         return tuple()
 
     def get_rep_prescriptions_for_muscle(self, muscle_id):
