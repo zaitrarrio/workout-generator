@@ -94,7 +94,8 @@ class WorkoutTestCase(unittest.TestCase):
                     user.update_goal_id(goal_id)
                     # user.update_fitness_level(fitness_level)
                     # user.update_experience(experience)
-                    for week_count in xrange(10):
+                    # for week_count in xrange(10):
+                    if True:
                         user.move_to_next_week()
                         workout_collection = generate_new_workouts(user)
                         for workout in workout_collection.get_existing_workouts_for_user(user):

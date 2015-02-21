@@ -284,7 +284,6 @@ def _get_today_exercise_filter(user_exercise_filter, previous_workouts_by_distan
 
     if retry_count <= 3:
         _discard_recuperating_muscles(today_exercise_filter, previous_workouts_by_distance)
-
     return today_exercise_filter
 
 
@@ -322,9 +321,9 @@ def _generate_workout(day_framework_id, user, workout_component_list, cardio_lev
         for dead_end_count in xrange(max_retries):
             try:
                 _add_exercises_for_component(workout_component_id, temp_filter, user, workout)
+                break
             except DeadEndException:
                 temp_filter = _get_today_exercise_filter(user_exercise_filter, previous_workouts_by_distance, retry_count=dead_end_count)
-
     _add_flexibility_to_workout(workout, user_exercise_filter.copy())
     return workout
 
