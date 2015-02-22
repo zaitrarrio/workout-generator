@@ -315,7 +315,7 @@ def _generate_workout(day_framework_id, user, workout_component_list, cardio_lev
     workout_component_list = [w for w in workout_component_list if w != WorkoutComponent.FLEXIBILITY]
 
     today_exercise_filter = _get_today_exercise_filter(user_exercise_filter, previous_workouts_by_distance)
-    max_retries = 4
+    max_retries = 5
     for workout_component_id in workout_component_list:
         temp_filter = today_exercise_filter
         for dead_end_count in xrange(max_retries):
