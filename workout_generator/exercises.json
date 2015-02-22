@@ -4762,7 +4762,7 @@
         "muscle_group_ids": [
             17
         ],
-        "workout_component_id": 5,
+        "workout_component_id": 2,
         "muscle_group_id": 17,
         "multi_joint": 1,
         "name": "Supine Elbow Stand Leg Lift",
@@ -4790,7 +4790,7 @@
         "muscle_group_ids": [
             17
         ],
-        "workout_component_id": 5,
+        "workout_component_id": 2,
         "muscle_group_id": 17,
         "multi_joint": 1,
         "name": "Supine Hand Stand Leg Lift",
