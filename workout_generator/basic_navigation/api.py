@@ -183,6 +183,8 @@ def _update_goal(user, goal_id):
     initial_goal_id = user.goal_id
     if initial_goal_id != goal_id:
         user.update_goal_id(goal_id)
+        if initial_goal_id is not None:
+            user.reset_goal()
 
 
 def _update_equipment_ids(user, equipment_id_list):

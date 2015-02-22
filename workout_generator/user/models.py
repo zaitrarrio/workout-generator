@@ -86,6 +86,9 @@ class User(object):
         self._user.total_weeks_in_phase = random.randint(min_length, max_length)
         self._user.save()
 
+    def reset_goal(self):
+        self._start_first_phase()
+
     def _start_next_phase(self):
         _User__VisitedPhase.get_or_create(self._user.id, self._user.current_phase_id)
 
