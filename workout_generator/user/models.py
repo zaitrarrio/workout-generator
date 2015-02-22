@@ -54,6 +54,7 @@ class _User__Equipment(models.Model):
 
 
 class _User__VisitedPhase(models.Model):
+    # FIXME need to add an index on user id
     user_id = models.IntegerField()
     phase_id = models.IntegerField()
 
@@ -87,6 +88,7 @@ class User(object):
         self._user.save()
 
     def reset_goal(self):
+        _User__VisitedPhase.objects.filter(user_id=self._user.id).delete()
         self._start_first_phase()
 
     def _start_next_phase(self):

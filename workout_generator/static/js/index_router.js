@@ -1255,6 +1255,7 @@ GoalView = AbstractView.extend({
             type: 'POST',
             success: function(data){
                 if(self.returnHome){
+                    self.model.fetch();
                     Backbone.history.navigate('', {trigger: true});
                 } else {
                     Backbone.history.navigate('!schedule', {trigger: true});
