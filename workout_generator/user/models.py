@@ -49,13 +49,12 @@ class _User(models.Model):
 
 
 class _User__Equipment(models.Model):
-    user_id = models.IntegerField()
+    user_id = models.IntegerField(db_index=True)
     equipment_id = models.IntegerField()
 
 
 class _User__VisitedPhase(models.Model):
-    # FIXME need to add an index on user id
-    user_id = models.IntegerField()
+    user_id = models.IntegerField(db_index=True)
     phase_id = models.IntegerField()
 
     @classmethod

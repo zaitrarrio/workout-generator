@@ -49,3 +49,4 @@ python -m one_rep_max.scripts.restart_failed_orders
 reset heroku database
 heroku pg:reset HEROKU_POSTGRESQL_MAUVE_URL
 python manage.py sqlclear user | python manage.py dbshell
+heroku pg:psql  # to access PostGres directly
