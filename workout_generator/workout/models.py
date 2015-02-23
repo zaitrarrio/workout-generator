@@ -388,6 +388,9 @@ class Workout(AbstractTrimmable):
         muscle_ids = list(set(muscle_ids))
         return muscle_ids
 
+    def get_exercise_ids_used(self):
+        return [_we.exercise_id for _we in self._workout__exercise_list]
+
     def get_primary_muscle_ids_used(self, workout_component_id=None):
         muscle_ids = []
         for _workout__exercise in self._workout__exercise_list:
@@ -576,6 +579,9 @@ class EmptyWorkout(object):
         return {}
 
     def get_muscle_ids_used(self):
+        return tuple()
+
+    def get_exercise_ids_used(self):
         return tuple()
 
     def get_primary_muscle_ids_used(self, **extras):

@@ -284,7 +284,16 @@ def _get_today_exercise_filter(user_exercise_filter, previous_workouts_by_distan
 
     if retry_count <= 3:
         _discard_recuperating_muscles(today_exercise_filter, previous_workouts_by_distance)
+
+    _discard_previous_exercises(today_exercise_filter, previous_workouts_by_distance)
     return today_exercise_filter
+
+
+def _discard_previous_exercises(exercise_filter, previous_workouts_by_distance, days=4):
+    for previous_workout in previous_workouts_by_distance[:days]:
+        exercise_ids = previous_workout.get_exercise_ids_used()
+        for exercise_id in exercise_ids:
+            exercise_filter.discard_exercise_id(exercise_id)
 
 
 def _discard_yesterday_muscles(exercise_filter, previous_workouts_by_distance, retry_mode=False):
@@ -383,6 +392,8 @@ def _discard_or_reset_muscle_tuples(muscle_tuple_to_should_use, previous_workout
 
 
 def _add_more_time(workout):
+    # get user exercise filter
+    # get today exercise filter, then discard all of the exercises in the week
     pass
 
 
