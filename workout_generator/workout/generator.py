@@ -488,6 +488,7 @@ def _add_exercises_for_component(workout_component_id, exercise_filter, user, wo
         exercises_this_component.append(exercise)
         if _max_exercises_reached_for_muscle_group_id(user, exercises_this_component, exercise.muscle_group_id):
             component_filter.discard_muscle_group_id(exercise.muscle_group_id)
+    exercise_filter.intersect(component_filter)
 
 
 def _max_exercises_reached_for_muscle_group_id(user, exercises, muscle_group_id):

@@ -117,6 +117,9 @@ class Exercise(object):
             query &= exercise_filter.query
         return Exercise(existing_query=query)
 
+    def intersect(self, other_filter):
+        self.query &= other_filter.query
+
     def get_muscle_group_ids(self):
         muscle_group_ids = {e.muscle_group_id for e in self.query}
         return muscle_group_ids
