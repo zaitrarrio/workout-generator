@@ -179,20 +179,23 @@ class DayFrameworkCollection(object):
         existing_day_frameworks = isoweekday_to_day_framework.values()
         return DayFrameworkCollection(user, day_frameworks=existing_day_frameworks, m2m_workout_components=existing_m2ms)
 
-    def swap_cardio_for_workouts(self, empty_workout, full_workout):
-        # FIXME this is lazy
-        empty_df = self.day_framework_id_to_obj[empty_workout.day_framework_id]
-        full_df = self.day_framework_id_to_obj[full_workout.day_framework_id]
-        empty_df.level = full_df.level
-        full_df.level = None
-        empty_df.save()
-        full_df.save()
+    def swap_cardio_for_workouts(self, workout1, workout2):
+        # FIXME this is kind of lazy
+        df1 = self.day_framework_id_to_obj[workout1.day_framework_id]
+        df2 = self.day_framework_id_to_obj[workout2.day_framework_id]
 
-        empty_workout._workout.cardio_session_json = full_workout._workout.cardio_session_json
-        full_workout._workout.cardio_session_json = "{}"
+        temp_level = df1.level
+        df1.level = df2.level
+        df2.level = temp_level
+        df1.save()
+        df2.save()
 
-        empty_workout._workout.save()
-        full_workout._workout.save()
+        temp_cardio_session_json = workout1._workout.cardio_session_json
+        workout1._workout.cardio_session_json = workout2._workout.cardio_session_json
+        workout2._workout.cardio_session_json = temp_cardio_session_json
+
+        workout1._workout.save()
+        workout2._workout.save()
 
 
 class WorkoutCollection(object):

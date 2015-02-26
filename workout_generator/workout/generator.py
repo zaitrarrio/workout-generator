@@ -31,6 +31,7 @@ def generate_new_workouts(user, move_to_next_week=True):
     new_workouts = _generate_workouts(user, day_framework_collection)
     workout_collection = WorkoutCollection(new_workouts, day_framework_collection)
     _swap_empty_workouts(workout_collection)
+    _swap_one_cardio_day(workout_collection)
     for workout in workout_collection.workout_list:
         _trim_to_time(workout, user)
 
@@ -248,6 +249,24 @@ def _swap_empty_workouts(workout_collection):
         empty_workout = no_cardio_no_lifting.pop(0)
         full_workout = cardio_and_lifting.pop(0)
         day_framework_collection.swap_cardio_for_workouts(empty_workout, full_workout)
+
+
+def _swap_one_cardio_day(workout_collection):
+    '''
+    Helps to balance out the volume in the week.  Restricted to just
+    one day because it otherwise destroys the previous logic of spreading out cardio through the week
+    '''
+    cardio_and_lifting = [workout for workout in workout_collection.workout_list
+            if workout.can_manipulate() and workout.has_cardio() and workout.has_lifting()]
+    lifting_only = [workout for workout in workout_collection.workout_list
+            if workout.can_manipulate() and not workout.has_cardio() and workout.has_lifting()]
+    if not lifting_only or not cardio_and_lifting:
+        return
+    smallest_lifting = sorted(lifting_only, key=lambda w: w.get_total_time())[0]
+    largest_with_cardio = sorted(cardio_and_lifting, key=lambda w: w.get_total_time(), reverse=True)[0]
+    if largest_with_cardio.get_total_time() > smallest_lifting.get_total_time():
+        day_framework_collection = workout_collection.day_framework_collection
+        day_framework_collection.swap_cardio_for_workouts(smallest_lifting, largest_with_cardio)
 
 
 def _discard_recuperating_muscles(user_exercise_filter, previous_workouts_by_distance):
