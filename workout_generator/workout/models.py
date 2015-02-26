@@ -340,6 +340,18 @@ class Workout(AbstractTrimmable):
                     _workout__exercise_initial.second_exercise = _workout__exercise
                     break
 
+        for workout_component in workout_component_to_exercises.keys():
+            # FIXME this case should never actually get reached but it's a hack
+            # for now
+            exercise_set = set()
+            updated_list = []
+            for _we in workout_component_to_exercises[workout_component]:
+                if _we.exercise_id not in exercise_set:
+                    updated_list.append(_we)
+                    exercise_set.add(_we.exercise_id)
+
+            workout_component_to_exercises[workout_component] = updated_list
+
         return workout_component_to_exercises
 
     def _workout__exercise_to_json(self, _workout__exercise):
