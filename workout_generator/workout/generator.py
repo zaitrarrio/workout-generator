@@ -33,7 +33,6 @@ def generate_new_workouts(user, move_to_next_week=True):
     _swap_empty_workouts(workout_collection)
     for workout in workout_collection.workout_list:
         _trim_to_time(workout, user)
-        _add_more_time(workout)
 
     old_framework.delete()
     return workout_collection
@@ -333,6 +332,20 @@ def _generate_workout(day_framework_id, user, workout_component_list, cardio_lev
                 break
             except DeadEndException:
                 temp_filter = _get_today_exercise_filter(user_exercise_filter, previous_workouts_by_distance, retry_count=dead_end_count)
+        # re-gain state with temp_filter
+        today_exercise_filter = Exercise.join_and(today_exercise_filter, temp_filter)
+
+    target_time = user.minutes_per_day
+    cardio_time = (0 if not cardio_session else cardio_session.get_total_time())
+    for workout_component_id in (10 * workout_component_list):
+        total_time = cardio_time + workout.get_total_time()
+        if total_time >= target_time - 5:
+            break
+        try:
+            _add_exercises_for_component(workout_component_id, today_exercise_filter, user, workout, force_one=True)
+        except DeadEndException:
+            continue
+
     _add_flexibility_to_workout(workout, user_exercise_filter.copy())
     return workout
 
@@ -391,12 +404,6 @@ def _discard_or_reset_muscle_tuples(muscle_tuple_to_should_use, previous_workout
                         muscle_tuple_to_should_use[muscle_tuple] = True
 
 
-def _add_more_time(workout):
-    # get user exercise filter
-    # get today exercise filter, then discard all of the exercises in the week
-    pass
-
-
 def _trim_to_time(workout, user):
     if not workout.can_manipulate():
         return
@@ -432,7 +439,7 @@ def _add_flexibility_to_workout(workout, exercise_filter):
         exercise_filter.discard_mutually_exclusive(flexibility_exercise.id)
 
 
-def _add_exercises_for_component(workout_component_id, exercise_filter, user, workout):
+def _add_exercises_for_component(workout_component_id, exercise_filter, user, workout, force_one=False):
     component_filter = exercise_filter.copy().for_workout_component(workout_component_id)
     if len(component_filter.query) == 0:
         raise DeadEndException("No Exercises Available")
@@ -441,6 +448,12 @@ def _add_exercises_for_component(workout_component_id, exercise_filter, user, wo
     component_filter = super_set_manager.get_updated_exercise_filter()
     volume_info = super_set_manager.get_volume_info_first_exercise()
     num_exercises = random.randint(volume_info.min_exercises, volume_info.max_exercises)
+
+    if force_one:
+        current_count = len(workout.get_exercise_ids_used(workout_component_id=workout_component_id))
+        if current_count >= volume_info.max_exercises:
+            return
+        num_exercises = 1
 
     previous_exercise = None
     count_for_current_muscle_group = 0

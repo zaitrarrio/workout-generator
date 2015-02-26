@@ -388,8 +388,15 @@ class Workout(AbstractTrimmable):
         muscle_ids = list(set(muscle_ids))
         return muscle_ids
 
-    def get_exercise_ids_used(self):
-        return [_we.exercise_id for _we in self._workout__exercise_list]
+    def get_exercise_ids_used(self, workout_component_id=None):
+        exercise_ids = []
+        for _we in self._workout__exercise_list:
+            if workout_component_id:
+                exercise = Exercise.get_by_id(_we.exercise_id)
+                if exercise.workout_component_id != workout_component_id:
+                    continue
+            exercise_ids.append(_we.exercise_id)
+        return exercise_ids
 
     def get_primary_muscle_ids_used(self, workout_component_id=None):
         muscle_ids = []

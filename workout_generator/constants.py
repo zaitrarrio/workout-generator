@@ -110,6 +110,13 @@ class Exercise(object):
             query |= exercise_filter.query
         return Exercise(existing_query=query)
 
+    @classmethod
+    def join_and(cls, *exercise_filters):
+        query = exercise_filters[0].query
+        for exercise_filter in exercise_filters:
+            query &= exercise_filter.query
+        return Exercise(existing_query=query)
+
     def get_muscle_group_ids(self):
         muscle_group_ids = {e.muscle_group_id for e in self.query}
         return muscle_group_ids
