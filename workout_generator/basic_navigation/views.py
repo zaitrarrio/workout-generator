@@ -39,7 +39,7 @@ def home(request):
         "parse_key": settings.PARSE_KEY
     }
     response = render_to_response("basic_navigation/base.html", render_data)
-    response['x-frame-options'] = 'allow'
+    response['x-frame-options'] = 'ALLOW-FROM *.mturk.com'
     return response
 
 
