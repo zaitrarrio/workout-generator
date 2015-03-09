@@ -38,7 +38,10 @@ def home(request):
         "year": datetime.datetime.utcnow().date().year,
         "parse_key": settings.PARSE_KEY
     }
-    return render_to_response("basic_navigation/base.html", render_data)
+    response = render_to_response("basic_navigation/base.html", render_data)
+    response['x-frame-options'] = 'allow'
+    return response
+
 
 
 def sitemap(request):
