@@ -533,6 +533,7 @@ def _select_exercise(exercise_filter, previous_exercise=None, retry_mode=False):
             exercise_filter = rollback_filter
 
     exercise_list = [exercise for exercise in exercise_filter.query]
+    # TODO log statement for number of exercises, number of muscle groups
     exercise_list = evenly_distribute_exercises_by_muscle_group(exercise_list)
     try:
         exercise = random.choice(exercise_list)
