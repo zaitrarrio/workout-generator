@@ -382,6 +382,7 @@ class MuscleGroup(object):
 
 
 class MuscleFrequency(object):
+    _cls_memoizations = {}
     '''
     Otherwise this generically applies to everything.  But holy shit, this sucks
 
@@ -423,6 +424,12 @@ class MuscleFrequency(object):
 
     @classmethod
     def pass_fail(cls, rep_prescriptions, times_worked_this_period, period):
+        memoization_key = (tuple(rep_prescriptions), times_worked_this_period, period)
+        # SBL this is a temp fix to make things faster, but will cause memory
+        # pressure.  Revisit and see if this can be faster
+        if memoization_key in cls._cls_memoizations:
+            return cls._cls_memoizations[memoization_key]
+
         for f_tuple in cls.VALUES:
             min_reps = f_tuple[6]
             max_reps = f_tuple[7]
@@ -433,7 +440,9 @@ class MuscleFrequency(object):
                 if min_reps <= reps <= max_reps:
                     max_times_per_period = f_tuple[3]
                     if times_worked_this_period >= max_times_per_period:
+                        cls._cls_memoizations[memoization_key] = False
                         return False
+        cls._cls_memoizations[memoization_key] = True
         return True
 
     @classmethod
