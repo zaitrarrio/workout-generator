@@ -11,6 +11,16 @@ from workout_generator.constants import MuscleGroup
 
 class WorkoutLogger(object):
 
+    day_to_index = {
+        "Sunday": 0,
+        "Monday": 1,
+        "Tuesday": 2,
+        "Wednesday": 3,
+        "Thursday": 4,
+        "Friday": 5,
+        "Saturday": 6,
+    }
+
     def __init__(self, user):
         self.user_logger = UserLogger.for_user_and_prefix(user, "workout")
         self.user = user
@@ -31,18 +41,9 @@ class WorkoutLogger(object):
         self.user_logger.add_message(final_message)
 
     def log_initial_day_framework_collection(self, day_framework_collection):
-        day_to_index = {
-            "Sunday": 0,
-            "Monday": 1,
-            "Tuesday": 2,
-            "Wednesday": 3,
-            "Thursday": 4,
-            "Friday": 5,
-            "Saturday": 6,
-        }
-        for day_name, isoweekday in day_to_index.items():
+        for day_name, isoweekday in self.day_to_index.items():
             cardio_level = day_framework_collection.get_cardio_for_day_index(isoweekday)
-            self._log("(Initial Day Framework) Cardio level on %s is %s" % (day_name, cardio_level or "no cardio"))
+            self._log("(Initial Day Framework) Cardio level on UTC %s is %s" % (day_name, cardio_level or "no cardio"))
             workout_component_ids = day_framework_collection.get_workout_components_for_day_index(isoweekday)
             component_str = ", ".join([WorkoutComponent.get_by_id(id).title for id in workout_component_ids])
             self._log("(Initial Day Framework) Workout components on %s: %s" % (day_name, component_str))
@@ -185,6 +186,11 @@ class WorkoutLogger(object):
             self._log("This workout does have supersetting")
         else:
             self._log("This workout does NOT have supersetting")
+
+    def log_day(self, isoweekday):
+        index_to_day = {v: k for k, v in self.day_to_index.items()}
+        day_str = index_to_day[isoweekday]
+        self._log("Starting workout generation for UTC %s" % day_str)
 
     @classmethod
     def for_user(self, user):

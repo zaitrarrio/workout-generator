@@ -1,3 +1,4 @@
+import datetime
 import random
 import mock
 
@@ -234,7 +235,11 @@ def _generate_workouts(user, day_framework_collection):
     user.workout_logger.log_previous_workouts(previous_workouts)
 
     new_workouts = []
-    for day_index in xrange(7):
+
+    start_isoweekday = datetime.datetime.utcnow().isoweekday()
+    ordered_isoweekdays = [iso % 7 for iso in range(start_isoweekday, start_isoweekday + 7)]
+    for day_index in ordered_isoweekdays:
+        user.workout_logger.log_day(day_index)
         workout_components = day_framework_collection.get_workout_components_for_day_index(day_index)
         day_framework_id = day_framework_collection.get_id_for_day_index(day_index)
         cardio_level = day_framework_collection.get_cardio_for_day_index(day_index)
