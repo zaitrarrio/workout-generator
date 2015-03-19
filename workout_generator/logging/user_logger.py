@@ -54,4 +54,6 @@ class UserLogger(object):
                 for line in message.split("\n"):
                     print line
             return
+        print "GOT HERE ABOUT TO SEND DATA"
+        print len(message_data["message"])
         self.table.put_item(data=final_dynamo_data)
