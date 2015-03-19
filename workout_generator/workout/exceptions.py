@@ -8,3 +8,7 @@ class NoExercisesAvailableException(Exception):
 
 class DeadEndException(Exception):
     pass
+
+
+class MaxVolumeReached(Exception):
+    pass

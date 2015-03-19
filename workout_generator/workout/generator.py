@@ -1,4 +1,5 @@
 import random
+import mock
 
 from collections import defaultdict
 
@@ -11,6 +12,7 @@ from workout_generator.utils import get_new_trim_by_percent
 from workout_generator.workout.cardio_creator import CardioCreator
 from workout_generator.workout.exceptions import DeadEndException
 from workout_generator.workout.exceptions import NoExercisesAvailableException
+from workout_generator.workout.exceptions import MaxVolumeReached
 from workout_generator.workout.models import WorkoutCollection
 from workout_generator.workout.models import DayFrameworkCollection
 from workout_generator.workout.models import EmptyWorkout
@@ -18,9 +20,13 @@ from workout_generator.workout.models import Workout
 from workout_generator.workout.super_set_manager import SuperSetManager
 from workout_generator.workout.utils import get_reps_sets_from_volume_info
 from workout_generator.workout.utils import evenly_distribute_exercises_by_muscle_group
+from workout_generator.workout.workout_logger import WorkoutLogger
 
 
 def generate_new_workouts(user, move_to_next_week=True):
+    user.workout_logger = WorkoutLogger.for_user(user)
+    user.workout_logger.log_start()
+
     old_framework = DayFrameworkCollection.get_for_user(user)
 
     if move_to_next_week:
@@ -28,6 +34,8 @@ def generate_new_workouts(user, move_to_next_week=True):
         user.move_to_next_week()
 
     day_framework_collection = _generate_day_frameworks(user)
+    user.workout_logger.log_initial_day_framework_collection(day_framework_collection)
+
     new_workouts = _generate_workouts(user, day_framework_collection)
     workout_collection = WorkoutCollection(new_workouts, day_framework_collection)
     _swap_empty_workouts(workout_collection)
@@ -36,6 +44,8 @@ def generate_new_workouts(user, move_to_next_week=True):
         _trim_to_time(workout, user)
 
     old_framework.delete()
+    user.workout_logger.log_end()
+    user.workout_logger.commit()
     return workout_collection
 
 
@@ -221,6 +231,8 @@ def _get_workout_component_list_for_week(workout_component_info, num_enabled_day
 
 def _generate_workouts(user, day_framework_collection):
     previous_workouts = WorkoutCollection.get_existing_workouts_for_user(user, cutoff_future_workouts=True)
+    user.workout_logger.log_previous_workouts(previous_workouts)
+
     new_workouts = []
     for day_index in xrange(7):
         workout_components = day_framework_collection.get_workout_components_for_day_index(day_index)
@@ -289,21 +301,28 @@ def _generate_cardio(user, cardio_level):
     return cardio_session
 
 
-def _get_today_exercise_filter(user_exercise_filter, previous_workouts_by_distance, retry_count=0):
+def _get_today_exercise_filter(user_exercise_filter, previous_workouts_by_distance, retry_count=0, logger=None):
+    logger = logger or mock.MagicMock()
     today_exercise_filter = user_exercise_filter.copy()
 
     retry_mode = False
     if retry_count >= 1:
         retry_mode = True
+
+    logger.log_filter_before_action(today_exercise_filter, "discard yesterday muscles")
     _discard_yesterday_muscles(today_exercise_filter, previous_workouts_by_distance, retry_mode=retry_mode)
 
     if retry_count <= 2:
+        logger.log_filter_before_action(today_exercise_filter, "prioritize unused muscle groups")
         today_exercise_filter = _prioritize_unused_muscle_groups(user_exercise_filter, today_exercise_filter, previous_workouts_by_distance)
 
     if retry_count <= 3:
+        logger.log_filter_before_action(today_exercise_filter, "discard recuperating muscles")
         _discard_recuperating_muscles(today_exercise_filter, previous_workouts_by_distance)
 
+    logger.log_filter_before_action(today_exercise_filter, "discard previous exercises")
     _discard_previous_exercises(today_exercise_filter, previous_workouts_by_distance)
+    logger.log_filter_before_action(today_exercise_filter, "final return, no more changes")
     return today_exercise_filter
 
 
@@ -325,12 +344,15 @@ def _discard_yesterday_muscles(exercise_filter, previous_workouts_by_distance, r
 
 
 def _generate_workout(day_framework_id, user, workout_component_list, cardio_level, previous_workouts_by_distance):
+    user.workout_logger.log_start_workout(workout_component_list)
     if not workout_component_list and cardio_level is None:
+        user.workout_logger.log_empty_workout()
         return EmptyWorkout()
 
     cardio_session = None
     if cardio_level:
         cardio_session = _generate_cardio(user, cardio_level)
+        user.workout_logger.log_initial_cardio_session(cardio_session)
 
     user_exercise_filter = (Exercise().
                             for_fitness_level(user.fitness_level).
@@ -338,10 +360,14 @@ def _generate_workout(day_framework_id, user, workout_component_list, cardio_lev
                             for_phase(user.current_phase_id).
                             for_equipment_list(user.get_available_equipment_ids()))
 
+    user.workout_logger.log_user_exercise_filter(user_exercise_filter)
+
     workout = Workout.create_new(day_framework_id, user.current_phase_id, cardio_session=cardio_session)
     workout_component_list = [w for w in workout_component_list if w != WorkoutComponent.FLEXIBILITY]
 
-    today_exercise_filter = _get_today_exercise_filter(user_exercise_filter, previous_workouts_by_distance)
+    today_exercise_filter = _get_today_exercise_filter(user_exercise_filter, previous_workouts_by_distance, logger=user.workout_logger)
+    user.workout_logger.log_initial_today_exercise_filter(today_exercise_filter)
+
     max_retries = 5
     for workout_component_id in workout_component_list:
         temp_filter = today_exercise_filter
@@ -350,26 +376,37 @@ def _generate_workout(day_framework_id, user, workout_component_list, cardio_lev
                 _add_exercises_for_component(workout_component_id, temp_filter, user, workout)
                 break
             except DeadEndException:
-                temp_filter = _get_today_exercise_filter(user_exercise_filter, previous_workouts_by_distance, retry_count=dead_end_count)
+                user.workout_logger.log_recreate_filter()
+                temp_filter = _get_today_exercise_filter(user_exercise_filter, previous_workouts_by_distance, retry_count=dead_end_count, logger=user.workout_logger)
+                user.workout_logger.log_retry_today_exercise_filter(temp_filter)
         # re-gain state with temp_filter
         today_exercise_filter = Exercise.join_and(today_exercise_filter, temp_filter)
 
     target_time = user.minutes_per_day
     cardio_time = (0 if not cardio_session else cardio_session.get_total_time())
+    skip_workout_component_ids = set()
     for workout_component_id in (10 * workout_component_list):
+        if workout_component_id in skip_workout_component_ids:
+            continue
         total_time = cardio_time + workout.get_total_time()
         if total_time >= target_time - 5:
             break
+        user.workout_logger.log_add_more_time(target_time, total_time, workout_component_id)
         try:
             _add_exercises_for_component(workout_component_id, today_exercise_filter, user, workout, force_one=True)
-        except DeadEndException:
+        except (DeadEndException, MaxVolumeReached) as e:
+            user.workout_logger.log_no_more_for_component(workout_component_id, e)
+            skip_workout_component_ids.add(workout_component_id)
             continue
 
     _add_flexibility_to_workout(workout, user_exercise_filter.copy())
+    user.workout_logger.log_finish_workout(workout)
     return workout
 
 
 def _prioritize_unused_muscle_groups(user_exercise_filter, today_exercise_filter, previous_workouts_by_distance):
+    # TODO: this will discard non-important muscle groups like neck and such.
+    # Maybe address that
     component_filters = []
     for workout_component_id in WorkoutComponent.WORKOUT_ORDER:
         muscle_tuple_to_should_use = _get_muscle_tuple_to_should_use(user_exercise_filter, workout_component_id)
@@ -460,19 +497,25 @@ def _add_flexibility_to_workout(workout, exercise_filter):
 
 def _add_exercises_for_component(workout_component_id, exercise_filter, user, workout, force_one=False):
     component_filter = exercise_filter.copy().for_workout_component(workout_component_id)
+    initial_state_filter = component_filter.copy()
+
     if len(component_filter.query) == 0:
+        user.workout_logger.log_dead_end_for_component(workout_component_id)
         raise DeadEndException("No Exercises Available")
 
     super_set_manager = SuperSetManager(workout_component_id, user, component_filter)
     component_filter = super_set_manager.get_updated_exercise_filter()
     volume_info = super_set_manager.get_volume_info_first_exercise()
     num_exercises = random.randint(volume_info.min_exercises, volume_info.max_exercises)
+    if not force_one:
+        user.workout_logger.log_num_exercises(volume_info, num_exercises, workout_component_id)
 
     if force_one:
         current_count = len(workout.get_exercise_ids_used(workout_component_id=workout_component_id))
         if current_count >= volume_info.max_exercises:
-            return
+            raise MaxVolumeReached("Max Volume Reached")
         num_exercises = 1
+    user.workout_logger.log_component_filter(workout_component_id, component_filter)
 
     previous_exercise = None
     count_for_current_muscle_group = 0
@@ -480,17 +523,19 @@ def _add_exercises_for_component(workout_component_id, exercise_filter, user, wo
 
     for _ in xrange(num_exercises):
         if float(count_for_current_muscle_group) / num_exercises >= user.get_exhaustion_percent():
+            user.workout_logger.log_muscle_exhausted()
             previous_exercise = None
             count_for_current_muscle_group = 0
 
         sets, reps = get_reps_sets_from_volume_info(volume_info)
         try:
-            exercise = _select_exercise(component_filter.copy(), previous_exercise=previous_exercise)
+            exercise = _select_exercise(component_filter.copy(), previous_exercise=previous_exercise, logger=user.workout_logger)
         except NoExercisesAvailableException:
+            user.workout_logger.log_retry_select_exercise()
             previous_exercise = None
             count_for_current_muscle_group = 0
             try:
-                exercise = _select_exercise(component_filter.copy(), retry_mode=True)
+                exercise = _select_exercise(component_filter.copy(), retry_mode=True, logger=user.workout_logger)
             except NoExercisesAvailableException:
                 continue
 
@@ -506,8 +551,11 @@ def _add_exercises_for_component(workout_component_id, exercise_filter, user, wo
 
         exercises_this_component.append(exercise)
         if _max_exercises_reached_for_muscle_group_id(user, exercises_this_component, exercise.muscle_group_id):
+            user.workout_logger.log_muscle_max_reached(exercise.muscle_group_id)
+            previous_exercise = None
             component_filter.discard_muscle_group_id(exercise.muscle_group_id)
-    exercise_filter.intersect(component_filter)
+    discarded_exercises = initial_state_filter.query - component_filter.query
+    exercise_filter.query -= discarded_exercises
 
 
 def _max_exercises_reached_for_muscle_group_id(user, exercises, muscle_group_id):
@@ -518,25 +566,31 @@ def _max_exercises_reached_for_muscle_group_id(user, exercises, muscle_group_id)
     return False
 
 
-def _select_exercise(exercise_filter, previous_exercise=None, retry_mode=False):
+def _select_exercise(exercise_filter, previous_exercise=None, retry_mode=False, logger=None):
+    logger = logger or mock.MagicMock()
     if previous_exercise is not None:
         for related_muscle_group_set in MuscleGroup.get_rings():
             if previous_exercise.muscle_group_id in related_muscle_group_set:
+                logger.log_muscle_restriction(previous_exercise, related_muscle_group_set)
                 exercise_filter.restrict_to_muscle_group_ids(related_muscle_group_set)
                 break
     elif not retry_mode:
+        logger.log_retry_mode()
         exercise_filter = exercise_filter.compound_only()
     else:
+        logger.log_rollback_mode()
         rollback_filter = exercise_filter.copy()
         exercise_filter = exercise_filter.compound_only()
         if exercise_filter.count() == 0:
             exercise_filter = rollback_filter
 
     exercise_list = [exercise for exercise in exercise_filter.query]
-    # TODO log statement for number of exercises, number of muscle groups
+
+    logger.log_available_exercises(exercise_list)
     exercise_list = evenly_distribute_exercises_by_muscle_group(exercise_list)
     try:
         exercise = random.choice(exercise_list)
     except IndexError:
         raise NoExercisesAvailableException("No exercises left")
+    logger.log_exercise_selection(exercise)
     return exercise

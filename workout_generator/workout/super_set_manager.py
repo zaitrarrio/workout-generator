@@ -15,9 +15,11 @@ class SuperSetManager(object):
         self.first_exercise_filter = exercise_filter
         self.first_volume_info = user.get_volume_for_workout_component(workout_component_id)
         self.workout_component_id = workout_component_id
+        self.logger = user.workout_logger
         if self.supersetting:
             self._update_exercise_filters(user)
             self._update_volumes(user)
+        self.logger.log_supersetting(self.supersetting)
 
     def _update_exercise_filters(self, user):
         self.superset_filter = self.first_exercise_filter.copy()
@@ -67,9 +69,11 @@ class SuperSetManager(object):
 
         exercise_filter = self.superset_filter.copy().restrict_to_muscle_group_ids(possible_muscle_ids)
         exercise_list = [exercise for exercise in exercise_filter.query]
+        self.logger.log_available_superset_exercise(exercise_list)
         exercise_list = evenly_distribute_exercises_by_muscle_group(exercise_list)
         try:
             exercise = random.choice(exercise_list)
         except IndexError:
             exercise = None
+        self.logger.log_superset_exercise(exercise)
         return exercise
