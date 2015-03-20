@@ -200,6 +200,19 @@ class WorkoutLogger(object):
         self._log("Filtering by exercise type. %s exercises are in first filter, %s are in the superset filter" %
                 (first_filter.count(), second_filter.count()))
 
+    def log_add_flexibility(self, muscle_ids):
+        muscle_names = ", ".join([MuscleGroup.get_name_for_id(id) for id in muscle_ids])
+        self._log("About to add flexibility for muscle groups: %s" % muscle_names)
+
+    def log_possible_flex_exercises(self, muscle_id, exercises):
+        muscle_name = MuscleGroup.get_name_for_id(muscle_id)
+        exercise_names = ", ".join([e.name for e in exercises])
+        self._log("Adding flexibility for %s.  %s possible exercses: (%s)." %
+            (muscle_name, len(exercises), exercise_names))
+
+    def log_selected_flex_exercise(self, flexibility_exercise):
+        self._log("Selected flexibility exercise: %s" % flexibility_exercise.name)
+
     @classmethod
     def for_user(self, user):
         return WorkoutLogger(user)

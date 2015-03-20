@@ -404,7 +404,7 @@ def _generate_workout(day_framework_id, user, workout_component_list, cardio_lev
             skip_workout_component_ids.add(workout_component_id)
             continue
 
-    _add_flexibility_to_workout(workout, user_exercise_filter.copy())
+    _add_flexibility_to_workout(workout, user_exercise_filter.copy(), logger=user.workout_logger)
     user.workout_logger.log_finish_workout(workout)
     return workout
 
@@ -486,15 +486,20 @@ def _trim_to_time(workout, user):
     workout.refresh_and_save()
 
 
-def _add_flexibility_to_workout(workout, exercise_filter):
+def _add_flexibility_to_workout(workout, exercise_filter, logger=None):
+    logger = logger or mock.MagicMock()
     exercise_filter = exercise_filter.for_workout_component(WorkoutComponent.FLEXIBILITY)
-    for muscle_group_id in workout.get_muscle_ids_used():
+    muscle_ids = workout.get_muscle_ids_used()
+    logger.log_add_flexibility(muscle_ids)
+    for muscle_group_id in muscle_ids:
         possible_exercises = exercise_filter.copy().for_muscle_group(muscle_group_id).query
         possible_exercises = [e for e in possible_exercises]
+        logger.log_possible_flex_exercises(muscle_group_id, possible_exercises)
         try:
             flexibility_exercise = random.choice(possible_exercises)
         except IndexError:
             continue
+        logger.log_selected_flex_exercise(flexibility_exercise)
         workout.add_exercise_set_collection(flexibility_exercise, 1, 30)
         exercise_filter.discard_exercise_id(flexibility_exercise.id)
         exercise_filter.discard_mutually_exclusive(flexibility_exercise.id)
@@ -507,7 +512,6 @@ def _add_exercises_for_component(workout_component_id, exercise_filter, user, wo
     if len(component_filter.query) == 0:
         user.workout_logger.log_dead_end_for_component(workout_component_id)
         raise DeadEndException("No Exercises Available")
-
     super_set_manager = SuperSetManager(workout_component_id, user, component_filter)
 
     initial_count = component_filter.count()
@@ -524,8 +528,6 @@ def _add_exercises_for_component(workout_component_id, exercise_filter, user, wo
         if current_count >= volume_info.max_exercises:
             raise MaxVolumeReached("Max Volume Reached")
         num_exercises = 1
-    # SBL TODO: there's a big drop in numbers right above here, need to see
-    # where that's coming from
     user.workout_logger.log_component_filter(workout_component_id, component_filter)
 
     previous_exercise = None
