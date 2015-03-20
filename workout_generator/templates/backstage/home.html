@@ -1,0 +1,36 @@
+{% extends "backstage/base.html" %}
+{% load staticfiles %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-10"></div>
+        <div class="col-md-1">
+            <a href=".?{{ get_params.urlencode }}&page_index={{ prev }}">
+                Previous
+            </a>
+        </div>
+        <div class="col-md-1">
+            <a href=".?{{ get_params.urlencode }}&page_index={{ next }}">
+                Next
+            </a>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-1"></div>
+        <div class="col-md-10">
+            {% for user in users %}
+                <div class="row">
+                    <div class="col-md-4">
+                        <a href="/backstage/user/{{ user.id }}/?{{ get_params.urlencode }}" target="_blank">
+                        {{ user.username }}
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        {{ user.stripe_customer_id }}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        <div class="col-md-1"></div>
+    </div>
+{% endblock %}

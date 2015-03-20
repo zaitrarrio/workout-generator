@@ -1,4 +1,6 @@
-from django.conf.urls import patterns, url
+from django.conf.urls import include
+from django.conf.urls import patterns
+from django.conf.urls import url
 
 from .basic_navigation import views
 from .basic_navigation import api
@@ -16,4 +18,6 @@ urlpatterns = patterns('',
     url(r'^api/workout/', api.workout, name="workout"),
     url(r'^api/coupon/(?P<coupon_code>\w+)/', api.coupon, name="coupon"),
     url(r'^api/re_send_confirmation/', api.re_send_confirmation, name="re-send-confirmation"),
+    url(r'^api/re_send_confirmation/', api.re_send_confirmation, name="re-send-confirmation"),
+    (r'^backstage/', include('workout_generator.backstage.urls')),
 )

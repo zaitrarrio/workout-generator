@@ -355,3 +355,24 @@ class User(object):
         except ObjectDoesNotExist:
             return None
         return User(_user)
+
+    @classmethod
+    def get_by_id(cls, user_id):
+        try:
+            _user = _User.objects.get(id=user_id)
+        except ObjectDoesNotExist:
+            return None
+        return User(_user)
+
+    @classmethod
+    def get_paged_users(cls, page_index):
+        page_size = 25
+        qs = _User.objects.filter(
+            status_state_id=StatusState.ACTIVE.index
+        ).order_by("id")
+        offset = page_index * page_size
+        paged_qs = qs[offset: offset + page_size]
+        users = []
+        for _user in paged_qs:
+            users.append(User(_user))
+        return users
