@@ -509,7 +509,11 @@ def _add_exercises_for_component(workout_component_id, exercise_filter, user, wo
         raise DeadEndException("No Exercises Available")
 
     super_set_manager = SuperSetManager(workout_component_id, user, component_filter)
+
+    initial_count = component_filter.count()
     component_filter = super_set_manager.get_updated_exercise_filter()
+    user.workout_logger.log_super_set_filter_update(component_filter, initial_count)
+
     volume_info = super_set_manager.get_volume_info_first_exercise()
     num_exercises = random.randint(volume_info.min_exercises, volume_info.max_exercises)
     if not force_one:
@@ -520,6 +524,8 @@ def _add_exercises_for_component(workout_component_id, exercise_filter, user, wo
         if current_count >= volume_info.max_exercises:
             raise MaxVolumeReached("Max Volume Reached")
         num_exercises = 1
+    # SBL TODO: there's a big drop in numbers right above here, need to see
+    # where that's coming from
     user.workout_logger.log_component_filter(workout_component_id, component_filter)
 
     previous_exercise = None

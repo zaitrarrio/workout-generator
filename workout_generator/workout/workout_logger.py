@@ -192,6 +192,14 @@ class WorkoutLogger(object):
         day_str = index_to_day[isoweekday]
         self._log("Starting workout generation for UTC %s" % day_str)
 
+    def log_super_set_filter_update(self, component_filter, initial_count):
+        self._log("After super set filter applied, %s exercises dropped (%s to %s)" %
+                (initial_count - component_filter.count(), initial_count, component_filter.count()))
+
+    def log_superset_filters(self, first_filter, second_filter):
+        self._log("Filtering by exercise type. %s exercises are in first filter, %s are in the superset filter" %
+                (first_filter.count(), second_filter.count()))
+
     @classmethod
     def for_user(self, user):
         return WorkoutLogger(user)

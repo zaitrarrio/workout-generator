@@ -28,6 +28,7 @@ class SuperSetManager(object):
             self.superset_filter = self.superset_filter.for_exercise_type(ExerciseType.STABILIZATION)
         elif user.current_phase_id == Phase.POWER:
             self.superset_filter = self.superset_filter.for_exercise_type(ExerciseType.POWER)
+        self.logger.log_superset_filters(self.first_exercise_filter, self.superset_filter)
 
     def _update_volumes(self, user):
         if user.current_phase_id == Phase.MUSCLE_ENDURANCE:
