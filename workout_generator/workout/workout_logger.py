@@ -213,6 +213,12 @@ class WorkoutLogger(object):
     def log_selected_flex_exercise(self, flexibility_exercise):
         self._log("Selected flexibility exercise: %s" % flexibility_exercise.name)
 
+    def log_prioritize_unused_muscles_ignored(self, workout_component_id, exercise_filter):
+        pass
+
+    def log_rollback_generator(self):
+        self._log("(Super hacky, fix if possible) Starting to back out of filters to make more exercises")
+
     @classmethod
     def for_user(self, user):
         return WorkoutLogger(user)

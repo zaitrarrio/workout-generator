@@ -48,12 +48,11 @@ class UserLogger(object):
         }
         final_dynamo_data = dict(required_hash_data.items() + message_data.items())
         if getattr(settings, "TEST_RUN", False):
+            return
             # print "MOCK Sending Message: %s" % final_dynamo_data
             print "MOCK Sending Message:"
             for message in self.messages:
                 for line in message.split("\n"):
                     print line
             return
-        print "GOT HERE ABOUT TO SEND DATA"
-        print len(message_data["message"])
         self.table.put_item(data=final_dynamo_data)

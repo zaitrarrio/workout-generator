@@ -23,6 +23,8 @@ from workout_generator.workout.utils import get_reps_sets_from_volume_info
 from workout_generator.workout.utils import evenly_distribute_exercises_by_muscle_group
 from workout_generator.workout.workout_logger import WorkoutLogger
 
+BLAH = 0
+
 
 def generate_new_workouts(user, move_to_next_week=True):
     user.workout_logger = WorkoutLogger.for_user(user)
@@ -319,7 +321,7 @@ def _get_today_exercise_filter(user_exercise_filter, previous_workouts_by_distan
 
     if retry_count <= 2:
         logger.log_filter_before_action(today_exercise_filter, "prioritize unused muscle groups")
-        today_exercise_filter = _prioritize_unused_muscle_groups(user_exercise_filter, today_exercise_filter, previous_workouts_by_distance)
+        today_exercise_filter = _prioritize_unused_muscle_groups(today_exercise_filter, previous_workouts_by_distance)
 
     if retry_count <= 3:
         logger.log_filter_before_action(today_exercise_filter, "discard recuperating muscles")
@@ -346,6 +348,19 @@ def _discard_yesterday_muscles(exercise_filter, previous_workouts_by_distance, r
     else:
         yesterday_muscle_ids = previous_workouts_by_distance[0].get_muscle_ids_used()
     exercise_filter.exclude_muscle_groups(yesterday_muscle_ids)
+
+
+def _rollback_filter_generator(user, previous_workouts_by_distance, workout_component_id):
+    max_retries = 4
+    user_exercise_filter = (Exercise().
+                            for_fitness_level(user.fitness_level).
+                            for_experience(user.experience).
+                            for_phase(user.current_phase_id).
+                            for_workout_component(workout_component_id).
+                            for_equipment_list(user.get_available_equipment_ids()))
+    for dead_end_count in xrange(1, max_retries + 1):
+        user.workout_logger.log_rollback_generator()
+        yield _get_today_exercise_filter(user_exercise_filter, previous_workouts_by_distance, retry_count=dead_end_count, logger=user.workout_logger)
 
 
 def _generate_workout(day_framework_id, user, workout_component_list, cardio_level, previous_workouts_by_distance):
@@ -377,8 +392,9 @@ def _generate_workout(day_framework_id, user, workout_component_list, cardio_lev
     for workout_component_id in workout_component_list:
         temp_filter = today_exercise_filter
         for dead_end_count in xrange(max_retries):
+            rollback_filter_generator = _rollback_filter_generator(user, previous_workouts_by_distance, workout_component_id)
             try:
-                _add_exercises_for_component(workout_component_id, temp_filter, user, workout)
+                _add_exercises_for_component(workout_component_id, temp_filter, user, workout, rollback_filter_generator=rollback_filter_generator)
                 break
             except DeadEndException:
                 user.workout_logger.log_recreate_filter()
@@ -409,12 +425,10 @@ def _generate_workout(day_framework_id, user, workout_component_list, cardio_lev
     return workout
 
 
-def _prioritize_unused_muscle_groups(user_exercise_filter, today_exercise_filter, previous_workouts_by_distance):
-    # TODO: this will discard non-important muscle groups like neck and such.
-    # Maybe address that
+def _prioritize_unused_muscle_groups(today_exercise_filter, previous_workouts_by_distance):
     component_filters = []
     for workout_component_id in WorkoutComponent.WORKOUT_ORDER:
-        muscle_tuple_to_should_use = _get_muscle_tuple_to_should_use(user_exercise_filter, workout_component_id)
+        muscle_tuple_to_should_use = _get_muscle_tuple_to_should_use(today_exercise_filter, workout_component_id)
         _discard_or_reset_muscle_tuples(muscle_tuple_to_should_use, previous_workouts_by_distance, workout_component_id)
         remaining_muscle_group_ids = _get_remaining_muscle_groups(muscle_tuple_to_should_use)
         non_repeating_component_filter = (today_exercise_filter.copy().
@@ -422,6 +436,7 @@ def _prioritize_unused_muscle_groups(user_exercise_filter, today_exercise_filter
                                           restrict_to_muscle_group_ids(remaining_muscle_group_ids))
         component_filters.append(non_repeating_component_filter)
     non_repeating_exercise_filter = Exercise.join(*component_filters)
+
     return non_repeating_exercise_filter
 
 
@@ -505,7 +520,12 @@ def _add_flexibility_to_workout(workout, exercise_filter, logger=None):
         exercise_filter.discard_mutually_exclusive(flexibility_exercise.id)
 
 
-def _add_exercises_for_component(workout_component_id, exercise_filter, user, workout, force_one=False):
+def _add_exercises_for_component(workout_component_id,
+                                 exercise_filter,
+                                 user,
+                                 workout,
+                                 force_one=False,
+                                 rollback_filter_generator=tuple()):
     component_filter = exercise_filter.copy().for_workout_component(workout_component_id)
     initial_state_filter = component_filter.copy()
 
@@ -551,6 +571,21 @@ def _add_exercises_for_component(workout_component_id, exercise_filter, user, wo
                 exercise = _select_exercise(component_filter.copy(), retry_mode=True, logger=user.workout_logger)
             except NoExercisesAvailableException:
                 continue
+            except DeadEndException:
+                # FIXME: This is insane.  Sorry.
+                # SBL this isn't working yet because it's possible to get the
+                # same workout in a row here
+                for rollback_filter in rollback_filter_generator:
+                    super_set_manager = SuperSetManager(workout_component_id, user, rollback_filter)
+                    rollback_filter = super_set_manager.get_updated_exercise_filter()
+                    subtracted_exercises = initial_state_filter.query - component_filter.query
+                    rollback_filter.query -= subtracted_exercises
+                    component_filter = rollback_filter
+                    try:
+                        exercise = _select_exercise(component_filter.copy(), retry_mode=True, logger=user.workout_logger)
+                        break
+                    except (DeadEndException, NoExercisesAvailableException):
+                        continue
 
         workout.add_exercise_set_collection(exercise, sets, reps)
 
@@ -590,12 +625,14 @@ def _select_exercise(exercise_filter, previous_exercise=None, retry_mode=False, 
     elif not retry_mode:
         logger.log_retry_mode()
         exercise_filter = exercise_filter.compound_only()
-    else:
+    elif retry_mode and previous_exercise is None:
         logger.log_rollback_mode()
         rollback_filter = exercise_filter.copy()
         exercise_filter = exercise_filter.compound_only()
         if exercise_filter.count() == 0:
             exercise_filter = rollback_filter
+        if exercise_filter.count() == 0:
+            raise DeadEndException("Need a bigger exercise pool to continue")
 
     exercise_list = [exercise for exercise in exercise_filter.query]
 
