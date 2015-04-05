@@ -2,6 +2,7 @@ import datetime
 import pytz
 import time
 from pytz.exceptions import AmbiguousTimeError
+from pytz.exceptions import NonExistentTimeError
 
 
 def datetime_to_timestamp_ms(dt):
@@ -29,5 +30,9 @@ def get_timezone_from_utc_offset_minutes(offset_minutes):
                 return possible_timezone
         except AmbiguousTimeError:
             # During DST transitions this can die... if it does, just skip that TZ
+            pass
+        except NonExistentTimeError:
+            # FIXME dont know why this happened..-420
+            # WTF
             pass
     return pytz.timezone("UTC")
