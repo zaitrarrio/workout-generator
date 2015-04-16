@@ -6,8 +6,8 @@ from celery.task import task
 
 
 @task
-def do_anything():
-    print "delete me"
+def placeholder():
+    raise NotImplementedError
 
 
 def cleanup_after_tasks(signum, frame):
