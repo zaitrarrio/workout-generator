@@ -11,7 +11,12 @@ var FACEBOOK_PAGE_ID = "225330625974";
 TextView = Backbone.View.extend({
     events: {
         "keyup.phone-input": "inputChanged",
+        "click .icon-remove": "dismiss",
         "click .send-text": "sendText"
+    },
+    dismiss: function(){
+        mixpanel.track("Dismiss iOS Ad");
+        this.achievementHide();
     },
     inputChanged: function(evt){
         var element = this.$(".phone-input");
