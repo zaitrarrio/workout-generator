@@ -213,12 +213,18 @@ TemplateView = AbstractView.extend({
 SignUpView = AbstractView.extend({
     events: {
         "click .sign-up-continue": "clickSubmit",
+        "click .more-info": "clickMoreInfo",
         "click .facebook-button": "facebookLogin"
     },
     initialize: function(model, callback){
         this.model = model;
         this.template = _.template($("#sign-up-view").html());
         this.callback = callback;
+    },
+    clickMoreInfo: function(){
+        this.$(".more-info").hide();
+        mixpanel.track("Abort Signup; Try iOS");
+        globalTextView.render();
     },
     facebookLogin: function(){
         var self = this;
