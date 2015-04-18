@@ -3,6 +3,10 @@ var ResponseCodes = {
     REDIRECT_REQUIRED: 499
 };
 
+function isMobile(){
+     var mobile = (/iphone|ipad|ipod|android|blackberry|mini|windows\sce|palm/i.test(navigator.userAgent.toLowerCase()));
+    return mobile;
+}
 var FACEBOOK_PAGE_ID = "225330625974";
 TextView = Backbone.View.extend({
     events: {
@@ -54,6 +58,9 @@ TextView = Backbone.View.extend({
 
     },
     render: function(callback_view){
+        if(isMobile()){
+            return;
+        }
         this.achievementPopup();
         this.delegateEvents();
     },
@@ -1647,7 +1654,6 @@ IndexRouter = Backbone.Router.extend({
         this.globalView.goto(this.signUpView);
     },
     defaultRoute: function(path){
-        // globalTextView.render();
         removeHash();
         if(!Parse.User.current()){
             mixpanel.track("Landing Page No Login"); // Step 1
