@@ -1576,6 +1576,9 @@ IndexRouter = Backbone.Router.extend({
         "!passwordreset": "resetPassword",
         "": "defaultRoute"
     },
+    updateLoginState: function(){
+        this.loginStateView.updateLoginState();
+    },
     initialize: function(){
         this.model = new User();
         this.loggedIn = false;
