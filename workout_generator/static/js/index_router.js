@@ -4,6 +4,71 @@ var ResponseCodes = {
 };
 
 var FACEBOOK_PAGE_ID = "225330625974";
+TextView = Backbone.View.extend({
+    events: {
+        "keyup.phone-input": "inputChanged",
+        "click .send-text": "sendText"
+    },
+    inputChanged: function(evt){
+        var element = this.$(".phone-input");
+        var regexMatches = element.val().match(/\d/g);
+        var hasMinimumDigits = (regexMatches && regexMatches.length >= 10);
+        if(hasMinimumDigits){
+            this.$(".send-text").removeClass("gray");
+        }
+        if(evt.keyCode == 13){
+            this.sendText();
+        }
+    },
+    sendText: function(){
+        if(this.$(".send-text").hasClass("gray")){
+            return;
+        }
+
+        this.achievementHide();
+        mixpanel.track("iOS App Requested");
+        var self = this;
+        $.ajax({
+            url: '/api/text_link/',
+            data: {
+                phone: self.$(".phone-input").val()
+            },
+            cache: false,
+            dataType: 'json',
+            traditional: true,
+            type: 'POST',
+            contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+            success: function(response){
+            },
+            error: function(data){
+            }
+        });
+    },
+    initialize: function(){
+        this.template = _.template($("#achievement-item").html());
+        this.animation_seconds = 1.75;
+        this.selector = '.status .achievement';
+        this.$el.append(this.template());
+        $(document.body).append(this.$el);
+        this.targetEl = this.$el.find(this.selector);
+
+    },
+    render: function(callback_view){
+        this.achievementPopup();
+        this.delegateEvents();
+    },
+    achievementPopup: function(){
+        var image_url = "https://s3.amazonaws.com/lobbdawg/displayIcon.png";
+        this.targetEl.css('background-image', 'url(' + image_url + ')');
+        this.targetEl.css({opacity: 0.0});
+        this.targetEl.show();
+        this.targetEl.animate({opacity: 1.0, bottom: '8px'}, this.animation_seconds * 1000);
+    },
+    achievementHide: function(){
+        this.targetEl.animate({opacity: 0.0, bottom: '-120px'}, this.animation_seconds * 1000, "linear");
+    }
+});
+var globalTextView = new TextView();
 
 function validateEmail(email) {
     var re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
@@ -85,6 +150,8 @@ Coupon = Backbone.Model.extend({
         this.code = code;
     }
 });
+
+
 AbstractView = Backbone.View.extend({
     transitionIn: function (callback) {
         var view = this;
@@ -150,6 +217,7 @@ SignUpView = AbstractView.extend({
         var self = this;
         Parse.FacebookUtils.logIn("email", {
             success: function(user) {
+                globalTextView.render();
                 if (!user.existed()) {
                     // user signed up and logged in  through facebook
                     $.ajax({
@@ -187,6 +255,7 @@ SignUpView = AbstractView.extend({
         });
     },
     clickSubmit: function(){
+        globalTextView.render();
         var email = this.$(".email-input").val();
         var password = this.$(".password-input").val();
         var isValidEmail = validateEmail(email);
@@ -704,6 +773,7 @@ PaymentView = AbstractView.extend({
         handler.open(options);
     },
     render: function(options){
+        globalTextView.achievementHide();
         var optionalMessage = "";
         if(this.optionString === "delinquent"){
             optionalMessage = "There appears to be a problem with our last attempt charging your credit card.  We'll automatically retry, but you can also update your credit card details";
@@ -1577,6 +1647,7 @@ IndexRouter = Backbone.Router.extend({
         this.globalView.goto(this.signUpView);
     },
     defaultRoute: function(path){
+        // globalTextView.render();
         removeHash();
         if(!Parse.User.current()){
             mixpanel.track("Landing Page No Login"); // Step 1

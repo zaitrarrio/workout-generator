@@ -20,3 +20,4 @@ richenum==1.0.5
 django-htmlmin
 pytz==2014.10
 mock==1.0.1
+twilio

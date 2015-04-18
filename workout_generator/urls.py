@@ -19,5 +19,6 @@ urlpatterns = patterns('',
     url(r'^api/coupon/(?P<coupon_code>\w+)/', api.coupon, name="coupon"),
     url(r'^api/re_send_confirmation/', api.re_send_confirmation, name="re-send-confirmation"),
     url(r'^api/re_send_confirmation/', api.re_send_confirmation, name="re-send-confirmation"),
+    url(r'^api/text_link/', api.text_link, name="text-link"),
     (r'^backstage/', include('workout_generator.backstage.urls')),
 )

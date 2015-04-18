@@ -1,0 +1,61 @@
+<script type="text/html" id="achievement-item">
+<div class="status">
+<div class="achievement">
+<div style="margin-left: 40px;">
+    <div>
+        <span class="title" >Check Out Our First iOS App</span>
+    </div>
+    <div style="margin: 5px 0px;">
+        <span class="text">Text the Link to Your Phone </span>
+    </div>
+<div>
+<input type="text" class="phone-input" style="display: inline-block; border: none; position: absolute; width: 150px;" placeholder="555-123-4567"/>
+<a href="javascript:void(0);" class="button large rounded gray send-text" style="display: inline-block; padding: 5px 10px; position: absolute; left: 285px;margin-top: 0px;"><center>Send</center></a>
+</div>
+</div>
+</div>
+</div>
+</script>
+
+<script type="text/html" id="sidebar-achievement-item">
+    <div class="sidebar-achievement">
+        <div class="title"><a href="#"><strong><center><%= title %></center></strong></a></div>
+        <div class="medal-icon">
+            <img src="<%= JSContext.staticBase %><%= icon %>"/>
+        </div>
+        <div class="description"><%= description %></div>
+    </div>
+</script>
+
+<script type="text/html" id="dialog-achievement-item">
+<div class="dialog-achievement">
+    <div class="left">
+        <img src="<%= JSContext.staticBase %><%= icon %>" />
+    </div>
+    <div class="right">
+        <h2 style="color: #c63d2b; padding: 21px; font-weight: bold;">
+            <%= point_value %> Points
+        </h2>
+        <div class="description">
+            <%= description %>
+        </div>
+        <% if (next_level) { %>
+            <div class="sticky" style="margin-top:21px;">
+                To obtain a <%= next_level %> <%= name %>, <%= advancement_tooltip %>
+            </div>
+        <% } %>
+    </div>
+</div>
+</script>
+
+<script type="text/html" id="test-medal">
+    <div class="medal-details">
+    <h2>Achievement Details</h2>
+    <% _.each(medal_data.network_assets, function(asset) { %>
+        <div style="width: 150px;">
+            <div class="stat <%= asset.social_network_canonical_name %>_16x16_icon"><span><%= asset.name %></span></div>
+        </div>
+
+        <% }) %>
+    </div>
+</script>

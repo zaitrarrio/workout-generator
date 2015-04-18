@@ -1,7 +1,10 @@
 import json
+import os
 
 from django.http import Http404
 from django.http import HttpResponse
+
+from twilio.rest import TwilioRestClient
 
 from workout_generator.access_token.models import AccessToken
 from workout_generator.basic_navigation.constants import ResponseCodes
@@ -307,3 +310,28 @@ def coupon(request, coupon_code):
     return render_to_json(
         Coupon.get_by_code(coupon_code).to_json(),
         status=200)
+
+
+def text_link(request):
+    post_data = request.POST or json.loads(request.body)
+    phone_number = post_data["phone"]
+    numbers = [str(char) for char in range(10)]
+    cleaned_phone_list = [char for char in phone_number if char in numbers]
+    cleaned_phone = "".join(cleaned_phone_list)
+
+    ACCOUNT_SID = os.environ['TWILIO_ACCOUNT_SID']
+    AUTH_TOKEN = os.environ['TWILIO_AUTH_TOKEN']
+    TWILIO_PHONE_NUMBER = "+15166128783"
+    APP_URL = 'http://apple.co/1Dw9nLd'
+    IMAGE_URL = "https://s3.amazonaws.com/lobbdawg/ios_ad_compressed.png"
+
+    message = "Thanks for checking out our products!  You can find our iOS app, 'Exercise Library' in the app store here: %s.  The more downloads and reviews we get, the more we can invest into our products!" % APP_URL
+
+    client = TwilioRestClient(ACCOUNT_SID, AUTH_TOKEN)
+    client.messages.create(
+        to=cleaned_phone,
+        from_=TWILIO_PHONE_NUMBER,
+        body=message,
+        media_url=IMAGE_URL,
+    )
+    return render_to_json({}, status=204)

@@ -28,6 +28,7 @@
 	<link rel="stylesheet" href="{% static 'css/bootstrap-switch.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/namespaced-bootstrap.css' %}">
 	<link rel="stylesheet" href="{% static 'css/powerange.css' %}">
+	<link rel="stylesheet" href="{% static 'css/achievement.css' %}">
 	<link rel="stylesheet" href="{% static 'css/datepicker.css' %}">
 
 
@@ -62,6 +63,7 @@ mixpanel.init("{{ mixpanel_token }}");</script><!-- end Mixpanel -->
 <body>
 
     {% include "underscore_templates/main_page.html" %}
+    {% include "underscore_templates/gamification.html" %}
     <input type="hidden" id="stripe-publish-key" value="{{ publishable_key }}" />
     <input type="hidden" id="square-icon" value="{% static 'img/weight_equipment/barbell.jpg' %}"/>
 
