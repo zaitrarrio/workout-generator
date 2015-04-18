@@ -224,7 +224,12 @@ SignUpView = AbstractView.extend({
     clickMoreInfo: function(){
         this.$(".more-info").hide();
         mixpanel.track("Abort Signup; Try iOS");
-        globalTextView.render();
+        if(isMobile()){
+            mixpanel.track("Mobile iOS Redirect");
+            window.location.href = "https://itunes.apple.com/us/app/exercise-library/id982327127";
+        } else {
+            globalTextView.render();
+        }
     },
     facebookLogin: function(){
         var self = this;
